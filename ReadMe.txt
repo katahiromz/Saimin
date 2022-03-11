@@ -36,7 +36,7 @@ Windows XP以降。
 3. 画面（ウィンドウ）が立ち上がります。一番左下のコンボボックスから映像の種類を選んで下さい。
 4. その右にあるコンボボックスから音声を選ぶことができます。
 5. 右下のコンボボックスからメッセージを選んで「Set」ボタンを押すとメッセージを設定できます。
-6. 使用をやめたいときは、左上のバツ印をクリックしてウィンドウを閉じて下さい。
+6. 使用をやめたいときは、右上のバツ印をクリックしてウィンドウを閉じて下さい。
 
 【使用許諾と著作権表示】
 
@@ -90,7 +90,7 @@ Windows XP and later.
 3. The screen (window) will start up. Select the video type from the combo box at the bottom left.
 4. You can select the audio from the combo box to the right of it.
 5. You can set a message by selecting a message from the combo box at the bottom right and pressing the "Set" button.
-6. If you want to stop using it, click the cross mark on the upper left to close the window.
+6. If you want to stop using it, click the cross mark on the upper right to close the window.
 
 [(License and Copyright Notice)]
 
