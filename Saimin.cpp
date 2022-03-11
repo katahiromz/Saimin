@@ -18,8 +18,8 @@ typedef std::complex<double> comp_t;
     typedef std::string str_t;
 #endif
 
-LPCTSTR g_pszClassName = TEXT("Saimin by katahiromz");
-LPCTSTR g_pszTitle = TEXT("Saimin by katahiromz");
+LPCTSTR g_pszClassName = TEXT("Saimin 1.2 by katahiromz");
+LPCTSTR g_pszTitle = TEXT("Saimin 1.2 by katahiromz");
 
 enum ADULT_CHECK
 {
@@ -919,7 +919,7 @@ static BOOL registerClass(HINSTANCE hInstance)
     wcx.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
     wcx.lpfnWndProc = WindowProc;
     wcx.hInstance = hInstance;
-    wcx.hIcon = ::LoadIcon(NULL, IDI_APPLICATION);
+    wcx.hIcon = ::LoadIcon(g_hInstance, MAKEINTRESOURCE(1));
     wcx.hCursor = ::LoadCursor(NULL, IDC_ARROW);
     wcx.lpszClassName = g_pszClassName;
     if (!::RegisterClassEx(&wcx))
