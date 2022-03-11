@@ -1,0 +1,44 @@
+#include <windows.h>
+
+#pragma code_page(932) // Shift_JIS
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+
+1 ICON "res/Saimin.ico"
+1 24 "res/Saimin.manifest"
+
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+
+STRINGTABLE
+{
+    100, "年齢チェック"
+    101, "あなたはこどもですか？"
+    102, "あなたは18才以上ですか？"
+    103, "こどもはつかってはいけません。"
+    200, "あなたはだんだん眠くな～る..."
+    201, "そろそろ自白しようぜ..."
+    202, "高得点を取りたい...もっと勉強..."
+    203, "会社で働きたくな～る..."
+    204, "食欲がなくな～る..."
+    205, "心を切り替えよう..."
+    206, "わたしのことが好きにな～る..."
+    207, "別の生き方探そう..."
+}
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+STRINGTABLE
+{
+    100, "Age check"
+    101, "Are you a child?"
+    102, "Are you over 18 years old?"
+    103, "Children should not use this software."
+    200, "You are getting sleepy..."
+    201, "Confess, confess now..."
+    202, "Wanna get high score. Learn more..."
+    203, "Wanna work in a company..."
+    204, "You are losing appetite..."
+    205, "Change your mind..."
+    206, "You like me... You like me..."
+    207, "Find another way to live..."
+}
