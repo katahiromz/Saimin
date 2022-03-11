@@ -18,8 +18,8 @@ typedef std::complex<double> comp_t;
     typedef std::string str_t;
 #endif
 
-LPCTSTR g_pszClassName = TEXT("Saimin 1.2 by katahiromz");
-LPCTSTR g_pszTitle = TEXT("Saimin 1.2 by katahiromz");
+LPCTSTR g_pszClassName = TEXT("Saimin 1.3 by katahiromz");
+LPCTSTR g_pszTitle = TEXT("Saimin 1.3 by katahiromz");
 
 enum ADULT_CHECK
 {
@@ -424,8 +424,8 @@ void drawType4(RECT& rc, BOOL bFlag)
 
             double radian = -flag2 * theta * M_PI / 180.0 * 2.0 + i * 360 * M_PI / 180 / ci;
             comp_t comp = std::polar(radius, radian + flag2 * M_PI * g_dwCount * 0.03);
-            INT x = qx + comp.real();
-            INT y = qy + comp.imag();
+            INT x = qx + comp.real() * (2 + sin(g_dwCount * 0.04));
+            INT y = qy + comp.imag() * (2 + sin(g_dwCount * 0.04));
             if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 oldx = x;
@@ -446,8 +446,8 @@ void drawType4(RECT& rc, BOOL bFlag)
 
             double radian = -flag2 * theta * M_PI / 180.0 * 2.0 + i * 360 * M_PI / 180 / ci;
             comp_t comp = std::polar(radius, radian + flag2 * M_PI * g_dwCount * 0.03);
-            INT x = qx + comp.real();
-            INT y = qy + comp.imag();
+            INT x = qx + comp.real() * (2 + sin(g_dwCount * 0.02));
+            INT y = qy + comp.imag() * (2 + sin(g_dwCount * 0.02));
             if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 oldx = x;
