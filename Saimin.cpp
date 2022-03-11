@@ -246,7 +246,7 @@ void drawType1(RECT& rc, BOOL bFlag)
             comp_t comp = std::polar(radius, radian - flag2 * M_PI * g_dwCount * 0.03);
             x = qx + comp.real();
             y = qy + comp.imag();
-            if (oldx == -1 && oldy == -1)
+            if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 oldx = x;
                 oldy = y;
@@ -298,8 +298,8 @@ void drawType2(RECT& rc, BOOL bFlag)
         flag2 = -flag2;
         double length = 2 * radius * M_PI;
         INT N = length * 2 / dr0;
-        INT oldx = -1, oldy = -1;
-        INT x, y, x0 = -1, y0 = -1;
+        INT oldx = MAXLONG, oldy = MAXLONG;
+        INT x, y, x0 = MAXLONG, y0 = MAXLONG;
         for (INT k = 0; k < N; ++k)
         {
             double radian = 2 * M_PI * k / N;
@@ -316,7 +316,7 @@ void drawType2(RECT& rc, BOOL bFlag)
             }
             x = qx + comp.real();
             y = qy + comp.imag();
-            if (oldx == -1 && oldy == -1)
+            if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 x0 = x;
                 y0 = y;
@@ -415,7 +415,7 @@ void drawType4(RECT& rc, BOOL bFlag)
     for (INT i = 0; i < ci; ++i)
     {
         INT count = 0;
-        INT oldx = -1, oldy = -1;
+        INT oldx = MAXLONG, oldy = MAXLONG;
         for (double radius = -size; radius < 0; radius += 16.0)
         {
             double theta = count * dr0 * 0.4;
@@ -426,7 +426,7 @@ void drawType4(RECT& rc, BOOL bFlag)
             comp_t comp = std::polar(radius, radian + flag2 * M_PI * g_dwCount * 0.03);
             INT x = qx + comp.real();
             INT y = qy + comp.imag();
-            if (oldx == -1 && oldy == -1)
+            if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 oldx = x;
                 oldy = y;
@@ -437,7 +437,7 @@ void drawType4(RECT& rc, BOOL bFlag)
             oldy = y;
             ++count;
         }
-        oldx = oldy = -1;
+        oldx = oldy = MAXLONG;
         for (double radius = 0; radius < size; radius += 16.0)
         {
             double theta = count * dr0 * 0.4;
@@ -448,7 +448,7 @@ void drawType4(RECT& rc, BOOL bFlag)
             comp_t comp = std::polar(radius, radian + flag2 * M_PI * g_dwCount * 0.03);
             INT x = qx + comp.real();
             INT y = qy + comp.imag();
-            if (oldx == -1 && oldy == -1)
+            if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 oldx = x;
                 oldy = y;
@@ -459,7 +459,7 @@ void drawType4(RECT& rc, BOOL bFlag)
             oldy = y;
             ++count;
         }
-        oldx = oldy = -1;
+        oldx = oldy = MAXLONG;
     }
 
     glColor3d(1.0, 0.4, 0.4);
