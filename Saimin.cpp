@@ -62,7 +62,7 @@ HANDLE g_hThread = NULL;
 
 void circle(double x, double y, double r)
 {
-    INT N = 15;
+    INT N = 10;
     glBegin(GL_POLYGON);
     for (int i = 0; i < N; i++)
     {
