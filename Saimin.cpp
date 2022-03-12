@@ -31,6 +31,7 @@ enum ADULT_CHECK
 };
 
 #define TYPE_COUNT 6
+#define TIMER_ID 999
 
 HINSTANCE g_hInstance = NULL;
 HWND g_hwnd = NULL;
@@ -734,7 +735,7 @@ BOOL createControls(HWND hwnd)
 
 void OnTimer(HWND hwnd, UINT id)
 {
-    if (id == 999)
+    if (id == TIMER_ID)
     {
         InvalidateRect(hwnd, NULL, TRUE);
         g_dwCount++;
@@ -794,13 +795,13 @@ BOOL OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct)
 
     g_hThread = CreateThread(NULL, 0, threadProc, NULL, 0, NULL);
 
-    SetTimer(hwnd, 999, 0, NULL);
+    SetTimer(hwnd, TIMER_ID, 0, NULL);
     return TRUE;
 }
 
 void OnDestroy(HWND hwnd)
 {
-    KillTimer(hwnd, 999);
+    KillTimer(hwnd, TIMER_ID);
     TerminateThread(g_hThread, -1);
     CloseHandle(g_hThread);
     wglMakeCurrent(g_hDC, NULL);
