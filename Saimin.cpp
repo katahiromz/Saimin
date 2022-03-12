@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
@@ -31,9 +32,6 @@ enum ADULTCHECK
 
 #define TYPE_COUNT 6
 #define TIMER_ID 999
-#ifndef M_PI
-    #define M_PI 3.141592654589
-#endif
 
 HINSTANCE g_hInstance = NULL;
 HWND g_hwnd = NULL;
