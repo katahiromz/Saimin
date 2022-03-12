@@ -39,6 +39,7 @@ endif()
 
 # Saimin.exe
 add_executable(Saimin WIN32 Saimin.cpp Saimin_res.rc)
+target_compile_definitions(Saimin PUBLIC -DUNICODE -D_UNICODE)
 target_link_libraries(Saimin comctl32 winmm opengl32 shlwapi)
 
 ##############################################################################
