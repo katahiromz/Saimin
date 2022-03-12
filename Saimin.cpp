@@ -1,3 +1,4 @@
+
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
@@ -10,6 +11,7 @@
 #include <tchar.h>
 #include <mmsystem.h>
 #include <gl/GL.h>
+#include <assert.h>
 
 typedef std::complex<double> comp_t;
 #ifdef UNICODE
@@ -18,8 +20,8 @@ typedef std::complex<double> comp_t;
     typedef std::string str_t;
 #endif
 
-LPCTSTR g_pszClassName = TEXT("Saimin 1.3 by katahiromz");
-LPCTSTR g_pszTitle = TEXT("Saimin 1.3 by katahiromz");
+LPCTSTR g_pszClassName = TEXT("Saimin 1.4 by katahiromz");
+LPCTSTR g_pszTitle = TEXT("Saimin 1.4 by katahiromz");
 
 enum ADULT_CHECK
 {
@@ -44,6 +46,7 @@ INT g_nStc1Width = 100;
 INT g_nStc1Height = 100;
 WNDPROC g_fnStc1OldWndProc = NULL;
 INT g_nType = 0;
+INT g_nRandomType = 0;
 TCHAR g_szIniFile[MAX_PATH] = TEXT("");
 TCHAR g_szText[48] = TEXT("");
 TCHAR g_szSound[MAX_PATH] = TEXT("");
@@ -468,12 +471,26 @@ void drawType4(RECT& rc, BOOL bFlag)
     circle(qx, qy, dr);
 }
 
-void drawType(RECT& rc, INT nType, BOOL bFlag)
+void updateRandom()
 {
-    static INT s_nRandomType = 1;
-    switch (nType)
+    INT nOldRandomType = g_nRandomType;
+    do
+    {
+        g_nRandomType = rand() % (TYPE_COUNT - 2) + 1;
+    } while (g_nRandomType == nOldRandomType);
+
+    g_bDual = (rand() % 3) < 2;
+}
+
+void drawRandom(RECT& rc, BOOL bFlag)
+{
+    if ((g_dwCount % 500) == 0)
+        updateRandom();
+
+    switch (g_nRandomType)
     {
     case 0:
+        assert(0);
         break;
     case 1:
         drawType1(rc, bFlag);
@@ -488,30 +505,32 @@ void drawType(RECT& rc, INT nType, BOOL bFlag)
         drawType4(rc, bFlag);
         break;
     case TYPE_COUNT - 1:
-        if ((g_dwCount % 500) == 0)
-        {
-            s_nRandomType = rand() % (TYPE_COUNT - 2) + 1;
-            g_bDual = (rand() % 3) < 2;
-        }
-        switch (s_nRandomType)
-        {
-        case 0:
-            break;
-        case 1:
-            drawType1(rc, bFlag);
-            break;
-        case 2:
-            drawType2(rc, bFlag);
-            break;
-        case 3:
-            drawType3(rc, bFlag);
-            break;
-        case 4:
-            drawType4(rc, bFlag);
-            break;
-        case TYPE_COUNT - 1:
-            break;
-        }
+        assert(0);
+        break;
+    }
+}
+
+void drawType(RECT& rc, INT nType, BOOL bFlag)
+{
+    switch (nType)
+    {
+    case 0:
+        // Do nothing
+        break;
+    case 1:
+        drawType1(rc, bFlag);
+        break;
+    case 2:
+        drawType2(rc, bFlag);
+        break;
+    case 3:
+        drawType3(rc, bFlag);
+        break;
+    case 4:
+        drawType4(rc, bFlag);
+        break;
+    case TYPE_COUNT - 1:
+        drawRandom(rc, bFlag);
         break;
     }
 }
@@ -843,6 +862,11 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
     {
     case cmb1:
         iItem = ComboBox_GetCurSel(g_hCmb1);
+        if (iItem == TYPE_COUNT - 1)
+        {
+            g_nRandomType = g_nType;
+            updateRandom();
+        }
         g_nType = iItem;
         break;
     case cmb2:
@@ -1018,6 +1042,11 @@ WinMain(HINSTANCE  hInstance,
     }
 
     saveSetting();
+
+#if defined(_MSC_VER) && !defined(NDEBUG)
+    // for detecting memory leak (MSVC only)
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
 
     return (INT)msg.wParam;
 }
