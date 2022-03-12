@@ -484,7 +484,7 @@ void drawType4(RECT& rc, BOOL bFlag)
     circle(qx, qy, dr);
 }
 
-void updateRandom()
+void updateRandom(void)
 {
     INT nOldRandomType = g_nRandomType;
     INT nNewRandomType;
@@ -863,6 +863,9 @@ void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 
 void setType(INT nType)
 {
+    if (g_nType == nType)
+        return;
+
     INT nOldType = g_nType;
     g_nType = nType;
     if (g_nType == TYPE_COUNT - 1)
