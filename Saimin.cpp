@@ -487,11 +487,13 @@ void drawType4(RECT& rc, BOOL bFlag)
 void updateRandom()
 {
     INT nOldRandomType = g_nRandomType;
+    INT nNewRandomType;
     do
     {
-        g_nRandomType = rand() % (TYPE_COUNT - 2) + 1;
-    } while (g_nRandomType == nOldRandomType);
+        nNewRandomType = rand() % (TYPE_COUNT - 2) + 1;
+    } while (nNewRandomType == 0 || nNewRandomType == nOldRandomType || nNewRandomType == TYPE_COUNT - 1);
 
+    g_nRandomType = nNewRandomType;
     g_bDual = (rand() % 3) < 2;
 }
 
@@ -859,13 +861,24 @@ void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
     g_bDual = !g_bDual;
 }
 
+void setType(INT nType)
+{
+    INT nOldType = g_nType;
+    g_nType = nType;
+    if (g_nType == TYPE_COUNT - 1)
+    {
+        g_nRandomType = nOldType;
+        updateRandom();
+    }
+    ComboBox_SetCurSel(g_hCmb1, g_nType);
+}
+
 void OnRButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 {
     if (GetAsyncKeyState(VK_SHIFT) < 0)
-        g_nType = (g_nType + TYPE_COUNT - 1) % TYPE_COUNT;
+        setType((g_nType + TYPE_COUNT - 1) % TYPE_COUNT);
     else
-        g_nType = (g_nType + 1) % TYPE_COUNT;
-    ComboBox_SetCurSel(g_hCmb1, g_nType);
+        setType((g_nType + 1) % TYPE_COUNT);
 }
 
 void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
@@ -876,12 +889,7 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
     {
     case cmb1:
         iItem = ComboBox_GetCurSel(g_hCmb1);
-        if (iItem == TYPE_COUNT - 1)
-        {
-            g_nRandomType = g_nType;
-            updateRandom();
-        }
-        g_nType = iItem;
+        setType(iItem);
         break;
     case cmb2:
         iItem = ComboBox_GetCurSel(g_hCmb2);
