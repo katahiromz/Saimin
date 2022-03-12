@@ -484,23 +484,22 @@ void drawType4(RECT& rc, BOOL bFlag)
     circle(qx, qy, dr);
 }
 
-void updateRandom(void)
+void updateRandom(INT nOldType)
 {
-    INT nOldRandomType = g_nRandomType;
-    INT nNewRandomType;
+    INT nNewType;
     do
     {
-        nNewRandomType = rand() % (TYPE_COUNT - 2) + 1;
-    } while (nNewRandomType == 0 || nNewRandomType == nOldRandomType || nNewRandomType == TYPE_COUNT - 1);
+        nNewType = rand() % (TYPE_COUNT - 2) + 1;
+    } while (nNewType == nOldType || nNewType == 0 || nNewType == TYPE_COUNT - 1);
 
-    g_nRandomType = nNewRandomType;
+    g_nRandomType = nNewType;
     g_bDual = (rand() % 3) < 2;
 }
 
 void drawRandom(RECT& rc, BOOL bFlag)
 {
     if ((g_dwCount % 500) == 0)
-        updateRandom();
+        updateRandom(g_nRandomType);
 
     switch (g_nRandomType)
     {
@@ -867,10 +866,7 @@ void setType(INT nType)
     g_nType = nType;
 
     if (g_nType == TYPE_COUNT - 1)
-    {
-        g_nRandomType = nOldType;
-        updateRandom();
-    }
+        updateRandom(nOldType);
 
     if (ComboBox_GetCurSel(g_hCmb1) != g_nType)
         ComboBox_SetCurSel(g_hCmb1, g_nType);
@@ -1043,6 +1039,8 @@ WinMain(HINSTANCE  hInstance,
 
     g_hInstance = hInstance;
     InitCommonControls();
+
+    srand(GetTickCount());
 
     loadSetting();
 
