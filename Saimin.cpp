@@ -856,24 +856,24 @@ void OnSize(HWND hwnd, UINT state, int cx, int cy)
     MoveWindow(g_hPsh1, rc.right - 40, rc.bottom - 24, 40, 24, TRUE);
 }
 
-void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+inline void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 {
     g_bDual = !g_bDual;
 }
 
 void setType(INT nType)
 {
-    if (g_nType == nType)
-        return;
-
     INT nOldType = g_nType;
     g_nType = nType;
+
     if (g_nType == TYPE_COUNT - 1)
     {
         g_nRandomType = nOldType;
         updateRandom();
     }
-    ComboBox_SetCurSel(g_hCmb1, g_nType);
+
+    if (ComboBox_GetCurSel(g_hCmb1) != g_nType)
+        ComboBox_SetCurSel(g_hCmb1, g_nType);
 }
 
 void OnRButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
