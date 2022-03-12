@@ -26,6 +26,7 @@ STRINGTABLE
     205, "S‚ğØ‚è‘Ö‚¦‚æ‚¤..."
     206, "‚í‚½‚µ‚Ì‚±‚Æ‚ªD‚«‚É‚È`‚é..."
     207, "•Ê‚Ì¶‚«•û’T‚»‚¤..."
+    208, "‚ ‚È‚½‚Í¶‚«‚Ä‚¢‚Ä‚à‚æ‚¢‚Ì‚Å‚·..."
 }
 
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -47,4 +48,5 @@ STRINGTABLE
     205, "Change your mind..."
     206, "You like me... You like me..."
     207, "Find another way to live..."
+    208, "You may live. It's alright."
 }

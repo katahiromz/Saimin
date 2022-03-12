@@ -711,7 +711,7 @@ BOOL createControls(HWND hwnd)
         return FALSE;
     SetWindowFont(g_hCmb3, GetStockFont(DEFAULT_GUI_FONT), TRUE);
     ComboBox_AddString(g_hCmb3, TEXT(""));
-    for (INT i = 200; i <= 207; ++i)
+    for (INT i = 200; i <= 208; ++i)
     {
         ComboBox_AddString(g_hCmb3, doLoadString(i));
     }
