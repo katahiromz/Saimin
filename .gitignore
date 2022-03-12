@@ -27,6 +27,7 @@ Release
 TMP1.$$$
 build
 ipch
+Win32
 x64
 *-old
 *.skrold
