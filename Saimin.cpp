@@ -305,7 +305,7 @@ void drawType2(RECT& rc, BOOL bFlag)
 
     double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4;
     double qx, qy;
-    DWORD dwCount = getCount() / 2;
+    DWORD dwCount = getCount();
     {
         comp_t comp;
         if (g_bCenterMove)
@@ -316,14 +316,14 @@ void drawType2(RECT& rc, BOOL bFlag)
 
     double factor = (0.99 + fabs(sin(dwCount * 0.2)) * 0.01);
 
-    INT dr0 = 30;
+    INT dr0 = 20;
     double dr = dr0 / 2 * factor;
     double radius;
     INT flag2 = g_nDirection;
     if (flag2 == 1)
-        radius = INT(dwCount * 4) % dr0;
+        radius = INT(dwCount * 2) % dr0;
     else
-        radius = INT(dr0 - dwCount * 4) % dr0;
+        radius = INT(dr0 - dwCount * 2) % dr0;
     for (; radius < size; radius += dr0)
     {
         double length = 2 * radius * M_PI;
