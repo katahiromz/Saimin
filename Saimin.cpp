@@ -233,7 +233,7 @@ BOOL saveSetting(void)
 
 DWORD getCount(void)
 {
-    return (DWORD)(g_dwCount * std::sqrt(std::sqrt(g_nSpeed)));
+    return (DWORD)(g_dwCount * std::sqrt(g_nSpeed));
 }
 
 void drawType1(RECT& rc, BOOL bFlag)
@@ -283,7 +283,7 @@ void drawType1(RECT& rc, BOOL bFlag)
                 oldx = x;
                 oldy = y;
             }
-            line(oldx, oldy, x, y, dr * f / 3);
+            line(oldx, oldy, x, y, dr * f / 3, 5 * f);
 
             oldx = x;
             oldy = y;
