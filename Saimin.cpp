@@ -62,9 +62,8 @@ INT g_nSpeed = 2;
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
 #endif
 
-void circle(double x, double y, double r)
+void circle(double x, double y, double r, INT N = 10)
 {
-    INT N = 10;
     glBegin(GL_POLYGON);
     for (int i = 0; i < N; i++)
     {
@@ -74,10 +73,10 @@ void circle(double x, double y, double r)
     glEnd();
 }
 
-void line(double x0, double y0, double x1, double y1, double width)
+void line(double x0, double y0, double x1, double y1, double width, INT N = 6)
 {
-    circle(x0, y0, width);
-    circle(x1, y1, width);
+    circle(x0, y0, width, N);
+    circle(x1, y1, width, N);
 
     comp_t comp0(cos(M_PI / 2), sin(M_PI / 2));
     comp_t comp1(x1 - x0, y1 - y0);
@@ -358,6 +357,7 @@ void drawType2(RECT& rc, BOOL bFlag)
             oldx = x;
             oldy = y;
         }
+
         double value = 0.4 * sin(dwCount * 0.1) + 0.6;
         glColor3d(1.0, value, value);
         line(x0, y0, oldx, oldy, dr * 0.5);
