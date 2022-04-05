@@ -263,12 +263,12 @@ void drawType1(RECT& rc, BOOL bFlag)
     INT dr0 = 15;
     double dr = dr0 / 2 * factor;
     INT flag2 = bFlag ? g_nDirection : -g_nDirection;
-    INT ci = 5;
+    INT ci = 6;
     for (INT i = 0; i <= ci; ++i)
     {
         INT count = 0;
         double x, y, oldx = qx, oldy = qy;
-        double f = 1.0;
+        double f = 0.5;
         for (double radius = 0; radius < size; radius += f)
         {
             double theta = count * dr0 * 0.75 / 2;
@@ -284,7 +284,7 @@ void drawType1(RECT& rc, BOOL bFlag)
                 oldx = x;
                 oldy = y;
             }
-            line(oldx, oldy, x, y, dr * f / 2);
+            line(oldx, oldy, x, y, dr * f / 3);
 
             oldx = x;
             oldy = y;
