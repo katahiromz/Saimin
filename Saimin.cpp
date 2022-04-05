@@ -353,14 +353,14 @@ void drawType2(RECT& rc, BOOL bFlag)
                 oldx = x;
                 oldy = y;
             }
-            line(oldx, oldy, x, y, dr * 0.5);
+            line(oldx, oldy, x, y, dr * 0.5, 5);
             oldx = x;
             oldy = y;
         }
 
         double value = 0.4 * sin(dwCount * 0.1) + 0.6;
         glColor3d(1.0, value, value);
-        line(x0, y0, oldx, oldy, dr * 0.5);
+        line(x0, y0, oldx, oldy, dr * 0.5, 5);
     }
 }
 
