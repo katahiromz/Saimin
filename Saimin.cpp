@@ -55,6 +55,8 @@ BOOL g_bDual = TRUE;
 INT g_nDirection = 1;
 std::vector<str_t> g_texts;
 HANDLE g_hThread = NULL;
+BOOL g_bCenterMove = FALSE;
+INT g_nSpeed = 2;
 
 #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
@@ -164,6 +166,14 @@ BOOL loadSetting(void)
     if (error)
         g_bDual = 1;
 
+    error = keyApp.QueryDword(TEXT("CenterMove"), (DWORD&)g_bCenterMove);
+    if (error)
+        g_bCenterMove = FALSE;
+
+    error = keyApp.QueryDword(TEXT("Speed"), (DWORD&)g_nSpeed);
+    if (error)
+        g_nSpeed = 2;
+
     error = keyApp.QuerySz(TEXT("Sound"), str);
     if (error)
         str = TEXT("");
@@ -203,6 +213,8 @@ BOOL saveSetting(void)
     keyApp.SetDword(TEXT("AdultCheck"), g_nAdultCheck);
     keyApp.SetDword(TEXT("Type"), g_nType);
     keyApp.SetDword(TEXT("Dual"), g_bDual);
+    keyApp.SetDword(TEXT("CenterMove"), g_bCenterMove);
+    keyApp.SetDword(TEXT("Speed"), g_nSpeed);
 
     keyApp.SetSz(TEXT("Sound"), g_strSound.c_str());
     keyApp.SetSz(TEXT("Text"), g_strText.c_str());
@@ -220,6 +232,11 @@ BOOL saveSetting(void)
     return TRUE;
 }
 
+DWORD getCount(void)
+{
+    return (DWORD)(g_dwCount * std::sqrt(std::sqrt(g_nSpeed)));
+}
+
 void drawType1(RECT& rc, BOOL bFlag)
 {
     INT px = rc.left, py = rc.top;
@@ -232,17 +249,16 @@ void drawType1(RECT& rc, BOOL bFlag)
 
     INT size = ((rc.right - rc.left) + (rc.bottom - rc.top)) / 2;
     double qx, qy;
+    DWORD dwCount = getCount();
     {
         comp_t comp;
-        if (g_dwCount % 500 > 300)
-            comp = std::polar(50.0, M_PI * g_dwCount * 0.02);
-        else
-            comp = std::polar(50.0, M_PI * g_dwCount * 0.04);
+        if (g_bCenterMove)
+            comp = std::polar(50.0, M_PI * dwCount * 0.02);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
 
-    double factor = (0.99 + fabs(sin(g_dwCount * 0.2)) * 0.01);
+    double factor = (0.99 + fabs(sin(dwCount * 0.2)) * 0.01);
 
     INT dr0 = 15;
     double dr = dr0 / 2 * factor;
@@ -252,16 +268,15 @@ void drawType1(RECT& rc, BOOL bFlag)
     {
         INT count = 0;
         double x, y, oldx = qx, oldy = qy;
-        for (double radius = 0; radius < size; radius += dr0 / 4)
+        double f = 1.0;
+        for (double radius = 0; radius < size; radius += f)
         {
-            double theta = flag2 * count * dr0 / 2;
-            if (g_nDirection == 1)
-                theta *= 0.75;
-            double value = 0.4 * sin(g_dwCount * 0.1) + 0.6;
+            double theta = count * dr0 * 0.75 / 2;
+            double value = 0.3 * sin(dwCount * 0.04) + 0.7;
             glColor3d(1.0, 1.0, value);
 
-            double radian = flag2 * theta * M_PI / 180.0 + i * 360 * M_PI / 180 / ci;
-            comp_t comp = std::polar(radius, radian - flag2 * M_PI * g_dwCount * 0.03);
+            double radian = theta * M_PI / 180.0 + i * 360 * M_PI / 180 / ci;
+            comp_t comp = std::polar(radius, flag2 * (radian - M_PI * dwCount * 0.03));
             x = qx + comp.real();
             y = qy + comp.imag();
             if (oldx == MAXLONG && oldy == MAXLONG)
@@ -269,11 +284,12 @@ void drawType1(RECT& rc, BOOL bFlag)
                 oldx = x;
                 oldy = y;
             }
-            line(oldx, oldy, x, y, dr);
+            line(oldx, oldy, x, y, dr * f / 2);
 
             oldx = x;
             oldy = y;
             ++count;
+            f *= 1.02;
         }
     }
 
@@ -295,25 +311,27 @@ void drawType2(RECT& rc, BOOL bFlag)
 
     double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4;
     double qx, qy;
+    DWORD dwCount = getCount() / 2;
     {
-        comp_t comp = std::polar(size / 50.0, M_PI * g_dwCount * 0.05);
+        comp_t comp;
+        if (g_bCenterMove)
+            comp = std::polar(30.0, M_PI * dwCount * 0.04);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
 
-    double factor = (0.99 + fabs(sin(g_dwCount * 0.2)) * 0.01);
+    double factor = (0.99 + fabs(sin(dwCount * 0.2)) * 0.01);
 
     INT dr0 = 30;
     double dr = dr0 / 2 * factor;
     double radius;
-    if (g_dwCount % 1000 < 500)
-        radius = INT(g_dwCount * 4) % dr0;
-    else
-        radius = INT(dr0 - g_dwCount * 4) % dr0;
     INT flag2 = g_nDirection;
+    if (flag2 == 1)
+        radius = INT(dwCount * 4) % dr0;
+    else
+        radius = INT(dr0 - dwCount * 4) % dr0;
     for (; radius < size; radius += dr0)
     {
-        flag2 = -flag2;
         double length = 2 * radius * M_PI;
         INT N = INT(length * 2 / dr0);
         double oldx = MAXLONG, oldy = MAXLONG;
@@ -321,16 +339,16 @@ void drawType2(RECT& rc, BOOL bFlag)
         for (INT k = 0; k < N; ++k)
         {
             double radian = 2 * M_PI * k / N;
-            double value = 0.4 * sin(g_dwCount * 0.1) + 0.6;
+            double value = 0.4 * sin(dwCount * 0.1) + 0.6;
             glColor3d(1.0, value, value);
             comp_t comp;
             if (bFlag)
             {
-                comp = std::polar(radius * factor, radian + flag2 * M_PI * g_dwCount * 0.02);
+                comp = std::polar(radius * factor, flag2 * (radian + M_PI * dwCount * 0.02));
             }
             else
             {
-                comp = std::polar(radius * factor, radian - flag2 * M_PI * g_dwCount * 0.02);
+                comp = std::polar(radius * factor, flag2 * (radian - M_PI * dwCount * 0.02));
             }
             x = qx + comp.real();
             y = qy + comp.imag();
@@ -345,14 +363,10 @@ void drawType2(RECT& rc, BOOL bFlag)
             oldx = x;
             oldy = y;
         }
-        double value = 0.4 * sin(g_dwCount * 0.1) + 0.6;
+        double value = 0.4 * sin(dwCount * 0.1) + 0.6;
         glColor3d(1.0, value, value);
         line(x0, y0, oldx, oldy, dr * 0.5);
     }
-    glColor3d(1.0, 0.3, 0.3);
-    circle(qx, qy, dr);
-    glColor3d(1.0, 0.6, 0.6);
-    circle(qx, qy, dr / 2);
 }
 
 void drawType3(RECT& rc, BOOL bFlag)
@@ -367,8 +381,11 @@ void drawType3(RECT& rc, BOOL bFlag)
 
     double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) / 2;
     double qx, qy;
+    DWORD dwCount = getCount();
     {
-        comp_t comp = std::polar(size * 0.01, M_PI * g_dwCount * 0.1);
+        comp_t comp;
+        if (g_bCenterMove)
+            comp = std::polar(size * 0.01, M_PI * dwCount * 0.1);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
@@ -384,11 +401,11 @@ void drawType3(RECT& rc, BOOL bFlag)
         for (double radius = 0; radius < size; radius += dr0)
         {
             double theta = count * dr0 * 1.5;
-            double value = 0.6 + 0.4 * sin(g_dwCount * 0.1 + count * 0.1);
+            double value = 0.6 + 0.4 * sin(dwCount * 0.1 + count * 0.1);
             glColor3d(1.0, value, 1.0);
 
             double radian = flag2 * theta * M_PI / 180.0 + i * 360 * M_PI / 180 / ci;
-            comp_t comp = std::polar(radius, radian - flag2 * M_PI * g_dwCount * 0.06);
+            comp_t comp = std::polar(radius, radian - flag2 * M_PI * dwCount * 0.06);
             double x = qx + comp.real();
             double y = qy + comp.imag();
             line(oldx, oldy, x, y, dr);
@@ -417,17 +434,20 @@ void drawType4(RECT& rc, BOOL bFlag)
 
     double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4;
     double qx, qy;
+    DWORD dwCount = getCount();
     {
-        comp_t comp = std::polar(20.0, M_PI * g_dwCount * 0.01);
+        comp_t comp;
+        if (g_bCenterMove)
+            comp = std::polar(20.0, M_PI * dwCount * 0.01);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
 
-    double factor = (0.99 + fabs(sin(g_dwCount * 0.2)) * 0.01);
+    double factor = (0.99 + fabs(sin(dwCount * 0.2)) * 0.01);
 
     INT dr0 = 20;
     double dr = dr0 / 4 * factor;
-    INT flag2 = (bFlag ? -1 : 1);
+    INT flag2 = g_nDirection * (bFlag ? -1 : 1);
     INT ci = 10;
     for (INT i = 0; i < ci; ++i)
     {
@@ -436,13 +456,13 @@ void drawType4(RECT& rc, BOOL bFlag)
         for (double radius = -size; radius < 0; radius += 16.0)
         {
             double theta = count * dr0 * 0.4;
-            double value = 0.6 + 0.4 * sin(g_dwCount * 0.1 + count * 0.1);
+            double value = 0.6 + 0.4 * sin(dwCount * 0.1 + count * 0.1);
             glColor3d(value, 1.0, 1.0);
 
-            double radian = -flag2 * theta * M_PI / 180.0 * 2.0 + i * 360 * M_PI / 180 / ci;
-            comp_t comp = std::polar(radius, radian + flag2 * M_PI * g_dwCount * 0.03);
-            double x = qx + comp.real() * (2 + sin(g_dwCount * 0.04));
-            double y = qy + comp.imag() * (2 + sin(g_dwCount * 0.04));
+            double radian = theta * M_PI / 180.0 * 2.0 + i * 360 * M_PI / 180 / ci;
+            comp_t comp = std::polar(radius, flag2 * (-radian + M_PI * dwCount * 0.03));
+            double x = qx + comp.real() * (2 + sin(dwCount * 0.04));
+            double y = qy + comp.imag() * (2 + sin(dwCount * 0.04));
             if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 oldx = x;
@@ -458,13 +478,13 @@ void drawType4(RECT& rc, BOOL bFlag)
         for (double radius = 0; radius < size; radius += 16.0)
         {
             double theta = count * dr0 * 0.4;
-            double value = 0.6 + 0.4 * sin(g_dwCount * 0.1 + count * 0.1);
+            double value = 0.6 + 0.4 * sin(dwCount * 0.1 + count * 0.1);
             glColor3d(value, 1.0, 1.0);
 
             double radian = -flag2 * theta * M_PI / 180.0 * 2.0 + i * 360 * M_PI / 180 / ci;
-            comp_t comp = std::polar(radius, radian + flag2 * M_PI * g_dwCount * 0.03);
-            double x = qx + comp.real() * (2 + sin(g_dwCount * 0.02));
-            double y = qy + comp.imag() * (2 + sin(g_dwCount * 0.02));
+            comp_t comp = std::polar(radius, radian + flag2 * M_PI * dwCount * 0.03);
+            double x = qx + comp.real() * (2 + sin(dwCount * 0.02));
+            double y = qy + comp.imag() * (2 + sin(dwCount * 0.02));
             if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 oldx = x;
@@ -753,8 +773,6 @@ void OnTimer(HWND hwnd, UINT id)
     {
         InvalidateRect(hwnd, NULL, TRUE);
         g_dwCount++;
-        if (g_dwCount % 150 == 0 && (rand() % 3 < 2))
-            g_nDirection = -g_nDirection;
     }
 }
 
@@ -934,7 +952,12 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 void OnMButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 {
-    g_nDirection = -g_nDirection;
+    if (GetAsyncKeyState(VK_SHIFT) < 0)
+        g_bCenterMove = !g_bCenterMove;
+    else if (GetAsyncKeyState(VK_CONTROL) < 0)
+        g_nSpeed = g_nSpeed % 3 + 1;
+    else
+        g_nDirection = -g_nDirection;
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
