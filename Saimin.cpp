@@ -305,7 +305,7 @@ void drawType2(RECT& rc, BOOL bFlag)
 
     double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4;
     double qx, qy;
-    DWORD dwCount = getCount();
+    DWORD dwCount = getCount() / 1.5;
     {
         comp_t comp;
         if (g_bCenterMove)
@@ -376,45 +376,42 @@ void drawType3(RECT& rc, BOOL bFlag)
 
     double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) / 2;
     double qx, qy;
-    DWORD dwCount = getCount();
+    DWORD dwCount = getCount() / 1.5;
     {
         comp_t comp;
         if (g_bCenterMove)
-            comp = std::polar(size * 0.01, M_PI * dwCount * 0.1);
+            comp = std::polar(size * 0.06, M_PI * dwCount * 0.02);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
 
-    double dr0 = 20;
-    double dr = dr0 / 2 * 0.7;
+    double dr0 = 10;
+    double dr = dr0 / 2;
     INT flag2 = bFlag ? g_nDirection : -g_nDirection;
-    INT ci = 5;
+    INT ci = 8;
     for (INT i = 0; i < ci; ++i)
     {
         INT count = 0;
         double oldx = qx, oldy = qy;
-        for (double radius = 0; radius < size; radius += dr0)
+        double f = 0.4;
+        for (double radius = 0; radius < size; radius += dr0 * f)
         {
             double theta = count * dr0 * 1.5;
-            double value = 0.6 + 0.4 * sin(dwCount * 0.1 + count * 0.1);
+            double value = 0.7 + 0.3 * sin(flag2 * dwCount * 0.05 + count * 0.1);
             glColor3d(1.0, value, 1.0);
 
             double radian = flag2 * theta * M_PI / 180.0 + i * 360 * M_PI / 180 / ci;
-            comp_t comp = std::polar(radius, radian - flag2 * M_PI * dwCount * 0.06);
+            comp_t comp = std::polar(radius, radian - flag2 * M_PI * dwCount * 0.03);
             double x = qx + comp.real();
             double y = qy + comp.imag();
-            line(oldx, oldy, x, y, dr);
+            line(oldx, oldy, x, y, dr * f, f * 7);
 
             oldx = x;
             oldy = y;
             ++count;
+            f *= 1.03;
         }
     }
-
-    glColor3d(1.0, 0.5, 0.5);
-    circle(qx, qy, dr0);
-    glColor3d(1.0, 0.2, 0.2);
-    circle(qx, qy, dr0 / 2);
 }
 
 void drawType4(RECT& rc, BOOL bFlag)
@@ -429,7 +426,7 @@ void drawType4(RECT& rc, BOOL bFlag)
 
     double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4;
     double qx, qy;
-    DWORD dwCount = getCount();
+    DWORD dwCount = getCount() / 2.0;
     {
         comp_t comp;
         if (g_bCenterMove)
