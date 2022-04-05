@@ -292,11 +292,6 @@ void drawType1(RECT& rc, BOOL bFlag)
             f *= 1.02;
         }
     }
-
-    glColor3d(1.0, 0.5, 0.5);
-    circle(qx, qy, dr0);
-    glColor3d(1.0, 0.2, 0.2);
-    circle(qx, qy, dr0 / 2);
 }
 
 void drawType2(RECT& rc, BOOL bFlag)
