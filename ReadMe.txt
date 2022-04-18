@@ -25,6 +25,7 @@ Windows XP以降。
 - 18才未満は使用禁止です。
 - 幼い子どもに試すのはやめて下さい。親子の不仲と精神異常の恐れがあります。
 - 急性期の統合失調症患者は使用禁止です。
+- 繰り返し使用すると、反応が鈍くなり、社会性が低下する恐れがあります。
 - 精神実験には被験者の同意が必要です。
 - 使用直後は、自動車の運転を避けて下さい。
 - 集合体恐怖症の人は使用しないで下さい。
@@ -89,6 +90,7 @@ Windows XP and later.
 - Persons under 18 years of age are prohibited from using this software.
 - Please do not try this software on young child. It may cause parent-child disagreement and mental illness.
 - Acute schizophrenic patients should not use this software.
+- Repeated use of this software may lead to slower reactions and reducing social skills.
 - Mental experiments require the consent of the subject.
 - Avoid driving a car immediately after using this software.
 - People with trypophobia should not use this software.
