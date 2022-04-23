@@ -18,6 +18,12 @@
 
 Windows XP以降。
 
+【仕組み】
+
+変化する複雑で奇怪な図形の映像を見ることによって、脳内の映像情報が通常使わないシナプスを刺激して脳内で指令回路を発火しやすくなるらしいです。
+
+しかし、学術的に証明されたものではないし、確実に効果があるとは言えません。慣れると何ともなくなります。
+
 【使用上の注意】
 
 - 精神に何らかの影響が発生する可能性をあらかじめ留意して下さい。
@@ -44,8 +50,8 @@ Windows XP以降。
 
 - 画面を左クリックすると画面分割が切り替わります。
 - 画面を中央クリックすると方向転換します。
-- Shiftキーを押しながら画面を中央クリックすると画面のぐりぐりを切り替えることができます。
-- Ctrlキーを押しながら画面を中央クリックするとスピードを切り替えることができます。
+- マウスホイール回転で回転スピードを調整できます。
+- Ctrlキーを押しながらマウスホイール回転で中央点の回転半径を調整できます。
 - 画面を右クリックすると次の映像へ移動します。
 - Shiftキーを押しながら画面を右クリックすると一つ前の映像へ移動します。
 
@@ -79,6 +85,12 @@ Recommended for:
 - People who want to be enlightened.
 - A lonely old person.
 
+[(How it works)]
+
+It is said that by viewing images of complex and bizarre shapes that change, the visual information in the brain stimulates synapses that are not normally used, making it easier for the brain to fire off command circuits.
+
+However, it has not been academically proven, nor is it certain to work. Once you get used to it, it becomes nothing.
+
 [(Supported OSs)]
 
 Windows XP and later.
@@ -109,8 +121,8 @@ Windows XP and later.
 
 - Left-clicking on the screen toggles the screen split.
 - Center-click on the screen to change direction.
-- Center-clicking on the screen while holding down the Shift key toggles the screen gripping.
-- You can switch speed by holding down the Ctrl key and center-clicking on the screen.
+- Rotation speed can be adjusted by mouse wheel rotation.
+- The rotation radius of the center point can be adjusted by holding down the Ctrl key and rotating the mouse wheel.
 - Right-click on the screen to move to the next video.
 - Right-click on the screen while holding down the Shift key to go to the previous image.
 

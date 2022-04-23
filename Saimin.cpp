@@ -38,6 +38,8 @@ HWND g_hwnd = NULL;
 HDC g_hDC = NULL;
 HGLRC g_hGLRC = 0;
 DWORD g_dwCount = 0;
+float g_eCount = 0;
+DWORD g_dwGriGri = 50;
 HWND g_hCmb1 = NULL;
 HWND g_hCmb2 = NULL;
 HWND g_hCmb3 = NULL;
@@ -55,7 +57,6 @@ BOOL g_bDual = TRUE;
 INT g_nDirection = 1;
 std::vector<str_t> g_texts;
 HANDLE g_hThread = NULL;
-BOOL g_bCenterMove = FALSE;
 INT g_nSpeed = 2;
 
 #ifndef _countof
@@ -161,13 +162,13 @@ BOOL loadSetting(void)
     if (error)
         g_nType = 0;
 
+    error = keyApp.QueryDword(TEXT("GriGri"), (DWORD&)g_dwGriGri);
+    if (error)
+        g_dwGriGri = 50;
+
     error = keyApp.QueryDword(TEXT("Dual"), (DWORD&)g_bDual);
     if (error)
         g_bDual = 1;
-
-    error = keyApp.QueryDword(TEXT("CenterMove"), (DWORD&)g_bCenterMove);
-    if (error)
-        g_bCenterMove = FALSE;
 
     error = keyApp.QueryDword(TEXT("Speed"), (DWORD&)g_nSpeed);
     if (error)
@@ -211,8 +212,8 @@ BOOL saveSetting(void)
 
     keyApp.SetDword(TEXT("AdultCheck"), g_nAdultCheck);
     keyApp.SetDword(TEXT("Type"), g_nType);
+    keyApp.SetDword(TEXT("GriGri"), g_dwGriGri);
     keyApp.SetDword(TEXT("Dual"), g_bDual);
-    keyApp.SetDword(TEXT("CenterMove"), g_bCenterMove);
     keyApp.SetDword(TEXT("Speed"), g_nSpeed);
 
     keyApp.SetSz(TEXT("Sound"), g_strSound.c_str());
@@ -233,7 +234,7 @@ BOOL saveSetting(void)
 
 DWORD getCount(void)
 {
-    return (DWORD)(g_dwCount * std::sqrt(g_nSpeed));
+    return (DWORD)g_eCount;
 }
 
 void drawType1(RECT& rc, BOOL bFlag)
@@ -250,9 +251,7 @@ void drawType1(RECT& rc, BOOL bFlag)
     double qx, qy;
     DWORD dwCount = getCount();
     {
-        comp_t comp;
-        if (g_bCenterMove)
-            comp = std::polar(50.0, M_PI * dwCount * 0.02);
+        comp_t comp = std::polar(double(g_dwGriGri), M_PI * dwCount * 0.01);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
@@ -307,9 +306,7 @@ void drawType2(RECT& rc, BOOL bFlag)
     double qx, qy;
     DWORD dwCount = getCount() / 1.5;
     {
-        comp_t comp;
-        if (g_bCenterMove)
-            comp = std::polar(30.0, M_PI * dwCount * 0.04);
+        comp_t comp = std::polar(double(g_dwGriGri), M_PI * dwCount * 0.01);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
@@ -378,9 +375,7 @@ void drawType3(RECT& rc, BOOL bFlag)
     double qx, qy;
     DWORD dwCount = getCount() / 1.5;
     {
-        comp_t comp;
-        if (g_bCenterMove)
-            comp = std::polar(size * 0.06, M_PI * dwCount * 0.02);
+        comp_t comp = std::polar(double(g_dwGriGri), M_PI * dwCount * 0.01);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
@@ -428,9 +423,7 @@ void drawType4(RECT& rc, BOOL bFlag)
     double qx, qy;
     DWORD dwCount = getCount() / 2.0;
     {
-        comp_t comp;
-        if (g_bCenterMove)
-            comp = std::polar(20.0, M_PI * dwCount * 0.01);
+        comp_t comp = std::polar(double(g_dwGriGri), M_PI * g_eCount * 0.01);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
@@ -765,6 +758,7 @@ void OnTimer(HWND hwnd, UINT id)
     {
         InvalidateRect(hwnd, NULL, TRUE);
         g_dwCount++;
+        g_eCount += g_nSpeed * 0.25;
     }
 }
 
@@ -945,11 +939,48 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 void OnMButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 {
     if (GetAsyncKeyState(VK_SHIFT) < 0)
-        g_bCenterMove = !g_bCenterMove;
+        ;
     else if (GetAsyncKeyState(VK_CONTROL) < 0)
-        g_nSpeed = g_nSpeed % 3 + 1;
+        ;
     else
         g_nDirection = -g_nDirection;
+}
+
+int OnMouseWheel(HWND hwnd, int xPos, int yPos, int zDelta, UINT fwKeys)
+{
+    if (GetAsyncKeyState(VK_CONTROL) < 0)
+    {
+        if (zDelta < 0)
+        {
+            if (g_dwGriGri < 10)
+                g_dwGriGri = 10;
+            else
+                g_dwGriGri = g_dwGriGri * 10 / 12;
+        }
+        else
+        {
+            if (g_dwGriGri <= 10)
+                g_dwGriGri += 5;
+            else if (g_dwGriGri > 50)
+                g_dwGriGri = 50;
+            else
+                g_dwGriGri = g_dwGriGri * 12 / 10;
+        }
+    }
+    else
+    {
+        if (zDelta < 0)
+        {
+            if (g_nSpeed > 1)
+                g_nSpeed = g_nSpeed - 1;
+        }
+        else
+        {
+            if (g_nSpeed < 20)
+                g_nSpeed = g_nSpeed + 1;
+        }
+    }
+    return 0;
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -968,6 +999,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         HANDLE_MSG(hwnd, WM_MBUTTONDBLCLK, OnMButtonDown);
         HANDLE_MSG(hwnd, WM_RBUTTONDOWN, OnRButtonDown);
         HANDLE_MSG(hwnd, WM_RBUTTONDBLCLK, OnRButtonDown);
+        HANDLE_MSG(hwnd, WM_MOUSEWHEEL, OnMouseWheel);
         HANDLE_MSG(hwnd, WM_COMMAND, OnCommand);
     default:
         return DefWindowProc(hwnd, uMsg, wParam, lParam);
