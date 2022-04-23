@@ -57,7 +57,7 @@ BOOL g_bDual = TRUE;
 INT g_nDirection = 1;
 std::vector<str_t> g_texts;
 HANDLE g_hThread = NULL;
-INT g_nSpeed = 2;
+INT g_nSpeed = 8;
 
 #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
@@ -172,7 +172,9 @@ BOOL loadSetting(void)
 
     error = keyApp.QueryDword(TEXT("Speed"), (DWORD&)g_nSpeed);
     if (error)
-        g_nSpeed = 2;
+        g_nSpeed = 8;
+    if (g_nSpeed < 3)
+        g_nSpeed = 8;
 
     error = keyApp.QuerySz(TEXT("Sound"), str);
     if (error)
@@ -971,12 +973,12 @@ int OnMouseWheel(HWND hwnd, int xPos, int yPos, int zDelta, UINT fwKeys)
     {
         if (zDelta < 0)
         {
-            if (g_nSpeed > 1)
+            if (g_nSpeed > 3)
                 g_nSpeed = g_nSpeed - 1;
         }
         else
         {
-            if (g_nSpeed < 20)
+            if (g_nSpeed < 13)
                 g_nSpeed = g_nSpeed + 1;
         }
     }
