@@ -20,7 +20,7 @@ Windows XP以降。
 
 【仕組み】
 
-変化する複雑で奇怪な図形の映像を見ることによって、脳内の映像情報が通常使わないシナプスを刺激して脳内で指令回路を発火しやすくなるらしいです。
+いたるところで周期性のある、複雑で奇怪な図形の映像を見ることによって、脳内の映像情報が通常使わないシナプスを刺激して脳内で指令回路を発火しやすくなるらしいです。
 
 しかし、学術的に証明されたものではないし、確実に効果があるとは言えません。慣れると何ともなくなります。
 
@@ -87,7 +87,7 @@ Recommended for:
 
 [(How it works)]
 
-It is said that by viewing images of complex and bizarre shapes that change, the visual information in the brain stimulates synapses that are not normally used, making it easier for the brain to fire off command circuits.
+It seems that by viewing images of complex and bizarre figures with periodicity everywhere, the visual information in the brain stimulates synapses that are not normally used, making it easier to fire command circuits in the brain.
 
 However, it has not been academically proven, nor is it certain to work. Once you get used to it, it becomes nothing.
 

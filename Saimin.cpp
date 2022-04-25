@@ -42,6 +42,7 @@ float g_eCount = 0;
 DWORD g_dwGriGri = 50;
 HWND g_hCmb1 = NULL;
 HWND g_hCmb2 = NULL;
+HWND g_hChx1 = NULL;
 HWND g_hCmb3 = NULL;
 HWND g_hPsh1 = NULL;
 HWND g_hStc1 = NULL;
@@ -58,6 +59,8 @@ INT g_nDirection = 1;
 std::vector<str_t> g_texts;
 HANDLE g_hThread = NULL;
 INT g_nSpeed = 8;
+BOOL g_bColor = TRUE;
+BOOL g_bMaximized = FALSE;
 
 #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
@@ -176,6 +179,14 @@ BOOL loadSetting(void)
     if (g_nSpeed < 3)
         g_nSpeed = 8;
 
+    error = keyApp.QueryDword(TEXT("Color"), (DWORD&)g_bColor);
+    if (error)
+        g_bColor = TRUE;
+
+    error = keyApp.QueryDword(TEXT("Maximized"), (DWORD&)g_bMaximized);
+    if (error)
+        g_bMaximized = FALSE;
+
     error = keyApp.QuerySz(TEXT("Sound"), str);
     if (error)
         str = TEXT("");
@@ -217,6 +228,8 @@ BOOL saveSetting(void)
     keyApp.SetDword(TEXT("GriGri"), g_dwGriGri);
     keyApp.SetDword(TEXT("Dual"), g_bDual);
     keyApp.SetDword(TEXT("Speed"), g_nSpeed);
+    keyApp.SetDword(TEXT("Color"), g_bColor);
+    keyApp.SetDword(TEXT("Maximized"), g_bMaximized);
 
     keyApp.SetSz(TEXT("Sound"), g_strSound.c_str());
     keyApp.SetSz(TEXT("Text"), g_strText.c_str());
@@ -273,7 +286,10 @@ void drawType1(RECT& rc, BOOL bFlag)
         {
             double theta = count * dr0 * 0.75 / 2;
             double value = 0.3 * sin(dwCount * 0.04) + 0.7;
-            glColor3d(1.0, 1.0, value);
+            if (g_bColor)
+                glColor3d(1.0, 1.0, value);
+            else
+                glColor3d(1.0, 1.0, 1.0);
 
             double radian = theta * M_PI / 180.0 + i * 360 * M_PI / 180 / ci;
             comp_t comp = std::polar(radius, flag2 * (radian - M_PI * dwCount * 0.03));
@@ -333,7 +349,10 @@ void drawType2(RECT& rc, BOOL bFlag)
         {
             double radian = 2 * M_PI * k / N;
             double value = 0.4 * sin(dwCount * 0.1) + 0.6;
-            glColor3d(1.0, value, value);
+            if (g_bColor)
+                glColor3d(1.0, value, value);
+            else
+                glColor3d(1.0, 1.0, 1.0);
             comp_t comp;
             if (bFlag)
             {
@@ -358,7 +377,10 @@ void drawType2(RECT& rc, BOOL bFlag)
         }
 
         double value = 0.4 * sin(dwCount * 0.1) + 0.6;
-        glColor3d(1.0, value, value);
+        if (g_bColor)
+            glColor3d(1.0, value, value);
+        else
+            glColor3d(1.0, 1.0, 1.0);
         line(x0, y0, oldx, oldy, dr * 0.5, 5);
     }
 }
@@ -395,7 +417,10 @@ void drawType3(RECT& rc, BOOL bFlag)
         {
             double theta = count * dr0 * 1.5;
             double value = 0.7 + 0.3 * sin(flag2 * dwCount * 0.05 + count * 0.1);
-            glColor3d(1.0, value, 1.0);
+            if (g_bColor)
+                glColor3d(1.0, value, 1.0);
+            else
+                glColor3d(1.0, 1.0, 1.0);
 
             double radian = flag2 * theta * M_PI / 180.0 + i * 360 * M_PI / 180 / ci;
             comp_t comp = std::polar(radius, radian - flag2 * M_PI * dwCount * 0.03);
@@ -444,7 +469,10 @@ void drawType4(RECT& rc, BOOL bFlag)
         {
             double theta = count * dr0 * 0.4;
             double value = 0.6 + 0.4 * sin(dwCount * 0.1 + count * 0.1);
-            glColor3d(value, 1.0, 1.0);
+            if (g_bColor)
+                glColor3d(value, 1.0, 1.0);
+            else
+                glColor3d(1.0, 1.0, 1.0);
 
             double radian = theta * M_PI / 180.0 * 2.0 + i * 360 * M_PI / 180 / ci;
             comp_t comp = std::polar(radius, flag2 * (-radian + M_PI * dwCount * 0.03));
@@ -466,7 +494,10 @@ void drawType4(RECT& rc, BOOL bFlag)
         {
             double theta = count * dr0 * 0.4;
             double value = 0.6 + 0.4 * sin(dwCount * 0.1 + count * 0.1);
-            glColor3d(value, 1.0, 1.0);
+            if (g_bColor)
+                glColor3d(value, 1.0, 1.0);
+            else
+                glColor3d(1.0, 1.0, 1.0);
 
             double radian = -flag2 * theta * M_PI / 180.0 * 2.0 + i * 360 * M_PI / 180 / ci;
             comp_t comp = std::polar(radius, radian + flag2 * M_PI * dwCount * 0.03);
@@ -485,9 +516,15 @@ void drawType4(RECT& rc, BOOL bFlag)
         }
     }
 
-    glColor3d(1.0, 0.4, 0.4);
+    if (g_bColor)
+        glColor3d(1.0, 0.4, 0.4);
+    else
+        glColor3d(1.0, 1.0, 1.0);
     circle(qx, qy, dr * 2);
-    glColor3d(1.0, 0.6, 0.6);
+    if (g_bColor)
+        glColor3d(1.0, 0.6, 0.6);
+    else
+        glColor3d(1.0, 1.0, 1.0);
     circle(qx, qy, dr);
 }
 
@@ -710,6 +747,18 @@ BOOL createControls(HWND hwnd)
         PlaySound(getSoundPath(g_strSound.c_str()), NULL, SND_LOOP | SND_ASYNC);
     }
 
+    // chx1: Color checkbox
+    style = BS_AUTOCHECKBOX | WS_CHILD | WS_VISIBLE;
+    exstyle = 0;
+    g_hChx1 = CreateWindowEx(exstyle, TEXT("BUTTON"), TEXT("Color"), style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)chx1, g_hInstance, NULL);
+    if (!g_hChx1)
+        return FALSE;
+    SetWindowFont(g_hChx1, GetStockFont(DEFAULT_GUI_FONT), TRUE);
+    if (g_bColor)
+        CheckDlgButton(hwnd, chx1, BST_CHECKED);
+    else
+        CheckDlgButton(hwnd, chx1, BST_UNCHECKED);
+
     // cmb3: Messages ComboBox
     style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWN | WS_CHILD | WS_VISIBLE;
     exstyle = 0;
@@ -857,8 +906,11 @@ void OnSize(HWND hwnd, UINT state, int cx, int cy)
     INT nHeight = ComboBox_GetItemHeight(g_hCmb1);
     MoveWindow(g_hCmb1, rc.left, rc.bottom - 24, 80, nHeight * 10, TRUE);
     MoveWindow(g_hCmb2, rc.left + 90, rc.bottom - 24, 150, nHeight * 10, TRUE);
+    MoveWindow(g_hChx1, rc.left + 250, rc.bottom - 24, 60, 20, TRUE);
     MoveWindow(g_hCmb3, rc.right - 150 - 40, rc.bottom - 24, 150, nHeight * 10, TRUE);
     MoveWindow(g_hPsh1, rc.right - 40, rc.bottom - 24, 40, 24, TRUE);
+
+    g_bMaximized = IsZoomed(hwnd);
 }
 
 inline void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
@@ -910,6 +962,12 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
             PlaySound(getSoundPath(szText), NULL, SND_LOOP | SND_ASYNC);
             g_strSound = szText;
         }
+        break;
+    case chx1:
+        if (IsDlgButtonChecked(hwnd, chx1) == BST_CHECKED)
+            g_bColor = TRUE;
+        else
+            g_bColor = FALSE;
         break;
     case psh1:
         {
@@ -1105,7 +1163,10 @@ WinMain(HINSTANCE  hInstance,
     if (!createWindow(hInstance))
         return -2;
 
-    ShowWindow(g_hwnd, nCmdShow);
+    if (g_bMaximized)
+        ShowWindow(g_hwnd, SW_SHOWMAXIMIZED);
+    else
+        ShowWindow(g_hwnd, nCmdShow);
     UpdateWindow(g_hwnd);
 
     MSG msg;
