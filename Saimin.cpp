@@ -61,6 +61,7 @@ HANDLE g_hThread = NULL;
 INT g_nSpeed = 8;
 BOOL g_bColor = TRUE;
 BOOL g_bMaximized = FALSE;
+HFONT g_hFont = NULL;
 
 #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
@@ -631,13 +632,25 @@ void draw(RECT& rc)
 
 BOOL stc1_OnEraseBkgnd(HWND hwnd, HDC hdc)
 {
+    return TRUE;
+}
+
+void stc1_CalcSize(HWND hwnd)
+{
     RECT rc;
     GetClientRect(hwnd, &rc);
 
-    HBRUSH hbr = CreateSolidBrush(RGB(0, 191, 0));
-    FillRect(hdc, &rc, hbr);
-    DeleteObject(hbr);
-    return TRUE;
+    if (HDC hdc = GetDC(hwnd))
+    {
+        SelectObject(hdc, g_hFont);
+        UINT uFlags = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX;
+        DrawText(hdc, g_strText.c_str(), -1, &rc, uFlags | DT_CALCRECT);
+        TEXTMETRIC tm;
+        GetTextMetrics(hdc, &tm);
+        g_nStc1Width = rc.right - rc.left;
+        g_nStc1Height = tm.tmHeight;
+        ReleaseDC(hwnd, hdc);
+    }
 }
 
 void stc1_OnPaint(HWND hwnd)
@@ -648,55 +661,14 @@ void stc1_OnPaint(HWND hwnd)
     PAINTSTRUCT ps;
     if (HDC hdc = BeginPaint(hwnd, &ps))
     {
-        EndPaint(hwnd, &ps);
-    }
-}
-
-void updateTextRegion(HWND hwnd)
-{
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    INT cx = rc.right - rc.left;
-    INT cy = rc.bottom - rc.top;
-
-    static HRGN s_hRgn = NULL;
-    if (HDC hdc = GetDC(g_hStc1))
-    {
-        LOGFONT lf;
-        GetObject(GetStockFont(DEFAULT_GUI_FONT), sizeof(lf), &lf);
-
-        INT nMin = (cx + cy) / 2;
-        nMin /= (INT(g_strText.size()) + 1);
-
-        if (nMin > 100)
-            nMin = 100;
-        if (nMin < 40)
-            nMin = 40;
-
-        g_nStc1Height = lf.lfHeight = nMin;
-        HFONT hFont = CreateFontIndirect(&lf);
-
-        SIZE siz;
-
+        FillRect(hdc, &rc, GetStockBrush(DKGRAY_BRUSH));
+        SetTextColor(hdc, RGB(0, 255, 0));
         SetBkMode(hdc, TRANSPARENT);
-        HGDIOBJ hFontOld = SelectObject(hdc, hFont);
-        GetTextExtentPoint32(hdc, g_strText.c_str(), INT(g_strText.size()), &siz);
-        g_nStc1Width = siz.cx;
-
-        BeginPath(hdc);
-        TextOut(hdc, 0, 0, g_strText.c_str(), INT(g_strText.size()));
-        EndPath(hdc);
-
-        SelectObject(hdc, hFontOld);
-
-        HRGN hRgn = PathToRegion(hdc);
-        ShowWindow(g_hStc1, SW_HIDE);
-        SetWindowRgn(g_hStc1, hRgn, TRUE);
-        ShowWindow(g_hStc1, SW_SHOWNOACTIVATE);
-        DeleteObject(s_hRgn);
-        s_hRgn = hRgn;
-
-        ReleaseDC(g_hStc1, hdc);
+        SelectObject(hdc, g_hFont);
+        UINT uFlags = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX;
+        DrawText(hdc, g_strText.c_str(), -1, &rc, uFlags);
+        DrawText(hdc, g_strText.c_str(), -1, &rc, uFlags | DT_CALCRECT);
+        EndPaint(hwnd, &ps);
     }
 }
 
@@ -795,9 +767,18 @@ BOOL createControls(HWND hwnd)
     if (!g_hStc1)
         return FALSE;
     g_fnStc1OldWndProc = SubclassWindow(g_hStc1, stc1WindowProc);
-    SetWindowFont(g_hStc1, GetStockFont(DEFAULT_GUI_FONT), TRUE);
-    SetWindowText(g_hStc1, TEXT("This is a test"));
-    updateTextRegion(hwnd);
+
+    {
+        HFONT hFont = GetStockFont(DEFAULT_GUI_FONT);
+        LOGFONT lf;
+        GetObject(hFont, sizeof(lf), &lf);
+        lf.lfHeight = 32;
+        g_hFont = CreateFontIndirect(&lf);
+        SetWindowFont(g_hStc1, g_hFont, TRUE);
+    }
+
+    SetWindowText(g_hStc1, g_strText.c_str());
+    stc1_CalcSize(g_hStc1);
 
     PostMessage(hwnd, WM_SIZE, 0, 0);
     return TRUE;
@@ -820,14 +801,23 @@ DWORD WINAPI threadProc(LPVOID)
         RECT rc;
         GetClientRect(g_hwnd, &rc);
 
-        RECT rc2;
-        rc2.left = (rc.left + rc.right - g_nStc1Width) / 2;
-        rc2.top = (rc.top + rc.bottom - g_nStc1Height) / 2;
-        rc2.right = rc2.left + g_nStc1Width;
-        rc2.bottom = rc2.top + g_nStc1Height;
-        INT offset = INT((rc.bottom - rc.top) * (sin(g_dwCount * 0.05) * 0.2 + 1) / 4);
-        OffsetRect(&rc2, 0, offset);
-        MoveWindow(g_hStc1, rc2.left, rc2.top, rc2.right - rc2.left, rc2.bottom - rc2.top, TRUE);
+        if (g_strText.empty())
+        {
+            ShowWindowAsync(g_hStc1, SW_HIDE);
+        }
+        else
+        {
+            RECT rc2;
+            rc2.left = (rc.left + rc.right - g_nStc1Width) / 2;
+            rc2.top = (rc.top + rc.bottom - g_nStc1Height) / 2;
+            rc2.right = rc2.left + g_nStc1Width;
+            rc2.bottom = rc2.top + g_nStc1Height;
+            INT offset = INT((rc.bottom - rc.top) * (sin(g_dwCount * 0.05) * 0.2 + 1) / 4);
+            OffsetRect(&rc2, 0, offset);
+            MoveWindow(g_hStc1, rc2.left, rc2.top, rc2.right - rc2.left, rc2.bottom - rc2.top, TRUE);
+            ShowWindow(g_hStc1, SW_SHOWNOACTIVATE);
+            InvalidateRect(g_hStc1, NULL, TRUE);
+        }
 
         Sleep(100);
     }
@@ -878,6 +868,7 @@ void OnDestroy(HWND hwnd)
     wglMakeCurrent(g_hDC, NULL);
     wglDeleteContext(g_hGLRC);
     ReleaseDC(hwnd, g_hDC);
+    DeleteObject(g_hFont);
     PostQuitMessage(0);
 }
 
@@ -989,8 +980,8 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
                 ComboBox_AddString(g_hCmb3, szText);
             }
             g_strText = szText;
-
-            updateTextRegion(hwnd);
+            stc1_CalcSize(g_hStc1);
+            InvalidateRect(g_hStc1, NULL, TRUE);
         }
         break;
     }
