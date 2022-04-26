@@ -39,12 +39,14 @@ Windows XP以降。
 
 【使い方】
 
-1. 実行ファイル「Saimin.exe」をダブルクリックして起動して下さい。
-2. 最初はいくつか質問しますので、正直にボタンクリックで応えて下さい。
-3. 画面（ウィンドウ）が立ち上がります。一番左下のコンボボックスから映像の種類を選んで下さい。
-4. その右にあるコンボボックスから音声を選ぶことができます。
-5. 右下のコンボボックスからメッセージを選んで「Set」ボタンを押すとメッセージを設定できます。
-6. 使用をやめたいときは、右上のバツ印をクリックしてウィンドウを閉じて下さい。
+1. まずは、コーヒーを飲んで気分を落ち着かせて下さい。
+2. 暗い部屋で先端が光るペンライトの先を10秒ほど凝視します。
+3. 実行ファイル「Saimin.exe」をダブルクリックして起動して下さい。
+4. 最初はいくつか質問しますので、正直にボタンクリックで応えて下さい。
+5. 画面（ウィンドウ）が立ち上がります。一番左下のコンボボックスから映像の種類を選んで下さい。
+6. その右にあるコンボボックスから音声を選ぶことができます。
+7. 右下のコンボボックスからメッセージを選んで「Set」ボタンを押すとメッセージを設定できます。
+8. 使用をやめたいときは、右上のバツ印をクリックしてウィンドウを閉じて下さい。
 
 【操作】
 
@@ -110,12 +112,14 @@ Windows XP and later.
 
 [(Usage)]
 
-1. Double-click the executable file "Saimin.exe" to start it.
-2. At first, the application will ask you some questions, so please be honest and answer with a click of a button.
-3. The screen (window) will start up. Select the video type from the combo box at the bottom left.
-4. You can select the audio from the combo box to the right of it.
-5. You can set a message by selecting a message from the combo box at the bottom right and pressing the "Set" button.
-6. If you want to stop using it, click the cross mark on the upper right to close the window.
+1. First, have a cup of coffee to calm down.
+2. Stare at the tip of a penlight in a dark room for 10 seconds.
+3. Double-click the executable file "Saimin.exe" to start it.
+4. At first, the application will ask you some questions, so please be honest and answer with a click of a button.
+5. The screen (window) will start up. Select the video type from the combo box at the bottom left.
+6. You can select the audio from the combo box to the right of it.
+7. You can set a message by selecting a message from the combo box at the bottom right and pressing the "Set" button.
+8. If you want to stop using it, click the cross mark on the upper right to close the window.
 
 [(Operations)]
 

@@ -14,7 +14,9 @@
 #include <assert.h>
 #include "MRegKey.hpp"
 
-typedef std::complex<double> comp_t;
+typedef std::complex<double> dcomp_t;
+typedef std::complex<float> fcomp_t;
+
 #ifdef UNICODE
     typedef std::wstring str_t;
 #else
@@ -30,7 +32,7 @@ enum ADULTCHECK
     ADULTCHECK_CONFIRMED_ADULT = 1
 };
 
-#define TYPE_COUNT 6
+#define TYPE_COUNT 7
 #define TIMER_ID 999
 
 HINSTANCE g_hInstance = NULL;
@@ -46,8 +48,8 @@ HWND g_hChx1 = NULL;
 HWND g_hCmb3 = NULL;
 HWND g_hPsh1 = NULL;
 HWND g_hStc1 = NULL;
-INT g_nStc1Width = 100;
-INT g_nStc1Height = 100;
+INT g_cxStc1 = 100;
+INT g_cyStc1 = 100;
 WNDPROC g_fnStc1OldWndProc = NULL;
 INT g_nType = 0;
 INT g_nRandomType = 0;
@@ -62,42 +64,57 @@ INT g_nSpeed = 8;
 BOOL g_bColor = TRUE;
 BOOL g_bMaximized = FALSE;
 HFONT g_hFont = NULL;
+HBITMAP g_hbm = NULL;
+
 
 #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
 #endif
 
-void circle(double x, double y, double r, INT N = 10)
+inline void rectangle(float x0, float y0, float x1, float y1)
 {
     glBegin(GL_POLYGON);
+    glVertex2f(x0, y0);
+    glVertex2f(x1, y0);
+    glVertex2f(x1, y1);
+    glVertex2f(x0, y1);
+    glEnd();
+}
+
+inline void circle(float x, float y, float r, INT N = 10, BOOL bFill = TRUE)
+{
+    if (bFill)
+        glBegin(GL_POLYGON);
+    else
+        glBegin(GL_LINE_LOOP);
     for (int i = 0; i < N; i++)
     {
-        comp_t comp = std::polar(r, 2 * M_PI * i / N);
-        glVertex2d(x + comp.real(), y + comp.imag());
+        fcomp_t comp = std::polar(r, float(2 * M_PI) * i / N);
+        glVertex2f(x + comp.real(), y + comp.imag());
     }
     glEnd();
 }
 
-void line(double x0, double y0, double x1, double y1, double width, INT N = 6)
+void line(float x0, float y0, float x1, float y1, float width, INT N = 6)
 {
     circle(x0, y0, width, N);
     circle(x1, y1, width, N);
 
-    comp_t comp0(cos(M_PI / 2), sin(M_PI / 2));
-    comp_t comp1(x1 - x0, y1 - y0);
-    double abs = std::abs(comp1);
+    fcomp_t comp0(std::cos(M_PI / 2), std::sin(M_PI / 2));
+    fcomp_t comp1(x1 - x0, y1 - y0);
+    float abs = std::abs(comp1);
     if (abs == 0)
         return;
 
-    comp_t comp2 = comp1 / abs;
-    comp_t p0 = width * comp2 * comp0;
-    comp_t p1 = width * comp2 / comp0;
+    fcomp_t comp2 = comp1 / abs;
+    fcomp_t p0 = width * comp2 * comp0;
+    fcomp_t p1 = width * comp2 / comp0;
 
     glBegin(GL_POLYGON);
-    glVertex2d(x0 + p0.real(), y0 + p0.imag());
-    glVertex2d(x0 + p1.real(), y0 + p1.imag());
-    glVertex2d(x1 + p1.real(), y1 + p1.imag());
-    glVertex2d(x1 + p0.real(), y1 + p0.imag());
+    glVertex2f(x0 + p0.real(), y0 + p0.imag());
+    glVertex2f(x0 + p1.real(), y0 + p1.imag());
+    glVertex2f(x1 + p1.real(), y1 + p1.imag());
+    glVertex2f(x1 + p0.real(), y1 + p0.imag());
     glEnd();
 }
 
@@ -248,9 +265,9 @@ BOOL saveSetting(void)
     return TRUE;
 }
 
-DWORD getCount(void)
+inline float getCount(void)
 {
-    return (DWORD)g_eCount;
+    return g_eCount;
 }
 
 void drawType1(RECT& rc, BOOL bFlag)
@@ -263,37 +280,36 @@ void drawType1(RECT& rc, BOOL bFlag)
     glLoadIdentity();
     glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
 
-    INT size = ((rc.right - rc.left) + (rc.bottom - rc.top)) / 2;
-    double qx, qy;
-    DWORD dwCount = getCount();
+    INT size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 2 / 5;
+    float qx, qy;
+    float count2 = getCount() * 0.65f;
     {
-        comp_t comp = std::polar(double(g_dwGriGri), M_PI * dwCount * 0.01);
+        fcomp_t comp = std::polar(float(g_dwGriGri), float(M_PI * 0.01f) * count2);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
 
-    double factor = (0.99 + fabs(sin(dwCount * 0.2)) * 0.01);
+    float factor = (0.99 + fabs(sin(count2 * 0.2f)) * 0.01);
 
     INT dr0 = 15;
-    double dr = dr0 / 2 * factor;
+    float dr = dr0 / 2 * factor;
     INT flag2 = bFlag ? g_nDirection : -g_nDirection;
     INT ci = 6;
     for (INT i = 0; i <= ci; ++i)
     {
         INT count = 0;
-        double x, y, oldx = qx, oldy = qy;
-        double f = 0.5;
-        for (double radius = 0; radius < size; radius += f)
+        float x, y, oldx = qx, oldy = qy, f = 0.5f;
+        for (float radius = 0; radius < size; radius += f)
         {
-            double theta = count * dr0 * 0.75 / 2;
-            double value = 0.3 * sin(dwCount * 0.04) + 0.7;
+            float theta = dr0 * count * 0.375;
+            float value = 0.3f * float(sin(count2 * 0.04f)) + 0.7f;
             if (g_bColor)
-                glColor3d(1.0, 1.0, value);
+                glColor3f(1.0f, 1.0f, value);
             else
-                glColor3d(1.0, 1.0, 1.0);
+                glColor3f(1.0f, 1.0f, 1.0f);
 
-            double radian = theta * M_PI / 180.0 + i * 360 * M_PI / 180 / ci;
-            comp_t comp = std::polar(radius, flag2 * (radian - M_PI * dwCount * 0.03));
+            float radian = theta * float(M_PI / 180.0) + i * (2 * M_PI) / ci;
+            fcomp_t comp = std::polar(radius, flag2 * float(radian - count2 * float(M_PI * 0.03f)));
             x = qx + comp.real();
             y = qy + comp.imag();
             if (oldx == MAXLONG && oldy == MAXLONG)
@@ -301,7 +317,7 @@ void drawType1(RECT& rc, BOOL bFlag)
                 oldx = x;
                 oldy = y;
             }
-            line(oldx, oldy, x, y, dr * f / 3, 5 * f);
+            line(oldx, oldy, x, y, dr * f * 0.333f, 5.0f * f);
 
             oldx = x;
             oldy = y;
@@ -321,47 +337,47 @@ void drawType2(RECT& rc, BOOL bFlag)
     glLoadIdentity();
     glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
 
-    double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4;
-    double qx, qy;
-    DWORD dwCount = getCount() / 1.5;
+    float size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4;
+    float qx, qy;
+    float count2 = getCount() / 1.5f;
     {
-        comp_t comp = std::polar(double(g_dwGriGri), M_PI * dwCount * 0.01);
+        fcomp_t comp = std::polar(float(g_dwGriGri), float(M_PI * 0.01f) * count2);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
 
-    double factor = (0.99 + fabs(sin(dwCount * 0.2)) * 0.01);
+    float factor = (0.99f + fabs(sin(count2 * 0.2f)) * 0.01f);
 
     INT dr0 = 20;
-    double dr = dr0 / 2 * factor;
-    double radius;
+    float dr = dr0 / 2 * factor;
+    float radius;
     INT flag2 = g_nDirection;
     if (flag2 == 1)
-        radius = INT(dwCount * 2) % dr0;
+        radius = INT(count2 * 2) % dr0;
     else
-        radius = INT(dr0 - dwCount * 2) % dr0;
+        radius = INT(dr0 - count2 * 2) % dr0;
     for (; radius < size; radius += dr0)
     {
-        double length = 2 * radius * M_PI;
+        float length = 2 * radius * M_PI;
         INT N = INT(length * 2 / dr0);
-        double oldx = MAXLONG, oldy = MAXLONG;
-        double x, y, x0 = MAXLONG, y0 = MAXLONG;
+        float oldx = MAXLONG, oldy = MAXLONG;
+        float x, y, x0 = MAXLONG, y0 = MAXLONG;
         for (INT k = 0; k < N; ++k)
         {
-            double radian = 2 * M_PI * k / N;
-            double value = 0.4 * sin(dwCount * 0.1) + 0.6;
+            float radian = float(2 * M_PI) * k / N;
+            float value = 0.4f * sin(count2 * 0.1) + 0.6f;
             if (g_bColor)
-                glColor3d(1.0, value, value);
+                glColor3f(1.0f, value, value);
             else
-                glColor3d(1.0, 1.0, 1.0);
-            comp_t comp;
+                glColor3f(1.0f, 1.0f, 1.0f);
+            fcomp_t comp;
             if (bFlag)
             {
-                comp = std::polar(radius * factor, flag2 * (radian + M_PI * dwCount * 0.02));
+                comp = std::polar(radius * factor, flag2 * (radian + float(M_PI * 0.02f) * count2));
             }
             else
             {
-                comp = std::polar(radius * factor, flag2 * (radian - M_PI * dwCount * 0.02));
+                comp = std::polar(radius * factor, flag2 * (radian - float(M_PI * 0.02f) * count2));
             }
             x = qx + comp.real();
             y = qy + comp.imag();
@@ -377,12 +393,12 @@ void drawType2(RECT& rc, BOOL bFlag)
             oldy = y;
         }
 
-        double value = 0.4 * sin(dwCount * 0.1) + 0.6;
+        float value = 0.4f * sin(count2 * 0.1f) + 0.6f;
         if (g_bColor)
-            glColor3d(1.0, value, value);
+            glColor3f(1.0f, value, value);
         else
-            glColor3d(1.0, 1.0, 1.0);
-        line(x0, y0, oldx, oldy, dr * 0.5, 5);
+            glColor3f(1.0f, 1.0f, 1.0f);
+        line(x0, y0, oldx, oldy, dr * 0.5f, 5.0f);
     }
 }
 
@@ -396,43 +412,43 @@ void drawType3(RECT& rc, BOOL bFlag)
     glLoadIdentity();
     glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
 
-    double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) / 2;
-    double qx, qy;
-    DWORD dwCount = getCount() / 1.5;
+    float size = ((rc.right - rc.left) + (rc.bottom - rc.top)) / 2;
+    float qx, qy;
+    float count2 = getCount() / 1.5;
     {
-        comp_t comp = std::polar(double(g_dwGriGri), M_PI * dwCount * 0.01);
+        fcomp_t comp = std::polar(float(g_dwGriGri), float(M_PI * 0.01) * count2);
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
 
-    double dr0 = 10;
-    double dr = dr0 / 2;
+    float dr0 = 10;
+    float dr = dr0 * 0.5f;
     INT flag2 = bFlag ? g_nDirection : -g_nDirection;
     INT ci = 8;
     for (INT i = 0; i < ci; ++i)
     {
         INT count = 0;
-        double oldx = qx, oldy = qy;
-        double f = 0.4;
-        for (double radius = 0; radius < size; radius += dr0 * f)
+        float oldx = qx, oldy = qy;
+        float f = 0.4;
+        for (float radius = 0; radius < size; radius += dr0 * f)
         {
-            double theta = count * dr0 * 1.5;
-            double value = 0.7 + 0.3 * sin(flag2 * dwCount * 0.05 + count * 0.1);
+            float theta = count * dr0 * 1.5f;
+            float value = 0.7f + 0.3f * sin(flag2 * count2 * 0.05f + count * 0.1f);
             if (g_bColor)
-                glColor3d(1.0, value, 1.0);
+                glColor3f(1.0f, value, 1.0f);
             else
-                glColor3d(1.0, 1.0, 1.0);
+                glColor3f(1.0f, 1.0f, 1.0f);
 
-            double radian = flag2 * theta * M_PI / 180.0 + i * 360 * M_PI / 180 / ci;
-            comp_t comp = std::polar(radius, radian - flag2 * M_PI * dwCount * 0.03);
-            double x = qx + comp.real();
-            double y = qy + comp.imag();
+            float radian = flag2 * theta * float(M_PI / 180) + i * float(2 * M_PI) / ci;
+            fcomp_t comp = std::polar(radius, radian - count2 * flag2 * float(M_PI * 0.03f));
+            float x = qx + comp.real();
+            float y = qy + comp.imag();
             line(oldx, oldy, x, y, dr * f, f * 7);
 
             oldx = x;
             oldy = y;
             ++count;
-            f *= 1.03;
+            f *= 1.03f;
         }
     }
 }
@@ -447,38 +463,38 @@ void drawType4(RECT& rc, BOOL bFlag)
     glLoadIdentity();
     glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
 
-    double size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4;
-    double qx, qy;
-    DWORD dwCount = getCount() / 2.0;
+    float size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4f;
+    float qx, qy;
+    float count2 = getCount() * 0.5f;
     {
-        comp_t comp = std::polar(double(g_dwGriGri), M_PI * g_eCount * 0.01);
+        fcomp_t comp = std::polar(float(g_dwGriGri), g_eCount * float(M_PI * 0.01f));
         qx = (rc.left + rc.right) / 2 + comp.real();
         qy = (rc.top + rc.bottom) / 2 + comp.imag();
     }
 
-    double factor = (0.99 + fabs(sin(dwCount * 0.2)) * 0.01);
+    float factor = (0.99 + fabs(sin(count2 * 0.2f)) * 0.01f);
 
     INT dr0 = 20;
-    double dr = dr0 / 4 * factor;
+    float dr = dr0 / 4 * factor;
     INT flag2 = g_nDirection * (bFlag ? -1 : 1);
     INT ci = 10;
     for (INT i = 0; i < ci; ++i)
     {
         INT count = 0;
-        double oldx = MAXLONG, oldy = MAXLONG;
-        for (double radius = -size; radius < 0; radius += 16.0)
+        float oldx = MAXLONG, oldy = MAXLONG;
+        for (float radius = -size; radius < 0; radius += 16.0f)
         {
-            double theta = count * dr0 * 0.4;
-            double value = 0.6 + 0.4 * sin(dwCount * 0.1 + count * 0.1);
+            float theta = count * dr0 * 0.4f;
+            float value = 0.6f + 0.4f * sin(count2 * 0.1f + count * 0.1f);
             if (g_bColor)
-                glColor3d(value, 1.0, 1.0);
+                glColor3f(value, 1.0f, 1.0f);
             else
-                glColor3d(1.0, 1.0, 1.0);
+                glColor3f(1.0f, 1.0f, 1.0f);
 
-            double radian = theta * M_PI / 180.0 * 2.0 + i * 360 * M_PI / 180 / ci;
-            comp_t comp = std::polar(radius, flag2 * (-radian + M_PI * dwCount * 0.03));
-            double x = qx + comp.real() * (2 + sin(dwCount * 0.04));
-            double y = qy + comp.imag() * (2 + sin(dwCount * 0.04));
+            float radian = theta * float(M_PI / 90) + i * float(2 * M_PI) / ci;
+            fcomp_t comp = std::polar(radius, flag2 * (-radian + count2 * float(M_PI * 0.03f)));
+            float x = qx + comp.real() * (2 + sin(count2 * 0.04f));
+            float y = qy + comp.imag() * (2 + sin(count2 * 0.04f));
             if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 oldx = x;
@@ -491,19 +507,19 @@ void drawType4(RECT& rc, BOOL bFlag)
             ++count;
         }
         oldx = oldy = MAXLONG;
-        for (double radius = 0; radius < size; radius += 16.0)
+        for (float radius = 0; radius < size; radius += 16.0f)
         {
-            double theta = count * dr0 * 0.4;
-            double value = 0.6 + 0.4 * sin(dwCount * 0.1 + count * 0.1);
+            float theta = count * dr0 * 0.4f;
+            float value = 0.6f + 0.4f * sin(count2 * 0.1f + count * 0.1f);
             if (g_bColor)
-                glColor3d(value, 1.0, 1.0);
+                glColor3f(value, 1.0f, 1.0f);
             else
-                glColor3d(1.0, 1.0, 1.0);
+                glColor3f(1.0f, 1.0f, 1.0f);
 
-            double radian = -flag2 * theta * M_PI / 180.0 * 2.0 + i * 360 * M_PI / 180 / ci;
-            comp_t comp = std::polar(radius, radian + flag2 * M_PI * dwCount * 0.03);
-            double x = qx + comp.real() * (2 + sin(dwCount * 0.02));
-            double y = qy + comp.imag() * (2 + sin(dwCount * 0.02));
+            float radian = theta * (-flag2 * M_PI / 90.0f) + i * float(2 * M_PI) / ci;
+            fcomp_t comp = std::polar(radius, radian + flag2 * float(M_PI * 0.03f) * count2);
+            float x = qx + comp.real() * (2 + sin(count2 * 0.02f));
+            float y = qy + comp.imag() * (2 + sin(count2 * 0.02f));
             if (oldx == MAXLONG && oldy == MAXLONG)
             {
                 oldx = x;
@@ -518,15 +534,174 @@ void drawType4(RECT& rc, BOOL bFlag)
     }
 
     if (g_bColor)
-        glColor3d(1.0, 0.4, 0.4);
+        glColor3f(1.0f, 0.4f, 0.4f);
     else
-        glColor3d(1.0, 1.0, 1.0);
+        glColor3f(1.0f, 1.0f, 1.0f);
     circle(qx, qy, dr * 2);
     if (g_bColor)
-        glColor3d(1.0, 0.6, 0.6);
+        glColor3f(1.0f, 0.6f, 0.6f);
     else
-        glColor3d(1.0, 1.0, 1.0);
+        glColor3f(1.0f, 1.0f, 1.0f);
     circle(qx, qy, dr);
+}
+
+void hsv2rgb(float h, float s, float v, float& r, float& g, float& b)
+{
+    r = g = b = v;
+    if (s > 0)
+    {
+        h *= 6;
+        int i = (int)h;
+        float f = h - (float)i;
+        switch (i)
+        {
+        case 0:
+        default:
+            g *= 1 - s * (1 - f);
+            b *= 1 - s;
+            break;
+        case 1:
+            r *= 1 - s * f;
+            b *= 1 - s;
+            break;
+        case 2:
+            r *= 1 - s;
+            b *= 1 - s * (1 - f);
+            break;
+        case 3:
+            r *= 1 - s;
+            g *= 1 - s * f;
+            break;
+        case 4:
+            r *= 1 - s * (1 - f);
+            g *= 1 - s;
+            break;
+        case 5:
+            g *= 1 - s;
+            b *= 1 - s * f;
+            break;
+        }
+    }
+}
+
+void drawType5(RECT& rc, BOOL bFlag)
+{
+    INT px = rc.left, py = rc.top;
+    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
+    INT qx = px + cx / 2, qy = py + cy / 2;
+
+    glViewport(px, py, cx, cy);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
+
+    float eCount = getCount();
+    float factor = eCount * 0.02f;
+
+    float count2 = getCount() * 0.5;
+    {
+        fcomp_t comp = std::polar(float(g_dwGriGri) * 0.7f, float(M_PI * 0.012f) * g_eCount);
+        qx += comp.real();
+        qy += comp.imag();
+    }
+
+    float size = 20;
+    INT nCount2 = 0;
+    float cxy = (cx + cy) * 0.35f;
+    float xy0 = (cxy + size) - std::fmod((cxy + size), size);
+    for (float y = -xy0; y < cxy + size; y += size)
+    {
+        INT nCount = nCount2 % 3;
+        for (float x = -xy0; x < cxy + size; x += size)
+        {
+            float h;
+            switch (nCount % 3)
+            {
+            case 0:
+                h = std::fmod(0.2f + factor * 1.2, 1.0f);
+                break;
+            case 1:
+                h = std::fmod(0.4f + factor * 1.2, 1.0f);
+                break;
+            case 2:
+                h = std::fmod(0.8f + factor * 1.2, 1.0f);
+                break;
+            }
+            float s = 1.0f;
+            float v = 1.0f;
+            float r, g, b;
+            hsv2rgb(h, s, v, r, g, b);
+
+            if (r < 0.2f)
+                r = 0.2f;
+            if (g < 0.2f)
+                g = 0.2f;
+            if (b < 0.2f)
+                b = 0.2f;
+
+            if (g_bColor)
+            {
+                glColor3f(r, g, b);
+            }
+            else
+            {
+                v = 0.3f * r + 0.59f * g + 0.11f * b;
+                glColor3f(v, v, v);
+            }
+
+            fcomp_t comp, comp0;
+            if (bFlag ^ (g_nDirection < 0))
+                comp0 = std::polar(1.0f, factor * 0.65f);
+            else
+                comp0 = std::polar(1.0f, (1.0f - factor) * 0.65f);
+
+            float x0 = x - size / 2;
+            float y0 = y - size / 2;
+            float x1 = x0 + size;
+            float y1 = y0 + size;
+            glBegin(GL_POLYGON);
+            comp = fcomp_t(x0, y0);
+            comp *= comp0;
+            glVertex2f(qx + comp.real(), qy + comp.imag());
+            comp = fcomp_t(x0, y1);
+            comp *= comp0;
+            glVertex2f(qx + comp.real(), qy + comp.imag());
+            comp = fcomp_t(x1, y1);
+            comp *= comp0;
+            glVertex2f(qx + comp.real(), qy + comp.imag());
+            comp = fcomp_t(x1, y0);
+            comp *= comp0;
+            glVertex2f(qx + comp.real(), qy + comp.imag());
+            glEnd();
+
+            if (x >= 0)
+                nCount = (nCount + 2) % 3;
+            else
+                ++nCount;
+        }
+        if (y >= 0)
+            nCount2 = (nCount2 + 2) % 3;
+        else
+            ++nCount2;
+    }
+
+    glColor3f(1.0, 1.0, 1.0);
+    GLfloat old_width;
+    glGetFloatv(GL_LINE_WIDTH, &old_width);
+    glLineWidth(5);
+    float r;
+    if (g_nDirection < 0)
+        r = std::fmod(eCount, 100);
+    else
+        r = 100 - std::fmod(eCount, 100);
+    for (; r < cxy; r += 100)
+    {
+        INT N = r * 2 / 20;
+        if (N < 8)
+            N = 8;
+        circle(qx, qy, r, N, FALSE);
+    }
+    glLineWidth(old_width);
 }
 
 void updateRandom(INT nOldType)
@@ -563,6 +738,9 @@ void drawRandom(RECT& rc, BOOL bFlag)
     case 4:
         drawType4(rc, bFlag);
         break;
+    case 5:
+        drawType5(rc, bFlag);
+        break;
     case TYPE_COUNT - 1:
         assert(0);
         break;
@@ -587,6 +765,9 @@ void drawType(RECT& rc, INT nType, BOOL bFlag)
         break;
     case 4:
         drawType4(rc, bFlag);
+        break;
+    case 5:
+        drawType5(rc, bFlag);
         break;
     case TYPE_COUNT - 1:
         drawRandom(rc, bFlag);
@@ -630,7 +811,7 @@ void draw(RECT& rc)
     SwapBuffers(g_hDC);
 }
 
-BOOL stc1_OnEraseBkgnd(HWND hwnd, HDC hdc)
+inline BOOL stc1_OnEraseBkgnd(HWND hwnd, HDC hdc)
 {
     return TRUE;
 }
@@ -647,8 +828,8 @@ void stc1_CalcSize(HWND hwnd)
         DrawText(hdc, g_strText.c_str(), -1, &rc, uFlags | DT_CALCRECT);
         TEXTMETRIC tm;
         GetTextMetrics(hdc, &tm);
-        g_nStc1Width = rc.right - rc.left;
-        g_nStc1Height = tm.tmHeight;
+        g_cxStc1 = rc.right - rc.left;
+        g_cyStc1 = tm.tmHeight;
         ReleaseDC(hwnd, hdc);
     }
 }
@@ -657,17 +838,48 @@ void stc1_OnPaint(HWND hwnd)
 {
     RECT rc;
     GetClientRect(hwnd, &rc);
+    INT cx = rc.right, cy = rc.bottom;
+
+    BITMAP bm;
+    if (g_hbm)
+    {
+        GetObject(g_hbm, sizeof(bm), &bm);
+        if (bm.bmWidth != cx || bm.bmHeight != cy)
+        {
+            DeleteObject(g_hbm);
+            g_hbm = NULL;
+        }
+    }
 
     PAINTSTRUCT ps;
     if (HDC hdc = BeginPaint(hwnd, &ps))
     {
-        FillRect(hdc, &rc, GetStockBrush(DKGRAY_BRUSH));
-        SetTextColor(hdc, RGB(0, 255, 0));
-        SetBkMode(hdc, TRANSPARENT);
-        SelectObject(hdc, g_hFont);
-        UINT uFlags = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX;
-        DrawText(hdc, g_strText.c_str(), -1, &rc, uFlags);
-        DrawText(hdc, g_strText.c_str(), -1, &rc, uFlags | DT_CALCRECT);
+        if (HDC hdcMem = CreateCompatibleDC(hdc))
+        {
+            if (!g_hbm)
+            {
+                g_hbm = CreateCompatibleBitmap(hdc, cx, cy);
+                HGDIOBJ hbmOld = SelectObject(hdcMem, g_hbm);
+                {
+                    FillRect(hdcMem, &rc, GetStockBrush(DKGRAY_BRUSH));
+                    SetTextColor(hdcMem, RGB(191, 255, 255));
+                    SetBkMode(hdcMem, TRANSPARENT);
+                    SelectObject(hdcMem, g_hFont);
+                    UINT uFlags = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX;
+                    DrawText(hdcMem, g_strText.c_str(), -1, &rc, uFlags);
+                }
+                SelectObject(hdcMem, hbmOld);
+            }
+
+            {
+                HGDIOBJ hbmOld = SelectObject(hdcMem, g_hbm);
+                BitBlt(hdc, 0, 0, cx, cy, hdcMem, 0, 0, SRCCOPY);
+                SelectObject(hdcMem, hbmOld);
+            }
+
+            DeleteDC(hdcMem);
+        }
+
         EndPaint(hwnd, &ps);
     }
 }
@@ -700,6 +912,7 @@ BOOL createControls(HWND hwnd)
     ComboBox_AddString(g_hCmb1, TEXT("Type 2"));
     ComboBox_AddString(g_hCmb1, TEXT("Type 3"));
     ComboBox_AddString(g_hCmb1, TEXT("Type 4"));
+    ComboBox_AddString(g_hCmb1, TEXT("Type 5"));
     ComboBox_AddString(g_hCmb1, TEXT("Random"));
     ComboBox_SetCurSel(g_hCmb1, g_nType);
 
@@ -739,7 +952,7 @@ BOOL createControls(HWND hwnd)
         return FALSE;
     SetWindowFont(g_hCmb3, GetStockFont(DEFAULT_GUI_FONT), TRUE);
     ComboBox_AddString(g_hCmb3, TEXT(""));
-    for (INT i = 200; i <= 208; ++i)
+    for (INT i = 200; i <= 209; ++i)
     {
         ComboBox_AddString(g_hCmb3, doLoadString(i));
     }
@@ -808,14 +1021,14 @@ DWORD WINAPI threadProc(LPVOID)
         else
         {
             RECT rc2;
-            rc2.left = (rc.left + rc.right - g_nStc1Width) / 2;
-            rc2.top = (rc.top + rc.bottom - g_nStc1Height) / 2;
-            rc2.right = rc2.left + g_nStc1Width;
-            rc2.bottom = rc2.top + g_nStc1Height;
+            rc2.left = (rc.left + rc.right - g_cxStc1) / 2;
+            rc2.top = (rc.top + rc.bottom - g_cyStc1) / 2;
+            rc2.right = rc2.left + g_cxStc1;
+            rc2.bottom = rc2.top + g_cyStc1;
             INT offset = INT((rc.bottom - rc.top) * (sin(g_dwCount * 0.05) * 0.2 + 1) / 4);
             OffsetRect(&rc2, 0, offset);
-            MoveWindow(g_hStc1, rc2.left, rc2.top, rc2.right - rc2.left, rc2.bottom - rc2.top, TRUE);
-            ShowWindow(g_hStc1, SW_SHOWNOACTIVATE);
+            MoveWindow(g_hStc1, rc2.left, rc2.top, g_cxStc1, g_cyStc1, FALSE);
+            ShowWindowAsync(g_hStc1, SW_SHOWNOACTIVATE);
             InvalidateRect(g_hStc1, NULL, TRUE);
         }
 
@@ -869,6 +1082,7 @@ void OnDestroy(HWND hwnd)
     wglDeleteContext(g_hGLRC);
     ReleaseDC(hwnd, g_hDC);
     DeleteObject(g_hFont);
+    DeleteObject(g_hbm);
     PostQuitMessage(0);
 }
 
@@ -981,6 +1195,11 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
             }
             g_strText = szText;
             stc1_CalcSize(g_hStc1);
+            if (g_hbm)
+            {
+                DeleteObject(g_hbm);
+                g_hbm = NULL;
+            }
             InvalidateRect(g_hStc1, NULL, TRUE);
         }
         break;
@@ -1003,8 +1222,10 @@ int OnMouseWheel(HWND hwnd, int xPos, int yPos, int zDelta, UINT fwKeys)
     {
         if (zDelta < 0)
         {
-            if (g_dwGriGri < 10)
-                g_dwGriGri = 10;
+            if (g_dwGriGri <= 5)
+                g_dwGriGri = 0;
+            else if (g_dwGriGri < 10)
+                g_dwGriGri -= 3;
             else
                 g_dwGriGri = g_dwGriGri * 10 / 12;
         }
