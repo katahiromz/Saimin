@@ -41,7 +41,7 @@ HDC g_hDC = NULL;
 HGLRC g_hGLRC = 0;
 DWORD g_dwCount = 0;
 float g_eCount = 0;
-DWORD g_dwGriGri = 50;
+DWORD g_dwGriGri = 0;
 HWND g_hCmb1 = NULL;
 HWND g_hCmb2 = NULL;
 HWND g_hChx1 = NULL;
@@ -185,11 +185,11 @@ BOOL loadSetting(void)
 
     error = keyApp.QueryDword(TEXT("GriGri"), (DWORD&)g_dwGriGri);
     if (error)
-        g_dwGriGri = 50;
+        g_dwGriGri = 0;
 
     error = keyApp.QueryDword(TEXT("Dual"), (DWORD&)g_bDual);
     if (error)
-        g_bDual = 1;
+        g_bDual = TRUE;
 
     error = keyApp.QueryDword(TEXT("Speed"), (DWORD&)g_nSpeed);
     if (error)
@@ -327,7 +327,7 @@ void drawType1(RECT& rc, BOOL bFlag)
     }
 }
 
-void drawType2(RECT& rc, BOOL bFlag)
+void drawType2_0(RECT& rc, BOOL bFlag, BOOL bFlag2)
 {
     INT px = rc.left, py = rc.top;
     INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
@@ -336,10 +336,12 @@ void drawType2(RECT& rc, BOOL bFlag)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
+    glColor3f(0, 0, 0);
+    rectangle(px, py, px + cx, py + cy);
 
-    float size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4;
+    float size = (cx + cy) * 0.4;
     float qx, qy;
-    float count2 = getCount() / 1.5f;
+    float count2 = getCount() * 0.5f;
     {
         fcomp_t comp = std::polar(float(g_dwGriGri), float(M_PI * 0.01f) * count2);
         qx = (rc.left + rc.right) / 2 + comp.real();
@@ -352,54 +354,68 @@ void drawType2(RECT& rc, BOOL bFlag)
     float dr = dr0 / 2 * factor;
     float radius;
     INT flag2 = g_nDirection;
-    if (flag2 == 1)
-        radius = INT(count2 * 2) % dr0;
+    if (!bFlag2)
+    {
+        if (flag2 == 1 ^ bFlag2)
+            radius = INT(count2 * 2) % dr0;
+        else
+            radius = INT(dr0 - count2 * 2) % dr0;
+    }
     else
-        radius = INT(dr0 - count2 * 2) % dr0;
+    {
+        if (flag2 == 1 ^ bFlag2)
+            radius = INT(count2 * 2) % dr0;
+        else
+            radius = INT(dr0 - count2 * 2) % dr0;
+    }
+
+    GLfloat old_width;
+    glGetFloatv(GL_LINE_WIDTH, &old_width);
+    glLineWidth(5);
+
+    GLboolean line_smooth;
+    glGetBooleanv(GL_LINE_SMOOTH, &line_smooth);
+    glEnable(GL_LINE_SMOOTH);
+
+    float value = 0.4f * sin(count2 * 0.025) + 0.6f;
+    if (g_bColor)
+        glColor3f(1.0f, value, value);
+    else
+        glColor3f(1.0f, 1.0f, 1.0f);
+
     for (; radius < size; radius += dr0)
     {
-        float length = 2 * radius * M_PI;
-        INT N = INT(length * 2 / dr0);
-        float oldx = MAXLONG, oldy = MAXLONG;
-        float x, y, x0 = MAXLONG, y0 = MAXLONG;
-        for (INT k = 0; k < N; ++k)
-        {
-            float radian = float(2 * M_PI) * k / N;
-            float value = 0.4f * sin(count2 * 0.1) + 0.6f;
-            if (g_bColor)
-                glColor3f(1.0f, value, value);
-            else
-                glColor3f(1.0f, 1.0f, 1.0f);
-            fcomp_t comp;
-            if (bFlag)
-            {
-                comp = std::polar(radius * factor, flag2 * (radian + float(M_PI * 0.02f) * count2));
-            }
-            else
-            {
-                comp = std::polar(radius * factor, flag2 * (radian - float(M_PI * 0.02f) * count2));
-            }
-            x = qx + comp.real();
-            y = qy + comp.imag();
-            if (oldx == MAXLONG && oldy == MAXLONG)
-            {
-                x0 = x;
-                y0 = y;
-                oldx = x;
-                oldy = y;
-            }
-            line(oldx, oldy, x, y, dr * 0.5, 5);
-            oldx = x;
-            oldy = y;
-        }
-
-        float value = 0.4f * sin(count2 * 0.1f) + 0.6f;
-        if (g_bColor)
-            glColor3f(1.0f, value, value);
-        else
-            glColor3f(1.0f, 1.0f, 1.0f);
-        line(x0, y0, oldx, oldy, dr * 0.5f, 5.0f);
+        float N = radius / 3.5f;
+        if (N < 18)
+            N = 18;
+        circle(qx, qy, radius, N, FALSE);
+        circle(qx, qy, radius + 2, N, FALSE);
     }
+
+    glLineWidth(old_width);
+
+    if (line_smooth)
+        glEnable(GL_LINE_SMOOTH);
+    else
+        glDisable(GL_LINE_SMOOTH);
+}
+
+void drawType2(RECT& rc, BOOL bFlag)
+{
+    INT px = rc.left, py = rc.top;
+    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
+    INT cxy = min(cx, cy);
+
+    INT centerx = px + cx / 2;
+    INT centery = py + cy / 2;
+
+    RECT rc0, rc1;
+    SetRect(&rc0, px, py, px + cx, py + cy);
+    INT size = cxy / 5 + cxy * fabs(2 - sin(g_eCount * 0.01f)) / 16;
+    SetRect(&rc1, centerx - size, centery - size, centerx + size, centery + size);
+
+    drawType2_0(rc0, bFlag, FALSE);
+    drawType2_0(rc1, bFlag, TRUE);
 }
 
 void drawType3(RECT& rc, BOOL bFlag)
@@ -584,7 +600,7 @@ void hsv2rgb(float h, float s, float v, float& r, float& g, float& b)
     }
 }
 
-void drawType5(RECT& rc, BOOL bFlag)
+void drawType5_0(RECT& rc, BOOL bFlag, float size)
 {
     INT px = rc.left, py = rc.top;
     INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
@@ -605,7 +621,6 @@ void drawType5(RECT& rc, BOOL bFlag)
         qy += comp.imag();
     }
 
-    float size = 20;
     INT nCount2 = 0;
     float cxy = (cx + cy) * 0.35f;
     float xy0 = (cxy + size) - std::fmod((cxy + size), size);
@@ -615,38 +630,39 @@ void drawType5(RECT& rc, BOOL bFlag)
         for (float x = -xy0; x < cxy + size; x += size)
         {
             float h;
-            switch (nCount % 3)
-            {
-            case 0:
-                h = std::fmod(0.2f + factor * 1.2, 1.0f);
-                break;
-            case 1:
-                h = std::fmod(0.4f + factor * 1.2, 1.0f);
-                break;
-            case 2:
-                h = std::fmod(0.8f + factor * 1.2, 1.0f);
-                break;
-            }
             float s = 1.0f;
             float v = 1.0f;
             float r, g, b;
-            hsv2rgb(h, s, v, r, g, b);
-
-            if (r < 0.2f)
-                r = 0.2f;
-            if (g < 0.2f)
-                g = 0.2f;
-            if (b < 0.2f)
-                b = 0.2f;
-
             if (g_bColor)
             {
+                switch (nCount % 3)
+                {
+                case 0:
+                    h = std::fmod(0.2f + factor * 1.2, 1.0f);
+                    break;
+                case 1:
+                    h = std::fmod(0.4f + factor * 1.2, 1.0f);
+                    break;
+                case 2:
+                    h = std::fmod(0.8f + factor * 1.2, 1.0f);
+                    break;
+                }
+                hsv2rgb(h, s, v, r, g, b);
+
+                if (r < 0.2f)
+                    r = 0.2f;
+                if (g < 0.2f)
+                    g = 0.2f;
+                if (b < 0.2f)
+                    b = 0.2f;
                 glColor3f(r, g, b);
             }
             else
             {
-                v = 0.3f * r + 0.59f * g + 0.11f * b;
-                glColor3f(v, v, v);
+                if ((nCount + (g_dwCount * g_nSpeed / 40)) % 3 == 0)
+                    glColor3f(1.0f, 1.0f, 1.0f);
+                else
+                    glColor3f(0.0f, 0.0f, 0.0f);
             }
 
             fcomp_t comp, comp0;
@@ -685,23 +701,60 @@ void drawType5(RECT& rc, BOOL bFlag)
             ++nCount2;
     }
 
-    glColor3f(1.0, 1.0, 1.0);
+    GLboolean line_smooth;
+    glGetBooleanv(GL_LINE_SMOOTH, &line_smooth);
+    glEnable(GL_LINE_SMOOTH);
+
     GLfloat old_width;
     glGetFloatv(GL_LINE_WIDTH, &old_width);
     glLineWidth(5);
+
     float r;
     if (g_nDirection < 0)
         r = std::fmod(eCount, 100);
     else
         r = 100 - std::fmod(eCount, 100);
+
+    if (!g_bColor)
+        glColor3f(1.0f, 1.0f, 1.0f);
+    else if (size == 14)
+        glColor3f(1.0f, 0.2f, 0.2f);
+    else
+        glColor3f(0.2f, 0.2f, 1.0f);
+
     for (; r < cxy; r += 100)
     {
-        INT N = r * 2 / 20;
-        if (N < 8)
-            N = 8;
+        INT N = INT(r * 0.0667f);
+        if (N < 12)
+            N = 12;
+
         circle(qx, qy, r, N, FALSE);
+        circle(qx, qy, r + 2, N, FALSE);
     }
+
     glLineWidth(old_width);
+
+    if (line_smooth)
+        glEnable(GL_LINE_SMOOTH);
+    else
+        glDisable(GL_LINE_SMOOTH);
+}
+
+void drawType5(RECT& rc, BOOL bFlag)
+{
+    INT px = rc.left, py = rc.top;
+    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
+
+    INT centerx = px + cx / 2;
+    INT centery = py + cy / 2;
+
+    RECT rc0, rc1;
+    SetRect(&rc0, px, py, px + cx, py + cy);
+    INT size = (cx + cy) / 8;
+    SetRect(&rc1, centerx - size, centery - size, centerx + size, centery + size);
+
+    drawType5_0(rc0, bFlag, 16);
+    drawType5_0(rc1, !bFlag, 14);
 }
 
 void updateRandom(INT nOldType)
@@ -891,6 +944,14 @@ stc1WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         HANDLE_MSG(hwnd, WM_ERASEBKGND, stc1_OnEraseBkgnd);
         HANDLE_MSG(hwnd, WM_PAINT, stc1_OnPaint);
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONDBLCLK:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONDBLCLK:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONDBLCLK:
+    case WM_MOUSEWHEEL:
+        return SendMessage(GetParent(hwnd), uMsg, wParam, lParam);
     default:
         return CallWindowProc(g_fnStc1OldWndProc, hwnd, uMsg, wParam, lParam);
     }
