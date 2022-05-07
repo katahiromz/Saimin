@@ -418,55 +418,92 @@ void drawType2(RECT& rc, BOOL bFlag)
     drawType2_0(rc1, bFlag, TRUE);
 }
 
+void hsv2rgb(float h, float s, float v, float& r, float& g, float& b)
+{
+    r = g = b = v;
+    if (s > 0)
+    {
+        h *= 6;
+        int i = (int)h;
+        float f = h - (float)i;
+        switch (i)
+        {
+        case 0:
+        default:
+            g *= 1 - s * (1 - f);
+            b *= 1 - s;
+            break;
+        case 1:
+            r *= 1 - s * f;
+            b *= 1 - s;
+            break;
+        case 2:
+            r *= 1 - s;
+            b *= 1 - s * (1 - f);
+            break;
+        case 3:
+            r *= 1 - s;
+            g *= 1 - s * f;
+            break;
+        case 4:
+            r *= 1 - s * (1 - f);
+            g *= 1 - s;
+            break;
+        case 5:
+            g *= 1 - s;
+            b *= 1 - s * f;
+            break;
+        }
+    }
+}
+
 void drawType3(RECT& rc, BOOL bFlag)
 {
     INT px = rc.left, py = rc.top;
-    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
+    INT dx = rc.right - rc.left, dy = rc.bottom - rc.top;
+	INT qx = px + dx / 2;
+	INT qy = py + dy / 2;
+	INT dxy = (dx + dy) / 2;
 
-    glViewport(px, py, cx, cy);
+    glViewport(px, py, dx, dy);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
+    glOrtho(px, px + dx, py + dy, py, -1.0, 1.0);
 
-    float size = ((rc.right - rc.left) + (rc.bottom - rc.top)) / 2;
-    float qx, qy;
-    float count2 = getCount() / 1.5;
-    {
-        fcomp_t comp = std::polar(float(g_dwGriGri), float(M_PI * 0.01) * count2);
-        qx = (rc.left + rc.right) / 2 + comp.real();
-        qy = (rc.top + rc.bottom) / 2 + comp.imag();
-    }
+    float count2 = getCount() * 0.5f;
+	float factor = count2 * 0.16;
 
-    float dr0 = 10;
-    float dr = dr0 * 0.5f;
-    INT flag2 = bFlag ? g_nDirection : -g_nDirection;
-    INT ci = 8;
-    for (INT i = 0; i < ci; ++i)
-    {
-        INT count = 0;
-        float oldx = qx, oldy = qy;
-        float f = 0.4;
-        for (float radius = 0; radius < size; radius += dr0 * f)
-        {
-            float theta = count * dr0 * 1.5f;
-            float value = 0.7f + 0.3f * sin(flag2 * count2 * 0.05f + count * 0.1f);
-            if (g_bColor)
-                glColor3f(1.0f, value, 1.0f);
-            else
-                glColor3f(1.0f, 1.0f, 1.0f);
+	qx += 30 * std::cos(factor * 0.8);
+	qy += 30 * std::sin(factor * 0.8);
 
-            float radian = flag2 * theta * float(M_PI / 180) + i * float(2 * M_PI) / ci;
-            fcomp_t comp = std::polar(radius, radian - count2 * flag2 * float(M_PI * 0.03f));
-            float x = qx + comp.real();
-            float y = qy + comp.imag();
-            line(oldx, oldy, x, y, dr * f, f * 7);
+	for (float radius = (dx + dy) * 0.4f; radius >= 10; radius *= 0.92)
+	{
+		float h;
+		if (bFlag)
+			h = std::fmod(dxy + factor * 0.3f + radius * 0.015f, 1.0f);
+		else
+			h = std::fmod(dxy + factor * 0.3f - radius * 0.015f, 1.0f);
+		float r0, g0, b0;
+		hsv2rgb(h, 1.0f, 1.0f, r0, g0, b0);
+        glColor3f(r0, g0, b0);
 
-            oldx = x;
-            oldy = y;
-            ++count;
-            f *= 1.03f;
-        }
-    }
+		INT N0 = 40, N1 = 5;
+		INT i = 0;
+		for (float angle = 0; angle <= 360; angle += 360 / N0)
+		{
+			float radian = (angle + count2 * 2) * (M_PI / 180.0f);
+			float factor2 = radius * (1 + 0.7f * std::fabs(std::sin(N1 * i * M_PI / N0)));
+			float x = qx + factor2 * std::cos(radian);
+			float y = qy + factor2 * std::sin(radian);
+			if (angle == 0)
+			{
+			    glBegin(GL_POLYGON);
+			}
+		    glVertex2f(x, y);
+		    ++i;
+		}
+	    glEnd();
+	}
 }
 
 void drawType4(RECT& rc, BOOL bFlag)
@@ -559,45 +596,6 @@ void drawType4(RECT& rc, BOOL bFlag)
     else
         glColor3f(1.0f, 1.0f, 1.0f);
     circle(qx, qy, dr);
-}
-
-void hsv2rgb(float h, float s, float v, float& r, float& g, float& b)
-{
-    r = g = b = v;
-    if (s > 0)
-    {
-        h *= 6;
-        int i = (int)h;
-        float f = h - (float)i;
-        switch (i)
-        {
-        case 0:
-        default:
-            g *= 1 - s * (1 - f);
-            b *= 1 - s;
-            break;
-        case 1:
-            r *= 1 - s * f;
-            b *= 1 - s;
-            break;
-        case 2:
-            r *= 1 - s;
-            b *= 1 - s * (1 - f);
-            break;
-        case 3:
-            r *= 1 - s;
-            g *= 1 - s * f;
-            break;
-        case 4:
-            r *= 1 - s * (1 - f);
-            g *= 1 - s;
-            break;
-        case 5:
-            g *= 1 - s;
-            b *= 1 - s * f;
-            break;
-        }
-    }
 }
 
 void drawType5_0(RECT& rc, BOOL bFlag, float size)
