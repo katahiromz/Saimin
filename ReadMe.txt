@@ -50,12 +50,10 @@ Windows XP以降。
 
 【操作】
 
-- 画面を左クリックすると画面分割が切り替わります。
-- 画面を中央クリックすると方向転換します。
-- マウスホイール回転で回転スピードを調整できます。
-- Ctrlキーを押しながらマウスホイール回転で中央点の回転半径を調整できます。
-- 画面を右クリックすると次の映像へ移動します。
-- Shiftキーを押しながら画面を右クリックすると一つ前の映像へ移動します。
+- 画面を左クリックすると次の映像へ移動します。
+- Shiftキーを押しながら画面を左クリックすると一つ前の映像へ移動します。
+- 画面を右クリックすると画面分割が切り替わります。
+- マウスホイール回転でスピードを調整できます。
 
 【使用許諾と著作権表示】
 
@@ -123,12 +121,10 @@ Windows XP and later.
 
 [(Operations)]
 
-- Left-clicking on the screen toggles the screen split.
-- Center-click on the screen to change direction.
-- Rotation speed can be adjusted by mouse wheel rotation.
-- The rotation radius of the center point can be adjusted by holding down the Ctrl key and rotating the mouse wheel.
-- Right-click on the screen to move to the next video.
-- Right-click on the screen while holding down the Shift key to go to the previous image.
+- Left-click on the screen to move to the next video.
+- Left-click on the screen while holding down the Shift key to go to the previous image.
+- Right-clicking on the screen toggles the screen split.
+- Speed can be adjusted by mouse wheel rotation.
 
 [(License and Copyright Notice)]
 
