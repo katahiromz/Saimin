@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <windows.h>
 #include <windowsx.h>
+#include <commctrl.h>
 #include <mmsystem.h>
 #include <shlwapi.h>
 #include <dlgs.h>
@@ -1808,6 +1809,8 @@ int main(int argc, char **argv)
     }
 
     g_bPerfCounter = QueryPerformanceFrequency(&g_freq);
+
+    InitCommonControls();
 
 #ifdef WIN32_PROGRAM
     initGLUT(0, NULL);
