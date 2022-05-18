@@ -41,7 +41,7 @@
 - 2022-05-07 ver.2.5
     - Type 3を置き換え。
     - 音声を改良。
-- 2022-XX-YY ver.2.6
+- 2022-05-18 ver.2.6
     - 全部書き直し。
     - freeglut.dllを追加。
 ------------------------------------------------------
@@ -87,6 +87,6 @@
 - 2022-05-07 ver.2.5
     - Replaced Type 3.
     - Improved sound.
-- 2022-XX-YY ver.2.6
+- 2022-05-18 ver.2.6
     - Totally rewritten.
     - Added freeglut.dll.
