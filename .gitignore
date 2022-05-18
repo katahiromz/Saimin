@@ -27,11 +27,14 @@ Release
 TMP1.$$$
 build
 ipch
-Win32
 x64
 *-old
 *.skrold
 a.*
-*.ini
-.ninja*
+config.h
 *.ninja
+.ninja_*
+freeglut.pc
+freeglut.rc
+*.dll
+*.def

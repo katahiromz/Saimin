@@ -1,29 +1,31 @@
 #define _USE_MATH_DEFINES
+#include "tess.h"
+#include <vector>
+#include <string>
+#include <complex>
+#include <math.h>
+#include <assert.h>
 #include <windows.h>
 #include <windowsx.h>
-#include <commctrl.h>
-#include <shlwapi.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <complex>
-#include <vector>
-#include <tchar.h>
 #include <mmsystem.h>
-#include <gl/GL.h>
-#include <assert.h>
+#include <shlwapi.h>
+#include <dlgs.h>
 #include "MRegKey.hpp"
+#include "WinVoice.hpp"
+#ifndef _OBJBASE_H_
+    #include <objbase.h>
+#endif
 
-typedef std::complex<double> dcomp_t;
-typedef std::complex<float> fcomp_t;
+#define TYPE_COUNT 5
+INT g_nType = 0;
 
 #ifdef UNICODE
     typedef std::wstring str_t;
 #else
     typedef std::string str_t;
 #endif
-
-LPCTSTR g_pszClassName = TEXT("Saimin");
+typedef std::complex<double> dcomp_t;
+typedef std::complex<float> fcomp_t;
 
 enum ADULTCHECK
 {
@@ -31,92 +33,51 @@ enum ADULTCHECK
     ADULTCHECK_CONFIRMED_CHILD = -1,
     ADULTCHECK_CONFIRMED_ADULT = 1
 };
-
-#define TYPE_COUNT 7
-#define TIMER_ID 999
+ADULTCHECK g_nAdultCheck = ADULTCHECK_NOT_CONFIRMED;
 
 HINSTANCE g_hInstance = NULL;
 HWND g_hwnd = NULL;
-HDC g_hDC = NULL;
-HGLRC g_hGLRC = 0;
-DWORD g_dwCount = 0;
-float g_eCount = 0;
-DWORD g_dwGriGri = 0;
+BOOL g_bMaximized = FALSE;
+WNDPROC g_fnOldWndProc = NULL;
 HWND g_hCmb1 = NULL;
 HWND g_hCmb2 = NULL;
-HWND g_hChx1 = NULL;
 HWND g_hCmb3 = NULL;
+HWND g_hCmb4 = NULL;
+HWND g_hChx1 = NULL;
+str_t g_strText;
+str_t g_strSound;
+std::vector<str_t> g_texts;
 HWND g_hPsh1 = NULL;
 HWND g_hStc1 = NULL;
 INT g_cxStc1 = 100;
 INT g_cyStc1 = 100;
 WNDPROC g_fnStc1OldWndProc = NULL;
-INT g_nType = 0;
-INT g_nRandomType = 0;
-str_t g_strText;
-str_t g_strSound;
-ADULTCHECK g_nAdultCheck = ADULTCHECK_NOT_CONFIRMED;
-BOOL g_bDual = TRUE;
-INT g_nDirection = 1;
-std::vector<str_t> g_texts;
-HANDLE g_hThread = NULL;
-INT g_nSpeed = 8;
-BOOL g_bColor = TRUE;
-BOOL g_bMaximized = FALSE;
-HFONT g_hFont = NULL;
+HANDLE g_hMessageThread = NULL;
+HANDLE g_hSpeechThread = NULL;
+HFONT g_hUIFont = NULL;
+HFONT g_hMsgFont = NULL;
 HBITMAP g_hbm = NULL;
+GLsizei g_width, g_height;
+int g_nMouseX = -1, g_nMouseY = -1;
+bool g_bMouseLeftButton = false, g_bMouseRightButton = false;
+int g_nDrawMode = 0;
+GLuint g_nListId = 0;
+double g_counter = 0;
+DWORD g_dwOldTick = 0;
+double g_eSpeed = 45.0;
+DWORD g_dwFPS = 0;
+BOOL g_bPerfCounter = FALSE;
+LARGE_INTEGER g_freq, g_old_tick;
+INT g_division = -1;
+INT g_stc1deltay = 0;
 
+WinVoice *g_pWinVoice = NULL;
+BOOL g_bCoInit = FALSE;
+BOOL g_bSpeech = FALSE;
 
 #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
 #endif
-
-inline void rectangle(float x0, float y0, float x1, float y1)
-{
-    glBegin(GL_POLYGON);
-    glVertex2f(x0, y0);
-    glVertex2f(x1, y0);
-    glVertex2f(x1, y1);
-    glVertex2f(x0, y1);
-    glEnd();
-}
-
-inline void circle(float x, float y, float r, INT N = 10, BOOL bFill = TRUE)
-{
-    if (bFill)
-        glBegin(GL_POLYGON);
-    else
-        glBegin(GL_LINE_LOOP);
-    for (int i = 0; i < N; i++)
-    {
-        fcomp_t comp = std::polar(r, float(2 * M_PI) * i / N);
-        glVertex2f(x + comp.real(), y + comp.imag());
-    }
-    glEnd();
-}
-
-void line(float x0, float y0, float x1, float y1, float width, INT N = 6)
-{
-    circle(x0, y0, width, N);
-    circle(x1, y1, width, N);
-
-    fcomp_t comp0(std::cos(M_PI / 2), std::sin(M_PI / 2));
-    fcomp_t comp1(x1 - x0, y1 - y0);
-    float abs = std::abs(comp1);
-    if (abs == 0)
-        return;
-
-    fcomp_t comp2 = comp1 / abs;
-    fcomp_t p0 = width * comp2 * comp0;
-    fcomp_t p1 = width * comp2 / comp0;
-
-    glBegin(GL_POLYGON);
-    glVertex2f(x0 + p0.real(), y0 + p0.imag());
-    glVertex2f(x0 + p1.real(), y0 + p1.imag());
-    glVertex2f(x1 + p1.real(), y1 + p1.imag());
-    glVertex2f(x1 + p0.real(), y1 + p0.imag());
-    glEnd();
-}
 
 LPTSTR doLoadString(INT id)
 {
@@ -126,47 +87,186 @@ LPTSTR doLoadString(INT id)
     return s_szText;
 }
 
-LPTSTR getSoundPath(LPCTSTR pszFileName)
+template <typename T_STR>
+inline bool
+mstr_replace_all(T_STR& str, const T_STR& from, const T_STR& to)
 {
-    static TCHAR s_szText[MAX_PATH];
-    if (pszFileName[0])
-    {
-        GetModuleFileName(NULL, s_szText, _countof(s_szText));
-        PathRemoveFileSpec(s_szText);
-        PathAppend(s_szText, TEXT("Sounds"));
-        PathAppend(s_szText, pszFileName);
+    bool ret = false;
+    size_t i = 0;
+    for (;;) {
+        i = str.find(from, i);
+        if (i == T_STR::npos)
+            break;
+        ret = true;
+        str.replace(i, from.size(), to);
+        i += to.size();
     }
+    return ret;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+bool isLargeDisplay(void)
+{
+    return g_width >= 1500 || g_height >= 1500;
+}
+
+inline void rectangle(double x0, double y0, double x1, double y1)
+{
+    glBegin(GL_POLYGON);
+    glVertex2d(x0, y0);
+    glVertex2d(x1, y0);
+    glVertex2d(x1, y1);
+    glVertex2d(x0, y1);
+    glEnd();
+}
+
+inline void circle(double x, double y, double r, bool bFill = true, INT N = 10)
+{
+    if (bFill)
+        glBegin(GL_POLYGON);
     else
+        glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < N; i++)
     {
-        s_szText[0] = 0;
+        dcomp_t comp = std::polar(r, 2 * M_PI * i / N);
+        glVertex2d(x + comp.real(), y + comp.imag());
     }
-    return s_szText;
+    glEnd();
 }
 
-void doListSound(HWND hCmb)
+void line(double x0, double y0, double x1, double y1, double width, INT N = 12)
 {
-    TCHAR szPath[MAX_PATH];
-    GetModuleFileName(NULL, szPath, MAX_PATH);
-    PathRemoveFileSpec(szPath);
-    PathAppend(szPath, TEXT("Sounds"));
-    PathAppend(szPath, TEXT("*.wave"));
+    width *= 0.5;
 
-    SendMessage(hCmb, CB_ADDSTRING, 0, (LPARAM)TEXT(""));
+    circle(x0, y0, width, true, N);
+    circle(x1, y1, width, true, N);
 
-    WIN32_FIND_DATA find;
-    HANDLE hFind = FindFirstFile(szPath, &find);
-    if (hFind != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            SendMessage(hCmb, CB_ADDSTRING, 0, (LPARAM)find.cFileName);
-        } while (FindNextFile(hFind, &find));
+    dcomp_t comp0 = std::polar(1.0, M_PI / 2);
+    dcomp_t comp1(x1 - x0, y1 - y0);
+    double abs = std::abs(comp1);
+    if (abs == 0)
+        return;
 
-        FindClose(hFind);
-    }
+    dcomp_t comp2 = comp1 / abs;
+    dcomp_t p0 = width * comp2 * comp0;
+    dcomp_t p1 = width * comp2 / comp0;
+
+    glBegin(GL_POLYGON);
+    glVertex2d(x0 + p0.real(), y0 + p0.imag());
+    glVertex2d(x0 + p1.real(), y0 + p1.imag());
+    glVertex2d(x1 + p1.real(), y1 + p1.imag());
+    glVertex2d(x1 + p0.real(), y1 + p0.imag());
+    glEnd();
 }
 
-BOOL loadSetting(void)
+void bezier3(
+    INT count,
+    GLdouble xy[][2],
+    GLdouble x0, GLdouble y0,
+    GLdouble x1, GLdouble y1,
+    GLdouble x2, GLdouble y2,
+    GLdouble x3, GLdouble y3)
+{
+    int i = 0;
+    xy[i][0] = x0;
+    xy[i][1] = y0;
+    for (++i; i < count - 1; ++i)
+    {
+        GLdouble t = float(i) / (count - 1);
+        GLdouble t_2 = t * t;
+        GLdouble t_3 = t_2 * t;
+        GLdouble one_minus_t = 1 - t;
+        GLdouble one_minus_t_2 = one_minus_t * one_minus_t;
+        GLdouble one_minus_t_3 = one_minus_t_2 * one_minus_t;
+        GLdouble x = (one_minus_t_3 * x0) + (3 * one_minus_t_2 * t * x1) + (3 * one_minus_t * t_2 * x2) + (t_3 * x3);
+        GLdouble y = (one_minus_t_3 * y0) + (3 * one_minus_t_2 * t * y1) + (3 * one_minus_t * t_2 * y2) + (t_3 * y3);
+        xy[i][0] = x;
+        xy[i][1] = y;
+    }
+    xy[i][0] = x3;
+    xy[i][1] = y3;
+}
+
+void eye(double x0, double y0, double r, double opened = 1.0)
+{
+    double r025 = r * 0.25f;
+    double r05 = r025 * 2 * opened;
+
+    const int num = 10;
+    GLdouble xy[2 * num][2];
+    bezier3(num, &xy[0], x0 - r, y0, x0 - r025, y0 - r05, x0 + r025, y0 - r05, x0 + r, y0);
+    bezier3(num, &xy[num], x0 + r, y0, x0 + r025, y0 + r05, x0 - r025, y0 + r05, x0 - r, y0);
+
+    glBegin(GL_LINE_LOOP);
+    for (INT i = 0; i < 2 * num; ++i)
+    {
+        glVertex2d(xy[i][0], xy[i][1]);
+    }
+    glEnd();
+
+    circle(x0, y0, r / 3 * opened, true);
+}
+
+void heart(double x0, double y0, double x1, double y1, double r0, double g0, double b0)
+{
+    double x2 = (0.6 * x0 + 0.4 * x1);
+    double y2 = (0.6 * y0 + 0.4 * y1);
+    dcomp_t comp = dcomp_t(x1 - x0, y1 - y0);
+    dcomp_t comp0 = std::polar(1.0, M_PI * 0.5);
+    dcomp_t p0 = comp * (comp0 / 16.0) + dcomp_t(x0, y0);
+    dcomp_t p1 = comp / (comp0 * 16.0) + dcomp_t(x0, y0);
+    dcomp_t p2 = comp * comp0 + dcomp_t(x0, y0);
+    dcomp_t p3 = comp / comp0 + dcomp_t(x0, y0);
+    INT i0 = tessBegin();
+    tessBezier3(x2, y2, p0.real(), p0.imag(), p2.real(), p2.imag(), x1, y1, r0, g0, b0, 0);
+    tessBezier3(x1, y1, p3.real(), p3.imag(), p1.real(), p1.imag(), x2, y2, r0, g0, b0, 0);
+    INT i1 = tessEnd();
+    INT id = tess(i1 - i0, vertices[i0], true);
+    glCallList(id);
+    glDeleteLists(id, 1);
+}
+
+void light(double x0, double y0, double radius)
+{
+    double r0 = radius;
+    double rmid = radius * 0.333f;
+    glBegin(GL_POLYGON);
+    glVertex2d(x0 - r0, y0);
+    glVertex2d(x0, y0 + rmid);
+    glVertex2d(x0 + r0, y0);
+    glVertex2d(x0, y0 - rmid);
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    glVertex2d(x0, y0 - r0);
+    glVertex2d(x0 + rmid, y0);
+    glVertex2d(x0, y0 + r0);
+    glVertex2d(x0 - rmid, y0);
+    glEnd();
+}
+
+void leftExtend(INT count, GLdouble xy[][2], double x0, double y0, double x1, double y1)
+{
+    double dx = x1 - x0;
+    double dy = y1 - y0;
+
+    dcomp_t comp(dx, dy);
+    double abs = std::abs(comp);
+    if (abs <= 0)
+        return;
+
+    comp /= abs;
+    comp *= std::polar(1.0, -M_PI / 2);
+    comp *= abs * 0.22;
+
+    double cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    cx += comp.real();
+    cy += comp.imag();
+    bezier3(count, xy, x0, y0, cx, cy, cx, cy, x1, y1);
+}
+
+BOOL loadSettings(void)
 {
     LONG error;
     str_t str;
@@ -183,37 +283,27 @@ BOOL loadSetting(void)
     if (error)
         g_nType = 0;
 
-    error = keyApp.QueryDword(TEXT("GriGri"), (DWORD&)g_dwGriGri);
+    error = keyApp.QueryDword(TEXT("division"), (DWORD&)g_division);
     if (error)
-        g_dwGriGri = 0;
-
-    error = keyApp.QueryDword(TEXT("Dual"), (DWORD&)g_bDual);
-    if (error)
-        g_bDual = TRUE;
-
-    error = keyApp.QueryDword(TEXT("Speed"), (DWORD&)g_nSpeed);
-    if (error)
-        g_nSpeed = 8;
-    if (g_nSpeed < 3)
-        g_nSpeed = 8;
-
-    error = keyApp.QueryDword(TEXT("Color"), (DWORD&)g_bColor);
-    if (error)
-        g_bColor = TRUE;
+        g_division = -1;
 
     error = keyApp.QueryDword(TEXT("Maximized"), (DWORD&)g_bMaximized);
     if (error)
         g_bMaximized = FALSE;
+
+    error = keyApp.QuerySz(TEXT("Text"), str);
+    if (error)
+        str = TEXT("");
+    g_strText = str;
 
     error = keyApp.QuerySz(TEXT("Sound"), str);
     if (error)
         str = TEXT("");
     g_strSound = str;
 
-    error = keyApp.QuerySz(TEXT("Text"), str);
+    error = keyApp.QueryDword(TEXT("Speech"), (DWORD&)g_bSpeech);
     if (error)
-        str = TEXT("");
-    g_strText = str;
+        g_bSpeech = FALSE;
 
     INT nTextCount = 0;
     error = keyApp.QueryDword(TEXT("TextCount"), (DWORD&)nTextCount);
@@ -233,7 +323,7 @@ BOOL loadSetting(void)
     return TRUE;
 }
 
-BOOL saveSetting(void)
+BOOL saveSettings(void)
 {
     MRegKey keySoftware(HKEY_CURRENT_USER, TEXT("Software"), TRUE);
     MRegKey keyCompany(keySoftware, TEXT("Katayama Hirofumi MZ"), TRUE);
@@ -243,14 +333,13 @@ BOOL saveSetting(void)
 
     keyApp.SetDword(TEXT("AdultCheck"), g_nAdultCheck);
     keyApp.SetDword(TEXT("Type"), g_nType);
-    keyApp.SetDword(TEXT("GriGri"), g_dwGriGri);
-    keyApp.SetDword(TEXT("Dual"), g_bDual);
-    keyApp.SetDword(TEXT("Speed"), g_nSpeed);
-    keyApp.SetDword(TEXT("Color"), g_bColor);
+    keyApp.SetDword(TEXT("division"), g_division);
     keyApp.SetDword(TEXT("Maximized"), g_bMaximized);
+    keyApp.SetDword(TEXT("Speech"), g_bSpeech);
 
-    keyApp.SetSz(TEXT("Sound"), g_strSound.c_str());
     keyApp.SetSz(TEXT("Text"), g_strText.c_str());
+    keyApp.SetSz(TEXT("Sound"), g_strSound.c_str());
+
 
     INT nTextCount = INT(g_texts.size());
     keyApp.SetDword(TEXT("TextCount"), nTextCount);
@@ -265,167 +354,266 @@ BOOL saveSetting(void)
     return TRUE;
 }
 
-inline float getCount(void)
+void setDivision(INT value)
 {
-    return g_eCount;
-}
+    g_division = value;
 
-void drawType1(RECT& rc, BOOL bFlag)
-{
-    INT px = rc.left, py = rc.top;
-    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
-
-    glViewport(px, py, cx, cy);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
-
-    INT size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 2 / 5;
-    float qx, qy;
-    float count2 = getCount() * 0.65f;
+    INT division = -1, iItem = (INT)SendMessage(g_hCmb4, CB_GETCURSEL, 0, 0);
+    switch (iItem)
     {
-        fcomp_t comp = std::polar(float(g_dwGriGri), float(M_PI * 0.01f) * count2);
-        qx = (rc.left + rc.right) / 2 + comp.real();
-        qy = (rc.top + rc.bottom) / 2 + comp.imag();
+    case 0:
+        division = -1;
+        break;
+    case 1:
+        division = 1;
+        break;
+    case 2:
+        division = 2;
+        break;
     }
 
-    float factor = (0.99 + fabs(sin(count2 * 0.2f)) * 0.01);
+    if (g_division != division)
+    {
+        switch (g_division)
+        {
+        case -1:
+            PostMessage(g_hCmb4, CB_SETCURSEL, 0, 0);
+            break;
+        case 1:
+            PostMessage(g_hCmb4, CB_SETCURSEL, 1, 0);
+            break;
+        case 2:
+            PostMessage(g_hCmb4, CB_SETCURSEL, 2, 0);
+            break;
+        }
+    }
 
-    INT dr0 = 15;
-    float dr = dr0 / 2 * factor;
-    INT flag2 = bFlag ? g_nDirection : -g_nDirection;
+    saveSettings();
+}
+
+void setType(INT nType)
+{
+    g_nType = nType;
+
+    nType = (INT)SendMessage(g_hCmb1, CB_GETCURSEL, 0, 0);
+    if (g_nType != nType)
+    {
+        PostMessage(g_hCmb1, CB_SETCURSEL, g_nType, 0);
+    }
+
+    saveSettings();
+}
+
+static DWORD WINAPI speechThreadProc(LPVOID)
+{
+    if (!g_pWinVoice)
+    {
+        return -1;
+    }
+
+    str_t str = g_strText;
+    mstr_replace_all(str, str_t(TEXT("\uFF5E")), str_t(TEXT("\u30FC"))); // "`" --> "["
+
+    while (g_hSpeechThread)
+    {
+        if (g_pWinVoice)
+            g_pWinVoice->Speak(str);
+
+        if (g_pWinVoice)
+            g_pWinVoice->WaitUntilDone(INFINITE);
+    }
+
+    return 0;
+}
+
+void setSpeech(BOOL bSpeech)
+{
+    g_bSpeech = bSpeech;
+
+    if (g_pWinVoice)
+        g_pWinVoice->Pause();
+    if (g_pWinVoice)
+        g_pWinVoice->SetMute(TRUE);
+
+    if (g_bSpeech && g_strText.size())
+    {
+        if (g_hSpeechThread)
+        {
+            HANDLE hThread = g_hSpeechThread;
+            g_hSpeechThread = NULL;
+            WaitForSingleObject(hThread, 200);
+            CloseHandle(hThread);
+        }
+        if (g_pWinVoice)
+        {
+            WinVoice *pWinVoice = g_pWinVoice;
+            g_pWinVoice = NULL;
+            delete pWinVoice;
+            g_pWinVoice = new WinVoice();
+
+            g_hSpeechThread = CreateThread(NULL, 0, speechThreadProc, NULL, 0, NULL);
+        }
+    }
+    else
+    {
+        if (g_hSpeechThread)
+        {
+            CloseHandle(g_hSpeechThread);
+            g_hSpeechThread = NULL;
+        }
+    }
+
+    if (bSpeech)
+    {
+        if (IsDlgButtonChecked(g_hwnd, chx1) != BST_CHECKED)
+            CheckDlgButton(g_hwnd, chx1, BST_CHECKED);
+    }
+    else
+    {
+        if (IsDlgButtonChecked(g_hwnd, chx1) == BST_CHECKED)
+            CheckDlgButton(g_hwnd, chx1, BST_UNCHECKED);
+    }
+
+    saveSettings();
+}
+
+void drawType1(INT px, INT py, INT dx, INT dy)
+{
+    glPushMatrix();
+
+    glViewport(px, py, dx, dy);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(px, px + dx, py + dy, py, -1.0, 1.0);
+
+    double qx = px + double(dx) / 2;
+    double qy = py + double(dy) / 2;
+    double size = double(dx + dy) * 2 / 5;
+    double count2 = g_counter;
+    {
+        dcomp_t comp;
+        if (isLargeDisplay())
+            comp = std::polar(60.0, count2 * 0.1);
+        else
+            comp = std::polar(30.0, count2 * 0.1);
+        qx += comp.real();
+        qy += comp.imag();
+    }
+
+    glColor3d(1.0, 1.0, 1.0);
+
+    double dr0 = 15;
+    double dr = dr0 / 2;
+    INT flag2 = -1;
     INT ci = 6;
     for (INT i = 0; i <= ci; ++i)
     {
         INT count = 0;
-        float x, y, oldx = qx, oldy = qy, f = 0.5f;
-        for (float radius = 0; radius < size; radius += f)
+        double x, y, oldx = qx, oldy = qy, f = 0.5;
+        for (double radius = 0; radius < size; radius += f)
         {
-            float theta = dr0 * count * 0.375;
-            float value = 0.3f * float(sin(count2 * 0.04f)) + 0.7f;
-            if (g_bColor)
-                glColor3f(1.0f, 1.0f, value);
-            else
-                glColor3f(1.0f, 1.0f, 1.0f);
-
-            float radian = theta * float(M_PI / 180.0) + i * (2 * M_PI) / ci;
-            fcomp_t comp = std::polar(radius, flag2 * float(radian - count2 * float(M_PI * 0.03f)));
+            double theta = dr0 * count * 0.375;
+            double radian = theta * (M_PI / 180.0) + i * (2 * M_PI) / ci;
+            dcomp_t comp = std::polar(radius, flag2 * radian - count2 * (M_PI * 0.03));
             x = qx + comp.real();
             y = qy + comp.imag();
-            if (oldx == MAXLONG && oldy == MAXLONG)
-            {
-                oldx = x;
-                oldy = y;
-            }
-            line(oldx, oldy, x, y, dr * f * 0.333f, 5.0f * f);
-
+            line(oldx, oldy, x, y, dr * f * 0.666);
             oldx = x;
             oldy = y;
             ++count;
             f *= 1.02;
         }
     }
+
+    glPopMatrix();
 }
 
-void drawType2_0(RECT& rc, BOOL bFlag, BOOL bFlag2)
+void drawType2(INT px, INT py, INT dx, INT dy, bool flag = false)
 {
-    INT px = rc.left, py = rc.top;
-    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
+    glPushMatrix();
 
-    glViewport(px, py, cx, cy);
+    glViewport(px, py, dx, dy);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
-    glColor3f(0, 0, 0);
-    rectangle(px, py, px + cx, py + cy);
+    glOrtho(px, px + dx, py + dy, py, -1.0, 1.0);
 
-    float size = (cx + cy) * 0.4;
-    float qx, qy;
-    float count2 = getCount() * 0.5f;
+    double qx = px + double(dx) / 2;
+    double qy = py + double(dy) / 2;
+    double dxy = (dx + dy) / 2;
+    double count2 = g_counter;
+    double factor = (0.99 + std::fabs(std::sin(count2 * 0.2)) * 0.01);
+    double size = (dx + dy) * 0.4;
+
+    if (flag)
     {
-        fcomp_t comp = std::polar(float(g_dwGriGri), float(M_PI * 0.01f) * count2);
-        qx = (rc.left + rc.right) / 2 + comp.real();
-        qy = (rc.top + rc.bottom) / 2 + comp.imag();
+        glEnable(GL_STENCIL_TEST);
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glStencilFunc(GL_ALWAYS, 1, ~0);
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        glDepthMask(GL_FALSE);
+
+        double value = 0.2 + 0.2 * std::fabs(std::sin(count2 * 0.02));
+        glColor3d(1.0, 1.0, 1.0);
+        circle(qx, qy, dxy * value, true, INT(value * 100));
+
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glStencilFunc(GL_NOTEQUAL, 0, ~0);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        glDepthMask(GL_TRUE);
+
+        glColor3d(0, 0, 0);
+        circle(qx, qy, dxy * value, true, INT(value * 100));
     }
 
-    float factor = (0.99f + fabs(sin(count2 * 0.2f)) * 0.01f);
-
-    INT dr0 = 20;
-    float dr = dr0 / 2 * factor;
-    float radius;
-    INT flag2 = g_nDirection;
-    if (!bFlag2)
+    double dr0 = 30;
+    if (isLargeDisplay())
     {
-        if (flag2 == 1 ^ bFlag2)
-            radius = INT(count2 * 2) % dr0;
-        else
-            radius = INT(dr0 - count2 * 2) % dr0;
+        dr0 *= 2;
+        count2 *= 2;
     }
-    else
-    {
-        if (flag2 == 1 ^ bFlag2)
-            radius = INT(count2 * 2) % dr0;
-        else
-            radius = INT(dr0 - count2 * 2) % dr0;
-    }
+    double dr = dr0 / 2 * factor;
+    double radius = std::fmod(count2 * 4, dr0);
+    if (flag)
+        radius = dr0 - radius;
 
-    GLfloat old_width;
-    glGetFloatv(GL_LINE_WIDTH, &old_width);
+    if (radius < 0)
+        radius = -radius;
+
     glLineWidth(5);
-
-    GLboolean line_smooth;
-    glGetBooleanv(GL_LINE_SMOOTH, &line_smooth);
-    glEnable(GL_LINE_SMOOTH);
-
-    float value = 0.4f * sin(count2 * 0.025) + 0.6f;
-    if (g_bColor)
-        glColor3f(1.0f, value, value);
-    else
-        glColor3f(1.0f, 1.0f, 1.0f);
-
+    glColor3d(1, 1, 1);
     for (; radius < size; radius += dr0)
     {
-        float N = radius / 3.5f;
-        if (N < 18)
-            N = 18;
-        circle(qx, qy, radius, N, FALSE);
-        circle(qx, qy, radius + 2, N, FALSE);
+        INT n = INT(radius / 4);
+        if (n < 40)
+            n = 30;
+        circle(qx, qy, radius, false, n);
+        circle(qx, qy, radius + 4, false, n);
+        circle(qx, qy, radius + 8, false, n);
+        if (isLargeDisplay())
+        {
+            circle(qx, qy, radius - 4, false, n);
+        }
     }
 
-    glLineWidth(old_width);
+    if (flag)
+    {
+        glDisable(GL_STENCIL_TEST);
+        glColorMask(1, 1, 1, 1);
+        glDepthMask(1);
+    }
 
-    if (line_smooth)
-        glEnable(GL_LINE_SMOOTH);
-    else
-        glDisable(GL_LINE_SMOOTH);
+    glPopMatrix();
 }
 
-void drawType2(RECT& rc, BOOL bFlag)
-{
-    INT px = rc.left, py = rc.top;
-    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
-    INT cxy = min(cx, cy);
-
-    INT centerx = px + cx / 2;
-    INT centery = py + cy / 2;
-
-    RECT rc0, rc1;
-    SetRect(&rc0, px, py, px + cx, py + cy);
-    INT size = cxy / 5 + cxy * fabs(2 - sin(g_eCount * 0.01f)) / 16;
-    SetRect(&rc1, centerx - size, centery - size, centerx + size, centery + size);
-
-    drawType2_0(rc0, bFlag, FALSE);
-    drawType2_0(rc1, bFlag, TRUE);
-}
-
-void hsv2rgb(float h, float s, float v, float& r, float& g, float& b)
+void hsv2rgb(double& r, double& g, double& b, double h, double s, double v)
 {
     r = g = b = v;
     if (s > 0)
     {
         h *= 6;
         int i = (int)h;
-        float f = h - (float)i;
+        double f = h - i;
         switch (i)
         {
         case 0:
@@ -457,409 +645,502 @@ void hsv2rgb(float h, float s, float v, float& r, float& g, float& b)
     }
 }
 
-void drawType3(RECT& rc, BOOL bFlag)
+void whiteOut(double qx, double qy, double dxy)
 {
-    INT px = rc.left, py = rc.top;
-    INT dx = rc.right - rc.left, dy = rc.bottom - rc.top;
-	INT qx = px + dx / 2;
-	INT qy = py + dy / 2;
-	INT dxy = (dx + dy) / 2;
+    double r9 = dxy * 0.75;
+    INT angle_delta = 30;
+    for (INT angle = 0; angle < 360; angle += angle_delta)
+    {
+        double radian = angle * (M_PI / 180);
+        dcomp_t comp = std::polar(r9, radian);
+        glBegin(GL_POLYGON);
+        glColor4f(1.0, 1.0, 1.0, 0.0);
+        glVertex2d(qx, qy);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
+        glVertex2d(qx + comp.real(), qy + comp.imag());
+        radian = (angle + angle_delta) * (M_PI / 180);
+        comp = std::polar(r9, radian);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
+        glVertex2d(qx + comp.real(), qy + comp.imag());
+        glEnd();
+    }
+}
+
+void drawType3(INT px, INT py, INT dx, INT dy)
+{
+    double qx = px + dx / 2.0;
+    double qy = py + dy / 2.0;
+    double dxy = (dx + dy) / 2.0;
 
     glViewport(px, py, dx, dy);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(px, px + dx, py + dy, py, -1.0, 1.0);
 
-    float count2 = getCount() * 0.5f;
-	float factor = count2 * 0.16;
+    double count2 = g_counter;
+    double factor = count2 * 0.03;
 
-	qx += 30 * std::cos(factor * 0.8);
-	qy += 30 * std::sin(factor * 0.8);
-
-	for (float radius = (dx + dy) * 0.4f; radius >= 10; radius *= 0.92)
-	{
-		float h;
-		if (bFlag)
-			h = std::fmod(dxy + factor * 0.3f + radius * 0.015f, 1.0f);
-		else
-			h = std::fmod(dxy + factor * 0.3f - radius * 0.015f, 1.0f);
-		float r0, g0, b0;
-		hsv2rgb(h, 1.0f, 1.0f, r0, g0, b0);
-        glColor3f(r0, g0, b0);
-
-		INT N0 = 40, N1 = 5;
-		INT i = 0;
-		for (float angle = 0; angle <= 360; angle += 360 / N0)
-		{
-			float radian = (angle + count2 * 2) * (M_PI / 180.0f);
-			float factor2 = radius * (1 + 0.7f * std::fabs(std::sin(N1 * i * M_PI / N0)));
-			float x = qx + factor2 * std::cos(radian);
-			float y = qy + factor2 * std::sin(radian);
-			if (angle == 0)
-			{
-			    glBegin(GL_POLYGON);
-			}
-		    glVertex2f(x, y);
-		    ++i;
-		}
-	    glEnd();
-	}
-}
-
-void drawType4(RECT& rc, BOOL bFlag)
-{
-    INT px = rc.left, py = rc.top;
-    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
-
-    glViewport(px, py, cx, cy);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
-
-    float size = ((rc.right - rc.left) + (rc.bottom - rc.top)) * 0.4f;
-    float qx, qy;
-    float count2 = getCount() * 0.5f;
-    {
-        fcomp_t comp = std::polar(float(g_dwGriGri), g_eCount * float(M_PI * 0.01f));
-        qx = (rc.left + rc.right) / 2 + comp.real();
-        qy = (rc.top + rc.bottom) / 2 + comp.imag();
-    }
-
-    float factor = (0.99 + fabs(sin(count2 * 0.2f)) * 0.01f);
-
-    INT dr0 = 20;
-    float dr = dr0 / 4 * factor;
-    INT flag2 = g_nDirection * (bFlag ? -1 : 1);
-    INT ci = 10;
-    for (INT i = 0; i < ci; ++i)
-    {
-        INT count = 0;
-        float oldx = MAXLONG, oldy = MAXLONG;
-        for (float radius = -size; radius < 0; radius += 16.0f)
-        {
-            float theta = count * dr0 * 0.4f;
-            float value = 0.6f + 0.4f * sin(count2 * 0.1f + count * 0.1f);
-            if (g_bColor)
-                glColor3f(value, 1.0f, 1.0f);
-            else
-                glColor3f(1.0f, 1.0f, 1.0f);
-
-            float radian = theta * float(M_PI / 90) + i * float(2 * M_PI) / ci;
-            fcomp_t comp = std::polar(radius, flag2 * (-radian + count2 * float(M_PI * 0.03f)));
-            float x = qx + comp.real() * (2 + sin(count2 * 0.04f));
-            float y = qy + comp.imag() * (2 + sin(count2 * 0.04f));
-            if (oldx == MAXLONG && oldy == MAXLONG)
-            {
-                oldx = x;
-                oldy = y;
-            }
-            line(oldx, oldy, x, y, dr);
-
-            oldx = x;
-            oldy = y;
-            ++count;
-        }
-        oldx = oldy = MAXLONG;
-        for (float radius = 0; radius < size; radius += 16.0f)
-        {
-            float theta = count * dr0 * 0.4f;
-            float value = 0.6f + 0.4f * sin(count2 * 0.1f + count * 0.1f);
-            if (g_bColor)
-                glColor3f(value, 1.0f, 1.0f);
-            else
-                glColor3f(1.0f, 1.0f, 1.0f);
-
-            float radian = theta * (-flag2 * M_PI / 90.0f) + i * float(2 * M_PI) / ci;
-            fcomp_t comp = std::polar(radius, radian + flag2 * float(M_PI * 0.03f) * count2);
-            float x = qx + comp.real() * (2 + sin(count2 * 0.02f));
-            float y = qy + comp.imag() * (2 + sin(count2 * 0.02f));
-            if (oldx == MAXLONG && oldy == MAXLONG)
-            {
-                oldx = x;
-                oldy = y;
-            }
-            line(oldx, oldy, x, y, dr);
-
-            oldx = x;
-            oldy = y;
-            ++count;
-        }
-    }
-
-    if (g_bColor)
-        glColor3f(1.0f, 0.4f, 0.4f);
-    else
-        glColor3f(1.0f, 1.0f, 1.0f);
-    circle(qx, qy, dr * 2);
-    if (g_bColor)
-        glColor3f(1.0f, 0.6f, 0.6f);
-    else
-        glColor3f(1.0f, 1.0f, 1.0f);
-    circle(qx, qy, dr);
-}
-
-void drawType5_0(RECT& rc, BOOL bFlag, float size)
-{
-    INT px = rc.left, py = rc.top;
-    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
-    INT qx = px + cx / 2, qy = py + cy / 2;
-
-    glViewport(px, py, cx, cy);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(px, px + cx, py + cy, py, -1.0, 1.0);
-
-    float eCount = getCount();
-    float factor = eCount * 0.02f;
-
-    float count2 = getCount() * 0.5;
-    {
-        fcomp_t comp = std::polar(float(g_dwGriGri) * 0.7f, float(M_PI * 0.012f) * g_eCount);
-        qx += comp.real();
-        qy += comp.imag();
-    }
-
+    double size = 32;
+    if (isLargeDisplay())
+        size *= 2;
     INT nCount2 = 0;
-    float cxy = (cx + cy) * 0.35f;
-    float xy0 = (cxy + size) - std::fmod((cxy + size), size);
-    for (float y = -xy0; y < cxy + size; y += size)
+    double cxy = ((dx >= dy) ? dy : dx) * 1.2;
+    double xy0 = (cxy + size) - std::fmod((cxy + size), size);
+    dcomp_t comp0 = std::polar(1.0, factor * 1.0);
+    for (double y = -xy0; y < cxy + size; y += size)
     {
         INT nCount = nCount2 % 3;
-        for (float x = -xy0; x < cxy + size; x += size)
+        for (double x = -xy0; x < cxy + size; x += size)
         {
-            float h;
-            float s = 1.0f;
-            float v = 1.0f;
-            float r, g, b;
-            if (g_bColor)
+            double h, s = 1.0, v = 1.0;
+            switch (int(nCount) % 3)
             {
-                switch (nCount % 3)
-                {
-                case 0:
-                    h = std::fmod(0.2f + factor * 1.2, 1.0f);
-                    break;
-                case 1:
-                    h = std::fmod(0.4f + factor * 1.2, 1.0f);
-                    break;
-                case 2:
-                    h = std::fmod(0.8f + factor * 1.2, 1.0f);
-                    break;
-                }
-                hsv2rgb(h, s, v, r, g, b);
-
-                if (r < 0.2f)
-                    r = 0.2f;
-                if (g < 0.2f)
-                    g = 0.2f;
-                if (b < 0.2f)
-                    b = 0.2f;
-                glColor3f(r, g, b);
+            case 0:
+                h = std::fmod(0.2 + factor * 1.2, 1.0);
+                break;
+            case 1:
+                h = std::fmod(0.4 + factor * 1.2, 1.0);
+                break;
+            case 2:
+                h = std::fmod(0.8 + factor * 1.2, 1.0);
+                break;
             }
-            else
-            {
-                if ((nCount + (g_dwCount * g_nSpeed / 40)) % 3 == 0)
-                    glColor3f(1.0f, 1.0f, 1.0f);
-                else
-                    glColor3f(0.0f, 0.0f, 0.0f);
-            }
+            double r, g, b;
+            hsv2rgb(r, g, b, h, s, v);
 
-            fcomp_t comp, comp0;
-            if (bFlag ^ (g_nDirection < 0))
-                comp0 = std::polar(1.0f, factor * 0.65f);
-            else
-                comp0 = std::polar(1.0f, (1.0f - factor) * 0.65f);
+            if (r > 0.8)
+                r = 1.0;
+            if (g > 0.8)
+                g = 1.0;
+            if (b > 0.8)
+                b = 1.0;
 
-            float x0 = x - size / 2;
-            float y0 = y - size / 2;
-            float x1 = x0 + size;
-            float y1 = y0 + size;
+            glColor3d(r, g, b);
+
+            double x0 = x - size / 2;
+            double y0 = y - size / 2;
+            double x1 = x0 + size;
+            double y1 = y0 + size;
             glBegin(GL_POLYGON);
-            comp = fcomp_t(x0, y0);
-            comp *= comp0;
-            glVertex2f(qx + comp.real(), qy + comp.imag());
-            comp = fcomp_t(x0, y1);
-            comp *= comp0;
-            glVertex2f(qx + comp.real(), qy + comp.imag());
-            comp = fcomp_t(x1, y1);
-            comp *= comp0;
-            glVertex2f(qx + comp.real(), qy + comp.imag());
-            comp = fcomp_t(x1, y0);
-            comp *= comp0;
-            glVertex2f(qx + comp.real(), qy + comp.imag());
+            dcomp_t comp1 = dcomp_t(x0, y0);
+            comp1 *= comp0;
+            glVertex2d(qx + comp1.real(), qy + comp1.imag());
+            dcomp_t comp2 = dcomp_t(x0, y1);
+            comp2 *= comp0;
+            glVertex2d(qx + comp2.real(), qy + comp2.imag());
+            dcomp_t comp3 = dcomp_t(x1, y1);
+            comp3 *= comp0;
+            glVertex2d(qx + comp3.real(), qy + comp3.imag());
+            dcomp_t comp4 = dcomp_t(x1, y0);
+            comp4 *= comp0;
+            glVertex2d(qx + comp4.real(), qy + comp4.imag());
             glEnd();
 
             if (x >= 0)
                 nCount = (nCount + 2) % 3;
             else
-                ++nCount;
+                nCount += 1;
         }
         if (y >= 0)
             nCount2 = (nCount2 + 2) % 3;
         else
-            ++nCount2;
+            nCount2 += 1;
     }
 
-    GLboolean line_smooth;
-    glGetBooleanv(GL_LINE_SMOOTH, &line_smooth);
-    glEnable(GL_LINE_SMOOTH);
+    dxy = double((dx >= dy) ? dx : dy);
 
-    GLfloat old_width;
-    glGetFloatv(GL_LINE_WIDTH, &old_width);
     glLineWidth(5);
 
-    float r;
-    if (g_nDirection < 0)
-        r = std::fmod(eCount, 100);
-    else
-        r = 100 - std::fmod(eCount, 100);
-
-    if (!g_bColor)
-        glColor3f(1.0f, 1.0f, 1.0f);
-    else if (size == 14)
-        glColor3f(1.0f, 0.2f, 0.2f);
-    else
-        glColor3f(0.2f, 0.2f, 1.0f);
-
-    for (; r < cxy; r += 100)
-    {
-        INT N = INT(r * 0.0667f);
-        if (N < 12)
-            N = 12;
-
-        circle(qx, qy, r, N, FALSE);
-        circle(qx, qy, r + 2, N, FALSE);
+    int i = 0;
+    glColor3d(1.0, 20.0 / 255.0, 29 / 255.0);
+    for (double r = std::fmod(count2 * 2, 100); r < cxy; r += 100) {
+        if (r < 200)
+            circle(qx, qy, r, false, 20);
+        else
+            circle(qx, qy, r, false, INT(r / 10.0f));
+        ++i;
     }
 
-    glLineWidth(old_width);
+    dxy = (dx >= dy) ? dx : dy;
+    whiteOut(qx, qy, dxy);
 
-    if (line_smooth)
-        glEnable(GL_LINE_SMOOTH);
-    else
-        glDisable(GL_LINE_SMOOTH);
-}
+    glColor3d(0, 0, 0);
+    eye(qx, qy, cxy / 10, 1.0);
 
-void drawType5(RECT& rc, BOOL bFlag)
-{
-    INT px = rc.left, py = rc.top;
-    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
-
-    INT centerx = px + cx / 2;
-    INT centery = py + cy / 2;
-
-    RECT rc0, rc1;
-    SetRect(&rc0, px, py, px + cx, py + cy);
-    INT size = (cx + cy) / 8;
-    SetRect(&rc1, centerx - size, centery - size, centerx + size, centery + size);
-
-    drawType5_0(rc0, bFlag, 16);
-    drawType5_0(rc1, !bFlag, 14);
-}
-
-void updateRandom(INT nOldType)
-{
-    INT nNewType;
-    do
+    double opened = 1.0;
+    double f = std::sin(std::fabs(count2 * 0.1));
+    if (f >= 0.8)
     {
-        nNewType = rand() % (TYPE_COUNT - 2) + 1;
-    } while (nNewType == nOldType || nNewType == 0 || nNewType == TYPE_COUNT - 1);
+        opened = 0.6 + 0.4 * std::fabs(std::sin(f * M_PI));
+    }
 
-    g_nRandomType = nNewType;
-    g_bDual = (rand() % 3) < 2;
-}
-
-void drawRandom(RECT& rc, BOOL bFlag)
-{
-    if ((g_dwCount % 500) == 0)
-        updateRandom(g_nRandomType);
-
-    switch (g_nRandomType)
+    double N = 4;
+    double delta = (2 * M_PI) / N;
+    double radian = factor;
+    for (double i = 0; i < N; i += 1)
     {
-    case 0:
-        assert(0);
-        break;
-    case 1:
-        drawType1(rc, bFlag);
-        break;
-    case 2:
-        drawType2(rc, bFlag);
-        break;
-    case 3:
-        drawType3(rc, bFlag);
-        break;
-    case 4:
-        drawType4(rc, bFlag);
-        break;
-    case 5:
-        drawType5(rc, bFlag);
-        break;
-    case TYPE_COUNT - 1:
-        assert(0);
-        break;
+        double x = qx + cxy * std::cos(radian) * 0.3;
+        double y = qy + cxy * std::sin(radian) * 0.3;
+        eye(x, y, cxy / 10.0, opened);
+        radian += delta;
     }
 }
 
-void drawType(RECT& rc, INT nType, BOOL bFlag)
+void drawType4_5(INT px, INT py, INT dx, INT dy, INT t)
 {
-    switch (nType)
+    double qx = px + dx / 2.0;
+    double qy = py + dy / 2.0;
+    double dxy = (dx + dy) / 2.0;
+
+    glViewport(px, py, dx, dy);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(px, px + dx, py + dy, py, -1.0, 1.0);
+
+    double count2 = g_counter;
+    double factor = count2 * 0.16;
+
+    if (isLargeDisplay())
     {
-    case 0:
-        // Do nothing
-        break;
-    case 1:
-        drawType1(rc, bFlag);
-        break;
-    case 2:
-        drawType2(rc, bFlag);
-        break;
-    case 3:
-        drawType3(rc, bFlag);
-        break;
-    case 4:
-        drawType4(rc, bFlag);
-        break;
-    case 5:
-        drawType5(rc, bFlag);
-        break;
-    case TYPE_COUNT - 1:
-        drawRandom(rc, bFlag);
-        break;
+        qx += 60 * std::cos(factor * 0.8);
+        qy += 60 * std::sin(factor * 0.8);
     }
-}
-
-void draw(RECT& rc)
-{
-    if (IsIconic(g_hwnd))
-        return;
-
-    INT cx = rc.right - rc.left, cy = rc.bottom - rc.top;
-
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    if (g_bDual)
+    else
     {
-        RECT rc2;
-        if (cx > cy)
+        qx += 30 * std::cos(factor * 0.8);
+        qy += 30 * std::sin(factor * 0.8);
+    }
+
+    bool isLarge = isLargeDisplay();
+    for (double radius = (isLarge ? ((dx + dy) * 0.2) : ((dx + dy) * 0.4)); radius >= 10; radius *= 0.92)
+    {
+        double r0, g0, b0;
+        hsv2rgb(r0, g0, b0, std::fmod(dxy + factor * 0.3 - radius * 0.015, 1.0), 1.0, 1.0);
+        glColor3d(r0, g0, b0);
+
+        INT N0 = 10, N1 = 5;
+        INT i = 0;
+        double oldx = qx, oldy = qy;
+        for (double angle = 0; angle <= 360; angle += 360 / N0)
         {
-            SetRect(&rc2, 0, 0, cx / 2, cy);
-            drawType(rc2, g_nType, FALSE);
-            SetRect(&rc2, cx / 2, 0, cx, cy);
-            drawType(rc2, g_nType, TRUE);
+            double radian = (angle + count2 * 2) * (M_PI / 180.0);
+            double factor2 = radius * (1 + 0.7 * std::fabs(std::sin(N1 * i * M_PI / N0)));
+            if (isLarge)
+                factor2 *= 2;
+            double x = qx + factor2 * std::cos(radian);
+            double y = qy + factor2 * std::sin(radian);
+            if (oldx == qx && oldy == qy)
+            {
+                oldx = x;
+                oldy = y;
+            }
+            if (i > 0)
+            {
+                const int num = 10;
+                GLdouble xy[num][2];
+
+                leftExtend(num, xy, oldx, oldy, x, y);
+
+                glBegin(GL_POLYGON);
+                INT m = 0;
+                glVertex2d(qx, qy);
+                for (m = 0; m < num; ++m)
+                {
+                    glVertex2d(xy[m][0], xy[m][1]);
+                }
+                glEnd();
+            }
+            oldx = x;
+            oldy = y;
+            ++i;
+        }
+    }
+
+    dxy = (dx >= dy) ? dx : dy;
+    whiteOut(qx, qy, dxy);
+
+    if (t == 4)
+    {
+        glColor4d(1.0, 1.0, std::fmod(factor * (10 / 255.0), 1.0), 0.8);
+        INT M = 5;
+        for (double radius = std::fmod(factor * 10, 100); radius < dxy; radius += 100)
+        {
+            for (double angle = 0; angle < 360; angle += 360 / M)
+            {
+                double radian = angle * (M_PI / 180.0);
+                double x0 = qx + radius * std::cos(radian + factor * 0.1 + radius / 100);
+                double y0 = qy + radius * std::sin(radian + factor * 0.1 + radius / 100);
+                light(x0, y0, std::fmod(radius * 0.1, 30) + 10);
+            }
+        }
+    } 
+    else if (t == 5)
+    {
+        double value = factor * 25 + 10;
+        double gb = std::fmod(value / 191, 1.0);
+        glColor3d(1.0, gb, gb);
+        INT M = 5;
+        INT heartSize = 30;
+        for (double radius = std::fmod(factor * 10, 100) + 30; radius < dxy; radius += 100)
+        {
+            for (double angle = 0; angle < 360; angle += 360 / M) 
+            {
+                double radian = angle * (M_PI / 180.0);
+                double x0 = qx + radius * std::cos(radian + factor * 0.1 + radius / 100);
+                double y0 = qy + radius * std::sin(radian + factor * 0.1 + radius / 100);
+                heart(x0, y0, x0, y0 + heartSize + std::fmod(value, 191) / 12, 1.0, gb, gb);
+            }
+            heartSize += 5;
+        }
+    }
+}
+
+void drawType(INT px, INT py, INT dx, INT dy)
+{
+    switch (g_nType)
+    {
+    case 0:
+        break;
+    case 1:
+        drawType1(px, py, dx, dy);
+        break;
+    case 2:
+        drawType2(px, py, dx, dy, false);
+        drawType2(px, py, dx, dy, true);
+        break;
+    case 3:
+        drawType3(px, py, dx, dy);
+        break;
+    case 4:
+    case 5:
+        drawType4_5(px, py, dx, dy, g_nType);
+        break;
+    }
+}
+
+void draw(void)
+{
+    DWORD dwTick0 = GetTickCount();
+
+    INT x = g_width / 2, y = g_height / 2;
+    INT cx = g_width, cy = g_height;
+
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    if (g_division == 1)
+    {
+        drawType(0, 0, cx, cy);
+        g_stc1deltay = cy / 4;
+    }
+    else if (g_division == -1)
+    {
+        if (cx >= cy * 1.75)
+        {
+            drawType(0, 0, cx / 2, cy);
+            drawType(cx / 2, 0, cx / 2, cy);
+            g_stc1deltay = 0;
+        }
+        else if (cy >= cx * 1.75)
+        {
+            drawType(0, 0, cx, cy / 2);
+            drawType(0, cy / 2, cx, cy / 2);
+            g_stc1deltay = 0;
         }
         else
         {
-            SetRect(&rc2, 0, 0, cx, cy / 2);
-            drawType(rc2, g_nType, FALSE);
-            SetRect(&rc2, 0, cy / 2, cx, cy);
-            drawType(rc2, g_nType, TRUE);
+            drawType(0, 0, cx, cy);
+            g_stc1deltay = cy / 4;
         }
+    }
+    else if (g_division == 2)
+    {
+        g_stc1deltay = 0;
+        if (cx >= cy)
+        {
+            drawType(0, 0, cx / 2, cy);
+            drawType(cx / 2, 0, cx / 2, cy);
+        }
+        else
+        {
+            drawType(0, 0, cx, cy / 2);
+            drawType(0, cy / 2, cx, cy / 2);
+        }
+    }
+
+    glutSwapBuffers();
+
+    if (g_bPerfCounter)
+    {
+        LARGE_INTEGER new_tick;
+        QueryPerformanceCounter(&new_tick);
+        DWORD tick = (DWORD)((new_tick.QuadPart - g_old_tick.QuadPart) * 1000 / g_freq.QuadPart);
+        double diff = tick / 1000.0;
+        g_counter += diff * g_eSpeed;
+        g_old_tick = new_tick;
     }
     else
     {
-        drawType(rc, g_nType, FALSE);
+        DWORD dwNewTick = GetTickCount();
+        double diff = (dwNewTick - g_dwOldTick) / 1000.0;
+        g_counter += diff * g_eSpeed;
+        g_dwOldTick = dwNewTick;
     }
 
-    SwapBuffers(g_hDC);
+    DWORD dwTick1 = GetTickCount();
+    g_dwFPS = dwTick1 - dwTick0;
+}
+
+void displayCB()
+{
+    draw();
+}
+
+void reshapeCB(int w, int h)
+{
+    g_width = w;
+    g_height = h;
+    glutPostRedisplay();
+}
+
+void timerCB(int param)
+{
+    glutTimerFunc(g_dwFPS, timerCB, 0);
+    glutPostRedisplay();
+}
+
+void idleCB()
+{
+    glutPostRedisplay();
+}
+
+void keyboardCB(unsigned char key, int x, int y)
+{
+    ;
+}
+
+void mouseCB(int button, int state, int x, int y)
+{
+    g_nMouseX = x;
+    g_nMouseY = y;
+
+    switch (button)
+    {
+    case GLUT_LEFT_BUTTON:
+        if (state == GLUT_DOWN)
+        {
+            if (GetAsyncKeyState(VK_SHIFT) < 0)
+            {
+                setType(((g_nType + TYPE_COUNT - 2) % TYPE_COUNT) + 1);
+            }
+            else
+            {
+                setType((g_nType % TYPE_COUNT) + 1);
+            }
+            g_bMouseLeftButton = true;
+        }
+        else if (state == GLUT_UP)
+        {
+            g_bMouseLeftButton = false;
+        }
+        break;
+
+    case GLUT_RIGHT_BUTTON:
+        if (state == GLUT_DOWN)
+        {
+            if (GetAsyncKeyState(VK_SHIFT) < 0)
+            {
+                switch (g_division)
+                {
+                case -1:
+                    setDivision(2);
+                    break;
+                case 1:
+                default:
+                    setDivision(-1);
+                    break;
+                case 2:
+                    setDivision(1);
+                    break;
+                }
+            }
+            else
+            {
+                switch (g_division)
+                {
+                case -1:
+                    setDivision(1);
+                    break;
+                case 1:
+                    setDivision(2);
+                    break;
+                case 2:
+                default:
+                    setDivision(-1);
+                    break;
+                }
+            }
+            g_bMouseRightButton = true;
+        }
+        else if (state == GLUT_UP)
+        {
+            g_bMouseRightButton = false;
+        }
+        break;
+
+    case 3:
+        // mouse wheel up
+        if (g_eSpeed < 80.0)
+            g_eSpeed += 5.0;
+        else
+            g_eSpeed = 80.0;
+        break;
+
+    case 4:
+        // mouse wheel down
+        if (g_eSpeed > 0.0)
+            g_eSpeed -= 5.0;
+        else
+            g_eSpeed = 0.0;
+        break;
+    }
+}
+
+void mouseMotionCB(int x, int y)
+{
+    if (g_bMouseLeftButton)
+    {
+        ;
+    }
+    if (g_bMouseRightButton)
+    {
+        ;
+    }
+}
+
+void initLights(void)
+{
+#if 0
+    GLfloat lightKa[] = {.2f, .2f, .2f, 1.0f};  // ambient light
+    GLfloat lightKd[] = {.7f, .7f, .7f, 1.0f};  // diffuse light
+    GLfloat lightKs[] = {1, 1, 1, 1};           // specular light
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lightKa);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightKd);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightKs);
+
+    // position the light
+    float lightPos[4] = {0, 0, 20, 1}; // positional light
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+    glEnable(GL_LIGHT0);
+#endif
+}
+
+void setCamera(float posX, float posY, float posZ, float targetX, float targetY, float targetZ)
+{
+    //glMatrixMode(GL_MODELVIEW);
+    //glLoadIdentity();
+    //gluLookAt(posX, posY, posZ, targetX, targetY, targetZ, 0, 1, 0); // eye(x,y,z), focal(x,y,z), up(x,y,z)
 }
 
 inline BOOL stc1_OnEraseBkgnd(HWND hwnd, HDC hdc)
@@ -874,7 +1155,7 @@ void stc1_CalcSize(HWND hwnd)
 
     if (HDC hdc = GetDC(hwnd))
     {
-        SelectObject(hdc, g_hFont);
+        SelectObject(hdc, g_hMsgFont);
         UINT uFlags = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX;
         DrawText(hdc, g_strText.c_str(), -1, &rc, uFlags | DT_CALCRECT);
         TEXTMETRIC tm;
@@ -915,7 +1196,7 @@ void stc1_OnPaint(HWND hwnd)
                     FillRect(hdcMem, &rc, GetStockBrush(DKGRAY_BRUSH));
                     SetTextColor(hdcMem, RGB(191, 255, 255));
                     SetBkMode(hdcMem, TRANSPARENT);
-                    SelectObject(hdcMem, g_hFont);
+                    SelectObject(hdcMem, g_hMsgFont);
                     UINT uFlags = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX;
                     DrawText(hdcMem, g_strText.c_str(), -1, &rc, uFlags);
                 }
@@ -955,120 +1236,9 @@ stc1WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 }
 
-BOOL createControls(HWND hwnd)
+static DWORD WINAPI messageThreadProc(LPVOID)
 {
-    DWORD style, exstyle;
-
-    // cmb1: The Types
-    style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE;
-    exstyle = 0;
-    g_hCmb1 = CreateWindowEx(exstyle, TEXT("COMBOBOX"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)cmb1, g_hInstance, NULL);
-    if (!g_hCmb1)
-        return FALSE;
-    SetWindowFont(g_hCmb1, GetStockFont(DEFAULT_GUI_FONT), TRUE);
-    ComboBox_AddString(g_hCmb1, TEXT(""));
-    ComboBox_AddString(g_hCmb1, TEXT("Type 1"));
-    ComboBox_AddString(g_hCmb1, TEXT("Type 2"));
-    ComboBox_AddString(g_hCmb1, TEXT("Type 3"));
-    ComboBox_AddString(g_hCmb1, TEXT("Type 4"));
-    ComboBox_AddString(g_hCmb1, TEXT("Type 5"));
-    ComboBox_AddString(g_hCmb1, TEXT("Random"));
-    ComboBox_SetCurSel(g_hCmb1, g_nType);
-
-    // cmb2: The Sounds
-    style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE;
-    exstyle = 0;
-    g_hCmb2 = CreateWindowEx(exstyle, TEXT("COMBOBOX"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)cmb2, g_hInstance, NULL);
-    if (!g_hCmb2)
-        return FALSE;
-    SetWindowFont(g_hCmb2, GetStockFont(DEFAULT_GUI_FONT), TRUE);
-    doListSound(g_hCmb2);
-    SetWindowText(g_hCmb2, g_strSound.c_str());
-    INT iSound = (INT)SendMessage(g_hCmb2, CB_FINDSTRINGEXACT, -1, (LPARAM)g_strSound.c_str());
-    ComboBox_SetCurSel(g_hCmb2, iSound);
-    if (iSound != CB_ERR)
-    {
-        PlaySound(getSoundPath(g_strSound.c_str()), NULL, SND_LOOP | SND_ASYNC);
-    }
-
-    // chx1: Color checkbox
-    style = BS_AUTOCHECKBOX | WS_CHILD | WS_VISIBLE;
-    exstyle = 0;
-    g_hChx1 = CreateWindowEx(exstyle, TEXT("BUTTON"), TEXT("Color"), style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)chx1, g_hInstance, NULL);
-    if (!g_hChx1)
-        return FALSE;
-    SetWindowFont(g_hChx1, GetStockFont(DEFAULT_GUI_FONT), TRUE);
-    if (g_bColor)
-        CheckDlgButton(hwnd, chx1, BST_CHECKED);
-    else
-        CheckDlgButton(hwnd, chx1, BST_UNCHECKED);
-
-    // cmb3: Messages ComboBox
-    style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWN | WS_CHILD | WS_VISIBLE;
-    exstyle = 0;
-    g_hCmb3 = CreateWindowEx(exstyle, TEXT("COMBOBOX"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)cmb3, g_hInstance, NULL);
-    if (!g_hCmb3)
-        return FALSE;
-    SetWindowFont(g_hCmb3, GetStockFont(DEFAULT_GUI_FONT), TRUE);
-    ComboBox_AddString(g_hCmb3, TEXT(""));
-    for (INT i = 200; i <= 209; ++i)
-    {
-        ComboBox_AddString(g_hCmb3, doLoadString(i));
-    }
-    for (size_t i = 0; i < g_texts.size(); ++i)
-    {
-        if (g_texts[i].empty())
-            continue;
-        ComboBox_AddString(g_hCmb3, g_texts[i].c_str());
-    }
-    ComboBox_SetCurSel(g_hCmb3, CB_ERR);
-    SetWindowText(g_hCmb3, g_strText.c_str());
-
-    // psh1: The "Set" Button
-    style = BS_PUSHBUTTON | BS_CENTER | WS_CHILD | WS_VISIBLE;
-    exstyle = 0;
-    g_hPsh1 = CreateWindowEx(exstyle, TEXT("BUTTON"), TEXT("Set"), style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)psh1, g_hInstance, NULL);
-    if (!g_hPsh1)
-        return FALSE;
-    SetWindowFont(g_hPsh1, GetStockFont(DEFAULT_GUI_FONT), TRUE);
-
-    // stc1: The Message
-    style = SS_CENTER | SS_NOPREFIX | WS_CHILD | WS_VISIBLE;
-    exstyle = 0;
-    g_hStc1 = CreateWindowEx(exstyle, TEXT("STATIC"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)stc1, g_hInstance, NULL);
-    if (!g_hStc1)
-        return FALSE;
-    g_fnStc1OldWndProc = SubclassWindow(g_hStc1, stc1WindowProc);
-
-    {
-        HFONT hFont = GetStockFont(DEFAULT_GUI_FONT);
-        LOGFONT lf;
-        GetObject(hFont, sizeof(lf), &lf);
-        lf.lfHeight = 32;
-        g_hFont = CreateFontIndirect(&lf);
-        SetWindowFont(g_hStc1, g_hFont, TRUE);
-    }
-
-    SetWindowText(g_hStc1, g_strText.c_str());
-    stc1_CalcSize(g_hStc1);
-
-    PostMessage(hwnd, WM_SIZE, 0, 0);
-    return TRUE;
-}
-
-void OnTimer(HWND hwnd, UINT id)
-{
-    if (id == TIMER_ID)
-    {
-        InvalidateRect(hwnd, NULL, TRUE);
-        g_dwCount++;
-        g_eCount += g_nSpeed * 0.25;
-    }
-}
-
-DWORD WINAPI threadProc(LPVOID)
-{
-    while (g_hThread)
+    while (g_hMessageThread)
     {
         RECT rc;
         GetClientRect(g_hwnd, &rc);
@@ -1084,8 +1254,8 @@ DWORD WINAPI threadProc(LPVOID)
             rc2.top = (rc.top + rc.bottom - g_cyStc1) / 2;
             rc2.right = rc2.left + g_cxStc1;
             rc2.bottom = rc2.top + g_cyStc1;
-            INT offset = INT((rc.bottom - rc.top) * (sin(g_dwCount * 0.05) * 0.2 + 1) / 4);
-            OffsetRect(&rc2, 0, offset);
+            double offset = (rc.bottom - rc.top) * sin(g_counter * 0.08) * 0.05 + g_stc1deltay;
+            OffsetRect(&rc2, 0, INT(offset));
             MoveWindow(g_hStc1, rc2.left, rc2.top, g_cxStc1, g_cyStc1, FALSE);
             ShowWindowAsync(g_hStc1, SW_SHOWNOACTIVATE);
             InvalidateRect(g_hStc1, NULL, TRUE);
@@ -1097,141 +1267,274 @@ DWORD WINAPI threadProc(LPVOID)
     return 0;
 }
 
-BOOL OnCreate(HWND hwnd, LPCREATESTRUCT lpCreateStruct)
+LPTSTR getSoundPath(LPCTSTR pszFileName)
 {
-    g_hDC = GetDC(hwnd);
-    if (!g_hDC)
-        return FALSE;
-
-    PIXELFORMATDESCRIPTOR pfd = { sizeof(pfd) };
-    pfd.nVersion = 1;
-    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 32;
-    pfd.cAlphaBits = 8;
-    pfd.cDepthBits = 24;
-    INT iPixelFormat = ::ChoosePixelFormat(g_hDC, &pfd);
-    if (!iPixelFormat)
-        return FALSE;
-
-    if (!SetPixelFormat(g_hDC, iPixelFormat, &pfd))
-        return FALSE;
-
-    g_hGLRC = wglCreateContext(g_hDC);
-    if (g_hGLRC == NULL)
-        return FALSE;
-
-    wglMakeCurrent(g_hDC, g_hGLRC);
-
-    if (!createControls(hwnd))
-        return FALSE;
-
-    g_hThread = CreateThread(NULL, 0, threadProc, NULL, 0, NULL);
-
-    SetTimer(hwnd, TIMER_ID, 0, NULL);
-    return TRUE;
-}
-
-void OnDestroy(HWND hwnd)
-{
-    KillTimer(hwnd, TIMER_ID);
-    CloseHandle(g_hThread);
-    g_hThread = NULL;
-    wglMakeCurrent(g_hDC, NULL);
-    wglDeleteContext(g_hGLRC);
-    ReleaseDC(hwnd, g_hDC);
-    DeleteObject(g_hFont);
-    DeleteObject(g_hbm);
-    PostQuitMessage(0);
-}
-
-inline BOOL OnEraseBkgnd(HWND hwnd, HDC hdc)
-{
-    return TRUE;
-}
-
-inline void OnPaint(HWND hwnd)
-{
-    RECT rc;
-    GetClientRect(hwnd, &rc);
-    draw(rc);
-    PAINTSTRUCT ps;
-    if (HDC hDC = BeginPaint(hwnd, &ps))
+    static TCHAR s_szText[MAX_PATH];
+    if (pszFileName[0])
     {
-        EndPaint(hwnd, &ps);
+        GetModuleFileName(NULL, s_szText, _countof(s_szText));
+        PathRemoveFileSpec(s_szText);
+        PathAppend(s_szText, TEXT("Sounds"));
+        if (!PathIsDirectory(s_szText))
+        {
+            PathRemoveFileSpec(s_szText);
+            PathRemoveFileSpec(s_szText);
+            PathAppend(s_szText, TEXT("Sounds"));
+            if (!PathIsDirectory(s_szText))
+            {
+                PathRemoveFileSpec(s_szText);
+                PathRemoveFileSpec(s_szText);
+                PathAppend(s_szText, TEXT("Sounds"));
+            }
+        }
+        PathAppend(s_szText, pszFileName);
+    }
+    else
+    {
+        s_szText[0] = 0;
+    }
+    return s_szText;
+}
+
+void doListSound(HWND hCmb)
+{
+    TCHAR szPath[MAX_PATH];
+    GetModuleFileName(NULL, szPath, MAX_PATH);
+    PathRemoveFileSpec(szPath);
+    PathAppend(szPath, TEXT("Sounds"));
+    if (!PathIsDirectory(szPath))
+    {
+        PathRemoveFileSpec(szPath);
+        PathRemoveFileSpec(szPath);
+        PathAppend(szPath, TEXT("Sounds"));
+        if (!PathIsDirectory(szPath))
+        {
+            PathRemoveFileSpec(szPath);
+            PathRemoveFileSpec(szPath);
+            PathAppend(szPath, TEXT("Sounds"));
+        }
+    }
+    PathAppend(szPath, TEXT("*.wave"));
+
+    SendMessage(hCmb, CB_ADDSTRING, 0, (LPARAM)TEXT("(None)"));
+
+    WIN32_FIND_DATA find;
+    HANDLE hFind = FindFirstFile(szPath, &find);
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+        do
+        {
+            SendMessage(hCmb, CB_ADDSTRING, 0, (LPARAM)find.cFileName);
+        } while (FindNextFile(hFind, &find));
+
+        FindClose(hFind);
     }
 }
 
-void OnSize(HWND hwnd, UINT state, int cx, int cy)
+BOOL createControls(HWND hwnd)
 {
-    RECT rc;
-    GetClientRect(hwnd, &rc);
+    DWORD style, exstyle;
 
-    INT nHeight = ComboBox_GetItemHeight(g_hCmb1);
-    MoveWindow(g_hCmb1, rc.left, rc.bottom - 24, 80, nHeight * 10, TRUE);
-    MoveWindow(g_hCmb2, rc.left + 90, rc.bottom - 24, 150, nHeight * 10, TRUE);
-    MoveWindow(g_hChx1, rc.left + 250, rc.bottom - 24, 60, 20, TRUE);
-    MoveWindow(g_hCmb3, rc.right - 150 - 40, rc.bottom - 24, 150, nHeight * 10, TRUE);
-    MoveWindow(g_hPsh1, rc.right - 40, rc.bottom - 24, 40, 24, TRUE);
+    {
+        HFONT hFont = GetStockFont(DEFAULT_GUI_FONT);
+        LOGFONT lf;
+        GetObject(hFont, sizeof(lf), &lf);
+        lf.lfHeight = 16;
+        g_hUIFont = CreateFontIndirect(&lf);
+    }
 
-    g_bMaximized = IsZoomed(hwnd);
+    // cmb1: The Types
+    style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE;
+    exstyle = 0;
+    g_hCmb1 = CreateWindowEx(exstyle, TEXT("COMBOBOX"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)cmb1, g_hInstance, NULL);
+    if (!g_hCmb1)
+        return FALSE;
+    SetWindowFont(g_hCmb1, g_hUIFont, TRUE);
+    ComboBox_AddString(g_hCmb1, TEXT("None"));
+    ComboBox_AddString(g_hCmb1, TEXT("Type 1"));
+    ComboBox_AddString(g_hCmb1, TEXT("Type 2"));
+    ComboBox_AddString(g_hCmb1, TEXT("Type 3"));
+    ComboBox_AddString(g_hCmb1, TEXT("Type 4"));
+    ComboBox_AddString(g_hCmb1, TEXT("Type 5"));
+    ComboBox_SetCurSel(g_hCmb1, g_nType);
+
+    // cmb2: The Sounds
+    style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE;
+    exstyle = 0;
+    g_hCmb2 = CreateWindowEx(exstyle, TEXT("COMBOBOX"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)cmb2, g_hInstance, NULL);
+    if (!g_hCmb2)
+        return FALSE;
+    SetWindowFont(g_hCmb2, g_hUIFont, TRUE);
+    doListSound(g_hCmb2);
+    SetWindowText(g_hCmb2, g_strSound.c_str());
+    INT iSound = (INT)SendMessage(g_hCmb2, CB_FINDSTRINGEXACT, -1, (LPARAM)g_strSound.c_str());
+    ComboBox_SetCurSel(g_hCmb2, iSound);
+
+    if (iSound != CB_ERR && g_strSound != TEXT("(None)"))
+    {
+        PlaySound(getSoundPath(g_strSound.c_str()), NULL, SND_LOOP | SND_ASYNC);
+    }
+
+    // cmb3: Messages ComboBox
+    style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWN | WS_CHILD | WS_VISIBLE;
+    exstyle = 0;
+    g_hCmb3 = CreateWindowEx(exstyle, TEXT("COMBOBOX"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)cmb3, g_hInstance, NULL);
+    if (!g_hCmb3)
+        return FALSE;
+    SetWindowFont(g_hCmb3, g_hUIFont, TRUE);
+    ComboBox_AddString(g_hCmb3, TEXT(""));
+    for (INT i = 200; i <= 209; ++i)
+    {
+        ComboBox_AddString(g_hCmb3, doLoadString(i));
+    }
+    for (size_t i = 0; i < g_texts.size(); ++i)
+    {
+        if (g_texts[i].empty())
+            continue;
+        ComboBox_AddString(g_hCmb3, g_texts[i].c_str());
+    }
+    ComboBox_SetCurSel(g_hCmb3, CB_ERR);
+    SetWindowText(g_hCmb3, g_strText.c_str());
+
+    // cmb4: Division ComboBox
+    style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE;
+    exstyle = 0;
+    g_hCmb4 = CreateWindowEx(exstyle, TEXT("COMBOBOX"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)cmb4, g_hInstance, NULL);
+    if (!g_hCmb4)
+        return FALSE;
+    SetWindowFont(g_hCmb4, g_hUIFont, TRUE);
+    for (INT i = 210; i <= 212; ++i)
+    {
+        ComboBox_AddString(g_hCmb4, doLoadString(i));
+    }
+    setDivision(g_division);
+
+    // chx1: Speech checkbox
+    style = BS_AUTOCHECKBOX | WS_CHILD | WS_VISIBLE;
+    exstyle = 0;
+    g_hChx1 = CreateWindowEx(exstyle, TEXT("BUTTON"), TEXT("Speech"), style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)chx1, g_hInstance, NULL);
+    if (!g_hChx1)
+        return FALSE;
+    SetWindowFont(g_hChx1, g_hUIFont, TRUE);
+    setSpeech(g_bSpeech);
+
+    // psh1: The "Set" Button
+    style = BS_PUSHBUTTON | BS_CENTER | WS_CHILD | WS_VISIBLE;
+    exstyle = 0;
+    g_hPsh1 = CreateWindowEx(exstyle, TEXT("BUTTON"), TEXT("Set"), style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)psh1, g_hInstance, NULL);
+    if (!g_hPsh1)
+        return FALSE;
+    SetWindowFont(g_hPsh1, g_hUIFont, TRUE);
+
+    // stc1: The Message
+    style = SS_CENTER | SS_NOPREFIX | WS_CHILD | WS_VISIBLE;
+    exstyle = 0;
+    g_hStc1 = CreateWindowEx(exstyle, TEXT("STATIC"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)stc1, g_hInstance, NULL);
+    if (!g_hStc1)
+        return FALSE;
+    g_fnStc1OldWndProc = SubclassWindow(g_hStc1, stc1WindowProc);
+
+    {
+        HFONT hFont = GetStockFont(DEFAULT_GUI_FONT);
+        LOGFONT lf;
+        GetObject(hFont, sizeof(lf), &lf);
+        lf.lfHeight = 32;
+        if (isLargeDisplay())
+            lf.lfHeight *= 2;
+        g_hMsgFont = CreateFontIndirect(&lf);
+        SetWindowFont(g_hStc1, g_hMsgFont, TRUE);
+    }
+
+    SetWindowText(g_hStc1, g_strText.c_str());
+    stc1_CalcSize(g_hStc1);
+    g_hMessageThread = CreateThread(NULL, 0, messageThreadProc, NULL, 0, NULL);
+
+    // Reposition
+    PostMessage(hwnd, WM_SIZE, 0, 0);
+    return TRUE;
 }
 
-inline void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+void destroyControls(HWND hwnd)
 {
-    g_bDual = !g_bDual;
+    CloseHandle(g_hMessageThread);
+    g_hMessageThread = NULL;
+    CloseHandle(g_hSpeechThread);
+    g_hSpeechThread = NULL;
+    DestroyWindow(g_hCmb1);
+    g_hCmb1 = NULL;
+    DestroyWindow(g_hCmb3);
+    g_hCmb3 = NULL;
+    DestroyWindow(g_hCmb4);
+    g_hCmb4 = NULL;
+    DestroyWindow(g_hPsh1);
+    g_hPsh1 = NULL;
+    DestroyWindow(g_hStc1);
+    g_hStc1 = NULL;
+    DeleteObject(g_hUIFont);
+    g_hUIFont = NULL;
+    DeleteObject(g_hMsgFont);
+    g_hMsgFont = NULL;
 }
 
-void setType(INT nType)
+void setSound(LPCTSTR pszText)
 {
-    INT nOldType = g_nType;
-    g_nType = nType;
-
-    if (g_nType == TYPE_COUNT - 1)
-        updateRandom(nOldType);
-
-    if (ComboBox_GetCurSel(g_hCmb1) != g_nType)
-        ComboBox_SetCurSel(g_hCmb1, g_nType);
+    PlaySound(NULL, NULL, SND_PURGE);
+    if (pszText && pszText[0] && lstrcmpi(pszText, TEXT("(None)")) != 0)
+    {
+        PlaySound(getSoundPath(pszText), NULL, SND_LOOP | SND_ASYNC);
+    }
+    g_strSound = pszText;
+    saveSettings();
 }
 
-void OnRButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+LRESULT DefWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if (GetAsyncKeyState(VK_SHIFT) < 0)
-        setType((g_nType + TYPE_COUNT - 1) % TYPE_COUNT);
-    else
-        setType((g_nType + 1) % TYPE_COUNT);
+    return CallWindowProc(g_fnOldWndProc, hwnd, uMsg, wParam, lParam);
 }
 
 void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 {
     INT iItem;
-    TCHAR szText[256];
+    TCHAR szText[MAX_PATH];
     switch (id)
     {
     case cmb1:
         iItem = ComboBox_GetCurSel(g_hCmb1);
-        setType(iItem);
+        if (iItem != CB_ERR)
+            setType(iItem);
         break;
     case cmb2:
         iItem = ComboBox_GetCurSel(g_hCmb2);
-        PlaySound(NULL, NULL, SND_PURGE);
         if (iItem == CB_ERR)
         {
             g_strSound.clear();
+            setSound(TEXT(""));
         }
         else
         {
             ComboBox_GetLBText(g_hCmb2, iItem, szText);
             StrTrim(szText, TEXT(" \t"));
-            PlaySound(getSoundPath(szText), NULL, SND_LOOP | SND_ASYNC);
-            g_strSound = szText;
+            setSound(szText);
         }
+        saveSettings();
         break;
-    case chx1:
-        if (IsDlgButtonChecked(hwnd, chx1) == BST_CHECKED)
-            g_bColor = TRUE;
-        else
-            g_bColor = FALSE;
+    case cmb4:
+        iItem = ComboBox_GetCurSel(g_hCmb4);
+        if (iItem != CB_ERR)
+        {
+            switch (iItem)
+            {
+            case 0:
+                setDivision(-1);
+                break;
+            case 1:
+                setDivision(1);
+                break;
+            case 2:
+                setDivision(2);
+                break;
+            }
+        }
         break;
     case psh1:
         {
@@ -1253,6 +1556,7 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
                 ComboBox_AddString(g_hCmb3, szText);
             }
             g_strText = szText;
+
             stc1_CalcSize(g_hStc1);
             if (g_hbm)
             {
@@ -1260,114 +1564,182 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
                 g_hbm = NULL;
             }
             InvalidateRect(g_hStc1, NULL, TRUE);
+            setSpeech(g_bSpeech);
         }
+        saveSettings();
+        break;
+    case chx1:
+        setSpeech((IsDlgButtonChecked(hwnd, chx1) == BST_CHECKED));
+        break;
+    case IDYES:
+        createControls(hwnd);
         break;
     }
+
+    FORWARD_WM_COMMAND(hwnd, id, hwndCtl, codeNotify, DefWndProc);
 }
 
-void OnMButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+void OnSize(HWND hwnd, UINT state, int cx, int cy)
 {
-    if (GetAsyncKeyState(VK_SHIFT) < 0)
-        ;
-    else if (GetAsyncKeyState(VK_CONTROL) < 0)
-        ;
-    else
-        g_nDirection = -g_nDirection;
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+
+    INT nHeight = ComboBox_GetItemHeight(g_hCmb1);
+    MoveWindow(g_hCmb1, rc.left, rc.bottom - 24, 80, nHeight * 10, TRUE);
+    MoveWindow(g_hCmb2, rc.left + 90, rc.bottom - 24, 150, nHeight * 10, TRUE);
+    MoveWindow(g_hCmb3, rc.right - 150 - 40, rc.bottom - 24, 150, nHeight * 10, TRUE);
+    MoveWindow(g_hCmb4, rc.right - 240 - 40, rc.bottom - 24, 80, nHeight * 10, TRUE);
+    MoveWindow(g_hChx1, rc.left + 250, rc.bottom - 24, 80, 24, TRUE);
+    MoveWindow(g_hPsh1, rc.right - 40, rc.bottom - 24, 40, 24, TRUE);
+
+    g_bMaximized = IsZoomed(hwnd);
+    saveSettings();
+
+    FORWARD_WM_SIZE(hwnd, state, cx, cy, DefWndProc);
 }
 
-int OnMouseWheel(HWND hwnd, int xPos, int yPos, int zDelta, UINT fwKeys)
+void OnDestroy(HWND hwnd)
 {
-    if (GetAsyncKeyState(VK_CONTROL) < 0)
+    destroyControls(hwnd);
+
+    if (g_pWinVoice)
     {
-        if (zDelta < 0)
-        {
-            if (g_dwGriGri <= 5)
-                g_dwGriGri = 0;
-            else if (g_dwGriGri < 10)
-                g_dwGriGri -= 3;
-            else
-                g_dwGriGri = g_dwGriGri * 10 / 12;
-        }
-        else
-        {
-            if (g_dwGriGri <= 10)
-                g_dwGriGri += 5;
-            else if (g_dwGriGri > 50)
-                g_dwGriGri = 50;
-            else
-                g_dwGriGri = g_dwGriGri * 12 / 10;
-        }
+        WinVoice *pWinVoice = g_pWinVoice;
+        g_pWinVoice = NULL;
+        delete pWinVoice;
     }
-    else
+
+    if (g_bCoInit)
     {
-        if (zDelta < 0)
-        {
-            if (g_nSpeed > 3)
-                g_nSpeed = g_nSpeed - 1;
-        }
-        else
-        {
-            if (g_nSpeed < 13)
-                g_nSpeed = g_nSpeed + 1;
-        }
+        CoUninitialize();
+        g_bCoInit = FALSE;
     }
-    return 0;
+
+    FORWARD_WM_DESTROY(hwnd, DefWndProc);
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK
+WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
-        HANDLE_MSG(hwnd, WM_CREATE, OnCreate);
-        HANDLE_MSG(hwnd, WM_DESTROY, OnDestroy);
-        HANDLE_MSG(hwnd, WM_ERASEBKGND, OnEraseBkgnd);
-        HANDLE_MSG(hwnd, WM_PAINT, OnPaint);
-        HANDLE_MSG(hwnd, WM_SIZE, OnSize);
-        HANDLE_MSG(hwnd, WM_TIMER, OnTimer);
-        HANDLE_MSG(hwnd, WM_LBUTTONDOWN, OnLButtonDown);
-        HANDLE_MSG(hwnd, WM_LBUTTONDBLCLK, OnLButtonDown);
-        HANDLE_MSG(hwnd, WM_MBUTTONDOWN, OnMButtonDown);
-        HANDLE_MSG(hwnd, WM_MBUTTONDBLCLK, OnMButtonDown);
-        HANDLE_MSG(hwnd, WM_RBUTTONDOWN, OnRButtonDown);
-        HANDLE_MSG(hwnd, WM_RBUTTONDBLCLK, OnRButtonDown);
-        HANDLE_MSG(hwnd, WM_MOUSEWHEEL, OnMouseWheel);
         HANDLE_MSG(hwnd, WM_COMMAND, OnCommand);
+        HANDLE_MSG(hwnd, WM_SIZE, OnSize);
+        HANDLE_MSG(hwnd, WM_DESTROY, OnDestroy);
     default:
-        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        return CallWindowProc(g_fnOldWndProc, hwnd, uMsg, wParam, lParam);
     }
     return 0;
 }
 
-static BOOL registerClass(HINSTANCE hInstance)
+void initGL(void)
 {
-    WNDCLASSEX wcx = { sizeof(wcx) };
-    wcx.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-    wcx.lpfnWndProc = WindowProc;
-    wcx.hInstance = hInstance;
-    wcx.hIcon = ::LoadIcon(g_hInstance, MAKEINTRESOURCE(1));
-    wcx.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-    wcx.lpszClassName = g_pszClassName;
-    if (!::RegisterClassEx(&wcx))
-    {
-        MessageBoxW(NULL, doLoadString(104), NULL, MB_ICONERROR);
-        return FALSE;
-    }
-    return TRUE;
+    glShadeModel(GL_SMOOTH); // GL_SMOOTH or GL_FLAT
+
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    //glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_LIGHTING);
+    //glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_CULL_FACE);
+
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+
+    glClearColor(0, 0, 0, 0);                   // background color
+    glClearStencil(0);                          // clear stencil buffer
+    glClearDepth(1.0);                          // 0 is near, 1 is far
+    glDepthFunc(GL_LEQUAL);
+
+    initLights();
+    setCamera(0, 0, 5, 0, 0, 0);
 }
 
-static BOOL createWindow(HINSTANCE instance)
+int initGLUT(int argc, char **argv)
 {
-    DWORD style = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-    DWORD exstyle = 0;
-    g_hwnd = CreateWindowEx(exstyle, g_pszClassName, doLoadString(106), style,
-                            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-                            NULL, NULL, instance, NULL);
-    if (g_hwnd == NULL)
+    glutInit(&argc, argv);
+
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL);
+
+    glutInitWindowPosition(CW_USEDEFAULT, CW_USEDEFAULT);
+    glutInitWindowSize(CW_USEDEFAULT, CW_USEDEFAULT);
+
+    int handle;
+    BOOL bMaximized = g_bMaximized;
     {
-        MessageBoxW(NULL, doLoadString(105), NULL, MB_ICONERROR);
-        return FALSE;
+        handle = glutCreateWindow("Saimin");
+
+        g_hwnd = GetActiveWindow();
+        assert(g_hwnd != NULL);
+
+        SetWindowText(g_hwnd, doLoadString(106));
+
+        g_hInstance = (HINSTANCE)GetWindowLongPtr(g_hwnd, GWLP_HINSTANCE);
+        assert(g_hInstance != NULL);
+
+        g_fnOldWndProc = (WNDPROC)SetWindowLongPtr(g_hwnd, GWLP_WNDPROC, (LONG_PTR)WindowProc);
+        assert(g_fnOldWndProc != NULL);
+
+        glutDisplayFunc(displayCB);
+        glutTimerFunc(50, timerCB, 0);
+
+        glutReshapeFunc(reshapeCB);
+        glutKeyboardFunc(keyboardCB);
+        glutMouseFunc(mouseCB);
+        //glutMotionFunc(mouseMotionCB);
     }
-    return TRUE;
+    g_bMaximized = bMaximized;
+    SendMessage(g_hwnd, WM_COMMAND, IDYES, 0);
+
+    if (g_bMaximized)
+        ShowWindow(g_hwnd, SW_MAXIMIZE);
+
+    initGL();
+
+    return handle;
+}
+
+void drawString(const char *str, int x, int y, float color[4], void *font)
+{
+    glPushAttrib(GL_LIGHTING_BIT | GL_CURRENT_BIT);
+    glDisable(GL_LIGHTING);
+
+    glColor4fv(color);
+    glRasterPos2i(x, y);
+
+    while(*str)
+    {
+        glutBitmapCharacter(font, *str);
+        ++str;
+    }
+
+    glEnable(GL_LIGHTING);
+    glPopAttrib();
+}
+
+void drawString3D(const char *str, float pos[3], float color[4], void *font)
+{
+    glPushAttrib(GL_LIGHTING_BIT | GL_CURRENT_BIT);
+    glDisable(GL_LIGHTING);
+
+    glColor4fv(color);
+    glRasterPos3fv(pos);
+
+    while(*str)
+    {
+        glutBitmapCharacter(font, *str);
+        ++str;
+    }
+
+    glEnable(GL_LIGHTING);
+    glPopAttrib();
 }
 
 void dontUseChild(void)
@@ -1406,53 +1778,52 @@ BOOL doAdultCheck(void)
     return TRUE;
 }
 
-INT APIENTRY
-WinMain(HINSTANCE  hInstance,
-        HINSTANCE hPrevInstance,
-        LPSTR     lpCmdLine,
-        INT       nCmdShow)
+#define WIN32_PROGRAM 1
+
+#ifdef WIN32_PROGRAM
+INT WINAPI
+WinMain(HINSTANCE   hInstance,
+        HINSTANCE   hPrevInstance,
+        LPSTR       lpCmdLine,
+        INT         nCmdShow)
+#else
+int main(int argc, char **argv)
+#endif
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
-
-    g_hInstance = hInstance;
-    InitCommonControls();
-
-    srand(GetTickCount());
-
-    loadSetting();
-
+    loadSettings();
     if (!doAdultCheck())
     {
-        saveSetting();
-        return 0;
-    }
-
-    if (!registerClass(hInstance))
+        saveSettings();
         return -1;
+    }
+    saveSettings();
 
-    if (!createWindow(hInstance))
-        return -2;
+    g_bCoInit = SUCCEEDED(CoInitializeEx(NULL, COINIT_MULTITHREADED));
 
-    if (g_bMaximized)
-        ShowWindow(g_hwnd, SW_SHOWMAXIMIZED);
-    else
-        ShowWindow(g_hwnd, nCmdShow);
-    UpdateWindow(g_hwnd);
-
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0))
+    g_pWinVoice = new WinVoice();
+    if (!g_pWinVoice->IsAvailable())
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        delete g_pWinVoice;
+        g_pWinVoice = NULL;
     }
 
-    saveSetting();
+    g_bPerfCounter = QueryPerformanceFrequency(&g_freq);
 
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    // for detecting memory leak (MSVC only)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#ifdef WIN32_PROGRAM
+    initGLUT(0, NULL);
+#else
+    initGLUT(argc, argv);
 #endif
 
-    return (INT)msg.wParam;
+    glutMainLoop();
+
+    if (g_bCoInit)
+    {
+        CoUninitialize();
+        g_bCoInit = FALSE;
+    }
+
+    saveSettings();
+
+    return 0;
 }

@@ -17,7 +17,7 @@ STRINGTABLE
     103, "こどもはつかってはいけません。"
     104, "RegisterClassに失敗しました。"
     105, "CreateWindowに失敗しました。"
-    106, "Saimin 2.5 by 片山博文MZ"
+    106, "Saimin 2.6 by 片山博文MZ"
     200, "あなたはだんだん眠くな～る..."
     201, "そろそろ自白しようぜ..."
     202, "高得点を取りたい...もっと勉強..."
@@ -28,6 +28,9 @@ STRINGTABLE
     207, "別の生き方探そう..."
     208, "あなたは生きていてもよいのです..."
     209, "あなたはだんだんギャンブルをやめたくな～る..."
+    210, "自動"
+    211, "分割なし"
+    212, "2分割"
 }
 
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -40,7 +43,7 @@ STRINGTABLE
     103, "Children should not use this software."
     104, "Failed to RegisterClass."
     105, "Failed to CreateWindow."
-    106, "Saimin 2.5 by katahiromz"
+    106, "Saimin 2.6 by katahiromz"
     200, "You are getting sleepy..."
     201, "Confess, confess now..."
     202, "Wanna get high score. Learn more..."
@@ -51,4 +54,7 @@ STRINGTABLE
     207, "Find another way to live..."
     208, "You may live. It's alright."
     209, "You gradually want to stop gambling..."
+    210, "Auto"
+    211, "No div"
+    212, "Div by 2"
 }
