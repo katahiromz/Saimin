@@ -1316,43 +1316,48 @@ MCIERROR mciSendF(LPCTSTR fmt, ...)
     va_list va;
     va_start(va, fmt);
     wvsprintf(szText, fmt, va);
-    //MessageBox(NULL, szText, NULL, 0);
     MCIERROR ret = mciSendString(szText, NULL, 0, g_hwnd);
     va_end(va);
     if (ret)
     {
         wsprintf(szText, TEXT("%d"), ret);
-        //MessageBox(NULL, szText, NULL, 0);
     }
     return ret;
 }
 
-VOID doPlaySound(LPCTSTR file, BOOL bPlay = TRUE, BOOL bWait = FALSE)
+static INT s_iSound = 0;
+
+VOID doRepeatSound(void)
 {
-    static INT s_i = 0;
+    mciSendF(TEXT("seek file%d to start"), s_iSound);
+    mciSendF(TEXT("play file%d notify"), s_iSound);
+}
+
+VOID doPlaySound(LPCTSTR file, BOOL bPlay = TRUE)
+{
     if (bPlay)
     {
         if (isFileMp3(file))
         {
-            mciSendF(TEXT("open \"%s\" type mpegvideo alias file%d"), file, s_i);
-            mciSendF(TEXT("play file%d %s"), s_i, (bWait ? TEXT("wait") : TEXT("")));
+            mciSendF(TEXT("open \"%s\" type mpegvideo alias file%d"), file, s_iSound);
+            mciSendF(TEXT("play file%d notify"), s_iSound);
         }
         else if (isFileMid(file))
         {
-            mciSendF(TEXT("open \"%s\" type sequencer alias file%d"), file, s_i);
-            mciSendF(TEXT("play file%d %s"), s_i, (bWait ? TEXT("wait") : TEXT("")));
+            mciSendF(TEXT("open \"%s\" type sequencer alias file%d"), file, s_iSound);
+            mciSendF(TEXT("play file%d notify"), s_iSound);
         }
         else if (isFileWav(file))
         {
-            mciSendF(TEXT("open \"%s\" alias file%d"), file, s_i);
-            mciSendF(TEXT("play file%d %s"), s_i, (bWait ? TEXT("wait") : TEXT("")));
+            mciSendF(TEXT("open \"%s\" alias file%d"), file, s_iSound);
+            mciSendF(TEXT("play file%d notify"), s_iSound);
         }
     }
     else
     {
-        mciSendF(TEXT("stop file%d"), s_i);
-        mciSendF(TEXT("close file%d"), s_i);
-        ++s_i;
+        mciSendF(TEXT("stop file%d"), s_iSound);
+        mciSendF(TEXT("close file%d"), s_iSound);
+        ++s_iSound;
     }
 }
 
@@ -1644,7 +1649,7 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
         createControls(hwnd);
         break;
     case IDOK:
-        doPlaySound(getSoundPath(g_strSound.c_str()), TRUE, FALSE);
+        doPlaySound(getSoundPath(g_strSound.c_str()), TRUE);
         break;
     case IDCANCEL:
         doPlaySound(NULL, FALSE);
@@ -1701,6 +1706,14 @@ WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         HANDLE_MSG(hwnd, WM_COMMAND, OnCommand);
         HANDLE_MSG(hwnd, WM_SIZE, OnSize);
         HANDLE_MSG(hwnd, WM_DESTROY, OnDestroy);
+    case MM_MCINOTIFY:
+        switch (wParam)
+        {
+        case MCI_NOTIFY_SUCCESSFUL:
+            doRepeatSound();
+            break;
+        }
+        break;
     default:
         return CallWindowProc(g_fnOldWndProc, hwnd, uMsg, wParam, lParam);
     }

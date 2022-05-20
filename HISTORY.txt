@@ -44,8 +44,9 @@
 - 2022-05-18 ver.2.6
     - 全部書き直し。
     - freeglut.dllを追加。
-- 2022-XX-YY ver.2.7
+- 2022-05-20 ver.2.7
     - InitCommonControls()を使用。
+    - 音声ファイルを置き換え。
 ------------------------------------------------------
 (English)
 ------------------------------------------------------
@@ -92,5 +93,6 @@
 - 2022-05-18 ver.2.6
     - Totally rewritten.
     - Added freeglut.dll.
-- 2022-XX-YY ver.2.7
+- 2022-05-20 ver.2.7
     - Used InitCommonControls().
+    - Replaced sound files.
