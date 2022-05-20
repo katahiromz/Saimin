@@ -8,6 +8,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
+#include <tchar.h>
 #include <mmsystem.h>
 #include <shlwapi.h>
 #include <dlgs.h>
@@ -340,7 +341,6 @@ BOOL saveSettings(void)
 
     keyApp.SetSz(TEXT("Text"), g_strText.c_str());
     keyApp.SetSz(TEXT("Sound"), g_strSound.c_str());
-
 
     INT nTextCount = INT(g_texts.size());
     keyApp.SetDword(TEXT("TextCount"), nTextCount);
@@ -1297,6 +1297,65 @@ LPTSTR getSoundPath(LPCTSTR pszFileName)
     return s_szText;
 }
 
+BOOL isFileWav(LPCTSTR pszFileName)
+{
+    return lstrcmpi(PathFindExtension(pszFileName), TEXT(".wav")) == 0;
+}
+BOOL isFileMp3(LPCTSTR pszFileName)
+{
+    return lstrcmpi(PathFindExtension(pszFileName), TEXT(".mp3")) == 0;
+}
+BOOL isFileMid(LPCTSTR pszFileName)
+{
+    return lstrcmpi(PathFindExtension(pszFileName), TEXT(".mid")) == 0;
+}
+
+MCIERROR mciSendF(LPCTSTR fmt, ...)
+{
+    TCHAR szText[MAX_PATH * 2];
+    va_list va;
+    va_start(va, fmt);
+    wvsprintf(szText, fmt, va);
+    //MessageBox(NULL, szText, NULL, 0);
+    MCIERROR ret = mciSendString(szText, NULL, 0, NULL);
+    va_end(va);
+    if (ret)
+    {
+        wsprintf(szText, TEXT("%d"), ret);
+        //MessageBox(NULL, szText, NULL, 0);
+    }
+    return ret;
+}
+
+VOID doPlaySound(LPCTSTR file, BOOL bPlay = TRUE, BOOL bWait = FALSE)
+{
+    static INT s_i = 0;
+    if (bPlay)
+    {
+        if (isFileMp3(file))
+        {
+            mciSendF(TEXT("open \"%s\" type mpegvideo alias file%d"), file, s_i);
+            mciSendF(TEXT("play file%d %s"), s_i, (bWait ? TEXT("wait") : TEXT("")));
+        }
+        else if (isFileMid(file))
+        {
+            mciSendF(TEXT("open \"%s\" type sequencer alias file%d"), file, s_i);
+            mciSendF(TEXT("play file%d %s"), s_i, (bWait ? TEXT("wait") : TEXT("")));
+        }
+        else if (isFileWav(file))
+        {
+            mciSendF(TEXT("open \"%s\" alias file%d"), file, s_i);
+            mciSendF(TEXT("play file%d %s"), s_i, (bWait ? TEXT("wait") : TEXT("")));
+        }
+    }
+    else
+    {
+        mciSendF(TEXT("stop file%d"), s_i);
+        mciSendF(TEXT("close file%d"), s_i);
+        ++s_i;
+    }
+}
+
 void doListSound(HWND hCmb)
 {
     TCHAR szPath[MAX_PATH];
@@ -1315,7 +1374,7 @@ void doListSound(HWND hCmb)
             PathAppend(szPath, TEXT("Sounds"));
         }
     }
-    PathAppend(szPath, TEXT("*.wave"));
+    PathAppend(szPath, TEXT("*.*"));
 
     SendMessage(hCmb, CB_ADDSTRING, 0, (LPARAM)TEXT("(None)"));
 
@@ -1325,7 +1384,12 @@ void doListSound(HWND hCmb)
     {
         do
         {
-            SendMessage(hCmb, CB_ADDSTRING, 0, (LPARAM)find.cFileName);
+            if (isFileWav(find.cFileName) ||
+                isFileMp3(find.cFileName) ||
+                isFileMid(find.cFileName))
+            {
+                SendMessage(hCmb, CB_ADDSTRING, 0, (LPARAM)find.cFileName);
+            }
         } while (FindNextFile(hFind, &find));
 
         FindClose(hFind);
@@ -1373,7 +1437,7 @@ BOOL createControls(HWND hwnd)
 
     if (iSound != CB_ERR && g_strSound != TEXT("(None)"))
     {
-        PlaySound(getSoundPath(g_strSound.c_str()), NULL, SND_LOOP | SND_ASYNC);
+        PostMessage(g_hwnd, WM_COMMAND, IDOK, 0);
     }
 
     // cmb3: Messages ComboBox
@@ -1479,10 +1543,14 @@ void destroyControls(HWND hwnd)
 
 void setSound(LPCTSTR pszText)
 {
-    PlaySound(NULL, NULL, SND_PURGE);
     if (pszText && pszText[0] && lstrcmpi(pszText, TEXT("(None)")) != 0)
     {
-        PlaySound(getSoundPath(pszText), NULL, SND_LOOP | SND_ASYNC);
+        PostMessage(g_hwnd, WM_COMMAND, IDCANCEL, 0);
+        PostMessage(g_hwnd, WM_COMMAND, IDOK, 0);
+    }
+    else
+    {
+        PostMessage(g_hwnd, WM_COMMAND, IDCANCEL, 0);
     }
     g_strSound = pszText;
     saveSettings();
@@ -1574,6 +1642,12 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
         break;
     case IDYES:
         createControls(hwnd);
+        break;
+    case IDOK:
+        doPlaySound(getSoundPath(g_strSound.c_str()), TRUE, FALSE);
+        break;
+    case IDCANCEL:
+        doPlaySound(NULL, FALSE);
         break;
     }
 
@@ -1782,15 +1856,18 @@ BOOL doAdultCheck(void)
 #define WIN32_PROGRAM 1
 
 #ifdef WIN32_PROGRAM
+extern "C"
 INT WINAPI
-WinMain(HINSTANCE   hInstance,
-        HINSTANCE   hPrevInstance,
-        LPSTR       lpCmdLine,
-        INT         nCmdShow)
+_tWinMain(HINSTANCE   hInstance,
+          HINSTANCE   hPrevInstance,
+          LPTSTR      lpCmdLine,
+          INT         nCmdShow)
 #else
 int main(int argc, char **argv)
 #endif
 {
+    InitCommonControls();
+
     loadSettings();
     if (!doAdultCheck())
     {
@@ -1809,8 +1886,6 @@ int main(int argc, char **argv)
     }
 
     g_bPerfCounter = QueryPerformanceFrequency(&g_freq);
-
-    InitCommonControls();
 
 #ifdef WIN32_PROGRAM
     initGLUT(0, NULL);

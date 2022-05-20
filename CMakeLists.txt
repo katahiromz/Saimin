@@ -4,7 +4,7 @@
 ##############################################################################
 
 # CMake minimum version
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.13)
 
 # project name and languages
 project(Saimin C CXX RC)
@@ -34,17 +34,20 @@ elseif (MSVC)
 endif()
 
 ##############################################################################
+# FreeGLUT
 
-add_subdirectory(freeglut-3.2.2)
+set(FREEGLUT_BUILD_DEMOS OFF)
+
+add_subdirectory(freeglut)
+
+##############################################################################
+# Saimin
 
 # Saimin.exe
 add_executable(Saimin WIN32 Saimin.cpp tess.cpp Saimin_res.rc)
 target_compile_definitions(Saimin PRIVATE -DINITGUID -DUNICODE -D_UNICODE -DFREEGLUT_LIB_PRAGMAS=0)
-if(MSVC)
-    target_include_directories(Saimin PRIVATE "../freeglut-MSVC-3.0.0-2.mp/include")
-else()
-    target_include_directories(Saimin PRIVATE "../freeglut-MinGW-3.0.0-1.mp/include")
-endif()
-target_link_libraries(Saimin PRIVATE comctl32 opengl32 glu32 shlwapi winmm freeglut)
+target_include_directories(Saimin PRIVATE "freeglut/include")
+target_link_libraries(Saimin PRIVATE comctl32 opengl32 glu32 shlwapi winmm freeglut_static)
+target_link_options(Saimin PRIVATE "/entry:wWinMainCRTStartup")
 
 ##############################################################################
