@@ -48,6 +48,10 @@ add_executable(Saimin WIN32 Saimin.cpp tess.cpp Saimin_res.rc)
 target_compile_definitions(Saimin PRIVATE -DINITGUID -DUNICODE -D_UNICODE -DFREEGLUT_LIB_PRAGMAS=0)
 target_include_directories(Saimin PRIVATE "freeglut/include")
 target_link_libraries(Saimin PRIVATE comctl32 opengl32 glu32 shlwapi winmm freeglut_static)
-target_link_options(Saimin PRIVATE "/entry:wWinMainCRTStartup")
+if(MSVC)
+    target_link_options(Saimin PRIVATE "/entry:wWinMainCRTStartup")
+else()
+    target_link_options(Saimin PRIVATE "-municode")
+endif()
 
 ##############################################################################
