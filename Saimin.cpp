@@ -47,6 +47,8 @@ STAR g_stars[MAX_STARS];
 
 HINSTANCE g_hInstance = NULL;
 HWND g_hwnd = NULL;
+HICON g_hIcon = NULL;
+HICON g_hIconSm = NULL;
 BOOL g_bMaximized = FALSE;
 WNDPROC g_fnOldWndProc = NULL;
 HWND g_hCmb1 = NULL;
@@ -1605,6 +1607,10 @@ void destroyControls(HWND hwnd)
     g_hUIFont = NULL;
     DeleteObject(g_hMsgFont);
     g_hMsgFont = NULL;
+    DestroyIcon(g_hIcon);
+    g_hIcon = NULL;
+    DestroyIcon(g_hIconSm);
+    g_hIconSm = NULL;
 }
 
 void setSound(LPCTSTR pszText)
@@ -1741,21 +1747,6 @@ void OnSize(HWND hwnd, UINT state, int cx, int cy)
 
 void OnDestroy(HWND hwnd)
 {
-    destroyControls(hwnd);
-
-    if (g_pWinVoice)
-    {
-        WinVoice *pWinVoice = g_pWinVoice;
-        g_pWinVoice = NULL;
-        delete pWinVoice;
-    }
-
-    if (g_bCoInit)
-    {
-        CoUninitialize();
-        g_bCoInit = FALSE;
-    }
-
     FORWARD_WM_DESTROY(hwnd, DefWndProc);
 }
 
@@ -1845,6 +1836,19 @@ int initGLUT(int argc, char **argv)
 
         g_hInstance = (HINSTANCE)GetWindowLongPtr(g_hwnd, GWLP_HINSTANCE);
         assert(g_hInstance != NULL);
+
+        g_hIcon = LoadIcon(g_hInstance, MAKEINTRESOURCE(1));
+        g_hIconSm = (HICON)LoadImage(g_hInstance, MAKEINTRESOURCE(1), IMAGE_ICON,
+            GetSystemMetrics(SM_CXSMICON),
+            GetSystemMetrics(SM_CYSMICON),
+            0
+        );
+        assert(g_hIcon);
+        assert(g_hIconSm);
+        SendMessage(g_hwnd, WM_SETICON, ICON_BIG, (LPARAM)g_hIcon);
+        SendMessage(g_hwnd, WM_SETICON, ICON_SMALL, (LPARAM)g_hIconSm);
+        SetClassLongPtr(g_hwnd, GCLP_HICON, (LONG_PTR)g_hIcon);
+        SetClassLongPtr(g_hwnd, GCLP_HICONSM, (LONG_PTR)g_hIconSm);
 
         g_fnOldWndProc = (WNDPROC)SetWindowLongPtr(g_hwnd, GWLP_WNDPROC, (LONG_PTR)WindowProc);
         assert(g_fnOldWndProc != NULL);
@@ -1940,6 +1944,24 @@ BOOL doAdultCheck(void)
     return TRUE;
 }
 
+void atexit_function(void)
+{
+    destroyControls(g_hwnd);
+
+    if (g_pWinVoice)
+    {
+        WinVoice *pWinVoice = g_pWinVoice;
+        g_pWinVoice = NULL;
+        delete pWinVoice;
+    }
+
+    if (g_bCoInit)
+    {
+        CoUninitialize();
+        g_bCoInit = FALSE;
+    }
+}
+
 #define WIN32_PROGRAM 1
 
 #ifdef WIN32_PROGRAM
@@ -1979,6 +2001,8 @@ int main(int argc, char **argv)
 #else
     initGLUT(argc, argv);
 #endif
+
+    atexit(atexit_function);
 
     glutMainLoop();
 
