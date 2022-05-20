@@ -1847,8 +1847,6 @@ int initGLUT(int argc, char **argv)
         assert(g_hIconSm);
         SendMessage(g_hwnd, WM_SETICON, ICON_BIG, (LPARAM)g_hIcon);
         SendMessage(g_hwnd, WM_SETICON, ICON_SMALL, (LPARAM)g_hIconSm);
-        SetClassLongPtr(g_hwnd, GCLP_HICON, (LONG_PTR)g_hIcon);
-        SetClassLongPtr(g_hwnd, GCLP_HICONSM, (LONG_PTR)g_hIconSm);
 
         g_fnOldWndProc = (WNDPROC)SetWindowLongPtr(g_hwnd, GWLP_WNDPROC, (LONG_PTR)WindowProc);
         assert(g_fnOldWndProc != NULL);
