@@ -49,7 +49,7 @@
     - 音声ファイルを置き換え。
 - 2022-XX-YY ver.2.8
     - マウスポインタの周りに星を追加。
-    - Type4とType5を改良。
+    - Type3とType4とType5を改良。
 ------------------------------------------------------
 (English)
 ------------------------------------------------------
@@ -101,4 +101,4 @@
     - Replaced sound files.
 - 2022-XX-YY ver.2.8
     - Added stars around mouse pointer.
-    - Improve Type4 and Type5.
+    - Improve Type3, Type4 and Type5.

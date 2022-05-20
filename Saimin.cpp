@@ -237,7 +237,10 @@ void eye(double x0, double y0, double r, double opened = 1.0)
     }
     glEnd();
 
-    circle(x0, y0, r / 3 * opened, true);
+    circle(x0 - r, y0, 5 / 2);
+    circle(x0 + r, y0, 5 / 2);
+
+    circle(x0, y0, r / 3 * opened, true, 14);
 }
 
 void heart(double x0, double y0, double x1, double y1, double r0, double g0, double b0)
