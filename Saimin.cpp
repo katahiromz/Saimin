@@ -290,12 +290,16 @@ void leftExtend(INT count, GLdouble xy[][2], double x0, double y0, double x1, do
 
     comp /= abs;
     comp *= std::polar(1.0, -M_PI / 2);
-    comp *= abs * 0.22;
+    comp *= abs * 0.15;
 
-    double cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-    cx += comp.real();
-    cy += comp.imag();
-    bezier3(count, xy, x0, y0, cx, cy, cx, cy, x1, y1);
+    double cx0, cy0, cx1, cy1;
+    cx0 = cx1 = (x0 + x1) / 2;
+    cy0 = cy1 = (y0 + y1) / 2;
+    cx0 += comp.real();
+    cy0 += comp.imag();
+    cx1 += comp.real();
+    cy1 += comp.imag();
+    bezier3(count, xy, x0, y0, cx0, cy0, cx1, cy1, x1, y1);
 }
 
 BOOL loadSettings(void)
@@ -855,7 +859,7 @@ void drawType4_5(INT px, INT py, INT dx, INT dy, INT t)
         for (double angle = 0; angle <= 360; angle += 360 / N0)
         {
             double radian = (angle + count2 * 2) * (M_PI / 180.0);
-            double factor2 = radius * (1 + 0.7 * std::fabs(std::sin(N1 * i * M_PI / N0)));
+            double factor2 = radius * (1.1 + 0.7 * std::fabs(std::sin(N1 * i * M_PI / N0)));
             if (isLarge)
                 factor2 *= 2;
             double x = qx + factor2 * std::cos(radian);
