@@ -45,16 +45,6 @@ struct STAR
 };
 STAR g_stars[MAX_STARS];
 
-void addStar(INT x, INT y)
-{
-    x += (std::rand() % 40) - 20;
-    y += (std::rand() % 40) - 20;
-    MoveMemory(&g_stars[0], &g_stars[1], sizeof(g_stars) - sizeof(STAR));
-    g_stars[MAX_STARS - 1].x = x;
-    g_stars[MAX_STARS - 1].y = y;
-    g_stars[MAX_STARS - 1].size = 5 + std::rand() % 10;
-}
-
 HINSTANCE g_hInstance = NULL;
 HWND g_hwnd = NULL;
 BOOL g_bMaximized = FALSE;
@@ -129,6 +119,28 @@ mstr_replace_all(T_STR& str, const T_STR& from, const T_STR& to)
 bool isLargeDisplay(void)
 {
     return g_width >= 1500 || g_height >= 1500;
+}
+
+void addStar(INT x, INT y)
+{
+    if (isLargeDisplay())
+    {
+        x += (std::rand() % 80) - 40;
+        y += (std::rand() % 80) - 40;
+        MoveMemory(&g_stars[0], &g_stars[1], sizeof(g_stars) - sizeof(STAR));
+        g_stars[MAX_STARS - 1].x = x;
+        g_stars[MAX_STARS - 1].y = y;
+        g_stars[MAX_STARS - 1].size = 5 + std::rand() % 20;
+    }
+    else
+    {
+        x += (std::rand() % 40) - 20;
+        y += (std::rand() % 40) - 20;
+        MoveMemory(&g_stars[0], &g_stars[1], sizeof(g_stars) - sizeof(STAR));
+        g_stars[MAX_STARS - 1].x = x;
+        g_stars[MAX_STARS - 1].y = y;
+        g_stars[MAX_STARS - 1].size = 5 + std::rand() % 10;
+    }
 }
 
 inline void rectangle(double x0, double y0, double x1, double y1)
