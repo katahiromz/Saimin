@@ -38,3 +38,5 @@ freeglut.pc
 freeglut.rc
 *.dll
 *.def
+*.vcxproj
+*.vcxproj.filters
