@@ -26,6 +26,7 @@ Windows XP以降。
 
 【使用上の注意】
 
+- 本ソフトウェアは、ジョークソフトです。
 - 精神に何らかの影響が発生する可能性をあらかじめ留意して下さい。
 - 医師法により効用をうたうことはできません。
 - 18才未満は使用禁止です。
@@ -97,6 +98,7 @@ Windows XP and later.
 
 [(Precautions for use)]
 
+- This software is a joke software.
 - Please keep in mind in advance the possibility that some effects on the psyche may occur.
 - The benefits of the software cannot be insisted by the Medical Practitioners Act in some countries.
 - Persons under 18 years of age are prohibited from using this software.
