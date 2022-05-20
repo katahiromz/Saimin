@@ -11,6 +11,7 @@
 #include <tchar.h>
 #include <mmsystem.h>
 #include <shlwapi.h>
+#include <strsafe.h>
 #include <dlgs.h>
 #include "MRegKey.hpp"
 #include "WinVoice.hpp"
@@ -354,7 +355,7 @@ BOOL loadSettings(void)
     TCHAR szText[MAX_PATH];
     for (INT i = 0; i < nTextCount; ++i)
     {
-        wsprintf(szText, TEXT("Text%d"), i);
+        StringCchPrintf(szText, _countof(szText), TEXT("Text%d"), i);
         error = keyApp.QuerySz(szText, str);
         if (error)
             break;
@@ -387,7 +388,7 @@ BOOL saveSettings(void)
     TCHAR szText[MAX_PATH];
     for (INT i = 0; i < nTextCount; ++i)
     {
-        wsprintf(szText, TEXT("Text%d"), i);
+        StringCchPrintf(szText, _countof(szText), TEXT("Text%d"), i);
         keyApp.SetSz(szText, g_texts[i].c_str());
     }
 
@@ -1378,12 +1379,12 @@ MCIERROR mciSendF(LPCTSTR fmt, ...)
     TCHAR szText[MAX_PATH * 2];
     va_list va;
     va_start(va, fmt);
-    wvsprintf(szText, fmt, va);
+    StringCchVPrintf(szText, _countof(szText), fmt, va);
     MCIERROR ret = mciSendString(szText, NULL, 0, g_hwnd);
     va_end(va);
     if (ret)
     {
-        wsprintf(szText, TEXT("%d"), ret);
+        StringCchPrintf(szText, _countof(szText), TEXT("%d"), ret);
     }
     return ret;
 }
