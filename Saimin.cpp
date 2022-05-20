@@ -37,6 +37,24 @@ enum ADULTCHECK
 };
 ADULTCHECK g_nAdultCheck = ADULTCHECK_NOT_CONFIRMED;
 
+#define MAX_STARS 64
+struct STAR
+{
+    INT x, y;
+    double size;
+};
+STAR g_stars[MAX_STARS];
+
+void addStar(INT x, INT y)
+{
+    x += (std::rand() % 40) - 20;
+    y += (std::rand() % 40) - 20;
+    MoveMemory(&g_stars[0], &g_stars[1], sizeof(g_stars) - sizeof(STAR));
+    g_stars[MAX_STARS - 1].x = x;
+    g_stars[MAX_STARS - 1].y = y;
+    g_stars[MAX_STARS - 1].size = 5 + std::rand() % 10;
+}
+
 HINSTANCE g_hInstance = NULL;
 HWND g_hwnd = NULL;
 BOOL g_bMaximized = FALSE;
@@ -587,7 +605,7 @@ void drawType2(INT px, INT py, INT dx, INT dy, bool flag = false)
     {
         INT n = INT(radius / 4);
         if (n < 40)
-            n = 30;
+            n = 40;
         circle(qx, qy, radius, false, n);
         circle(qx, qy, radius + 4, false, n);
         circle(qx, qy, radius + 8, false, n);
@@ -967,6 +985,30 @@ void draw(void)
             drawType(0, 0, cx, cy / 2);
             drawType(0, cy / 2, cx, cy / 2);
         }
+    }
+
+    // draw stars
+    {
+        glViewport(0, 0, cx, cy);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, cx, cy, 0, -1.0, 1.0);
+
+        for (INT iStar = 0; iStar < _countof(g_stars); ++iStar)
+        {
+            STAR& star = g_stars[iStar];
+            if (star.size > 0)
+            {
+                glColor4f(1.0, 1.0, 0.0, 0.8);
+                light(star.x, star.y, star.size);
+                if (star.size > 1.0) {
+                    star.size *= 0.97;
+                }
+            }
+        }
+
+        MoveMemory(&g_stars[0], &g_stars[1], sizeof(g_stars) - sizeof(STAR));
+        g_stars[MAX_STARS - 1].size = 0;
     }
 
     glutSwapBuffers();
@@ -1698,6 +1740,18 @@ void OnDestroy(HWND hwnd)
     FORWARD_WM_DESTROY(hwnd, DefWndProc);
 }
 
+void OnMouseMove(HWND hwnd, int x, int y, UINT keyFlags)
+{
+    static INT s_nFlag = 0;
+    if (s_nFlag == 0)
+    {
+        addStar(x, y);
+    }
+    s_nFlag = (s_nFlag + 1) % 1;
+
+    FORWARD_WM_MOUSEMOVE(hwnd, x, y, keyFlags, DefWndProc);
+}
+
 LRESULT CALLBACK
 WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1706,6 +1760,7 @@ WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         HANDLE_MSG(hwnd, WM_COMMAND, OnCommand);
         HANDLE_MSG(hwnd, WM_SIZE, OnSize);
         HANDLE_MSG(hwnd, WM_DESTROY, OnDestroy);
+        HANDLE_MSG(hwnd, WM_MOUSEMOVE, OnMouseMove);
     case MM_MCINOTIFY:
         switch (wParam)
         {
@@ -1781,7 +1836,7 @@ int initGLUT(int argc, char **argv)
         glutReshapeFunc(reshapeCB);
         glutKeyboardFunc(keyboardCB);
         glutMouseFunc(mouseCB);
-        //glutMotionFunc(mouseMotionCB);
+        glutMotionFunc(mouseMotionCB);
     }
     g_bMaximized = bMaximized;
     SendMessage(g_hwnd, WM_COMMAND, IDYES, 0);
