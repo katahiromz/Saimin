@@ -136,7 +136,7 @@ The author assumes no responsibility for any consequences resulting from the use
 
 Copyright (C) 2022 katahiromz. All Rights Reserved.
 
-* Some OtoLogic audio material is used.
+* Some OtoLogic audio materials are used.
 
 [(Contact)]
 
