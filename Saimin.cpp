@@ -1317,7 +1317,7 @@ MCIERROR mciSendF(LPCTSTR fmt, ...)
     va_start(va, fmt);
     wvsprintf(szText, fmt, va);
     //MessageBox(NULL, szText, NULL, 0);
-    MCIERROR ret = mciSendString(szText, NULL, 0, NULL);
+    MCIERROR ret = mciSendString(szText, NULL, 0, g_hwnd);
     va_end(va);
     if (ret)
     {
@@ -1876,7 +1876,7 @@ int main(int argc, char **argv)
     }
     saveSettings();
 
-    g_bCoInit = SUCCEEDED(CoInitializeEx(NULL, COINIT_MULTITHREADED));
+    g_bCoInit = SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED));
 
     g_pWinVoice = new WinVoice();
     if (!g_pWinVoice->IsAvailable())
