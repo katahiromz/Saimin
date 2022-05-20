@@ -9,6 +9,9 @@
    id="svg5"
    inkscape:version="1.1.2 (b8e25be833, 2022-02-05)"
    sodipodi:docname="icon.svg"
+   inkscape:export-filename="C:\dev\Saimin\Saimin\icon.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -36,7 +39,7 @@
      inkscape:snap-to-guides="false"
      inkscape:snap-object-midpoints="true"
      inkscape:zoom="1.6997475"
-     inkscape:cx="-11.472292"
+     inkscape:cx="114.42876"
      inkscape:cy="24.12123"
      inkscape:window-width="1366"
      inkscape:window-height="705"
@@ -51,7 +54,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#cccccc;fill-opacity:0.764925;stroke:#000000;stroke-width:0.521149;stroke-linecap:round;stroke-linejoin:round;paint-order:fill markers stroke;stop-color:#000000"
+       style="fill:#e3e3e3;fill-opacity:1;stroke:#000000;stroke-width:0.521149;stroke-linecap:round;stroke-linejoin:round;paint-order:fill markers stroke;stop-color:#000000"
        id="rect846"
        width="16.676767"
        height="16.676767"
@@ -72,5 +75,11 @@
        sodipodi:t0="0"
        d="m -40.594265,2.3532908 c 1.415883,1.380486 -1.162321,2.5896652 -2.294459,2.3532908 -3.068023,-0.6405601 -3.609449,-4.55307613 -2.412123,-6.9422079 2.141737,-4.2735963 7.836628,-4.8431584 11.589958,-2.4709553 5.508162,3.4813034 6.112762,11.1644807 2.529787,16.2377066 -4.775541,6.761812 -14.508028,7.397619 -20.885456,2.58862 -8.025342,-6.0516354 -8.690359,-17.8590484 -2.647452,-25.533206 7.31877,-9.294432 21.214276,-9.987661 30.180955,-2.706284 10.566921,8.5808511 11.287828,24.572125 2.765116,34.828704 -9.839807,11.841626 -27.931725,12.589906 -39.476453,2.823949 -13.117853,-11.096701 -13.89332,-31.2925559 -2.882781,-44.124203"
        transform="matrix(0.26458333,0,0,0.26458333,20.20333,7.177878)" />
+    <circle
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.5875;stroke-linecap:round;stroke-linejoin:round;paint-order:fill markers stroke;stop-color:#000000"
+       id="path1270"
+       cx="8.9336481"
+       cy="7.9996848"
+       r="0.52916664" />
   </g>
 </svg>
