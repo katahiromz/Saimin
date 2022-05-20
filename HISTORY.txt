@@ -102,5 +102,5 @@
     - Replaced sound files.
 - 2022-XX-YY ver.2.8
     - Added stars around mouse pointer.
-    - Improve Type3, Type4 and Type5.
+    - Improved Type3, Type4 and Type5.
     - Set icon.
