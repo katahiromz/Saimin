@@ -49,8 +49,9 @@
     - 音声ファイルを置き換え。
 - 2022-XX-YY ver.2.8
     - マウスポインタの周りに星を追加。
-    - Type3とType4とType5を改良。
+    - Type3とType4とType5の小さな改良。
     - アイコンを変更。
+    - 低いピッチで遅くしゃべる。
 ------------------------------------------------------
 (English)
 ------------------------------------------------------
@@ -102,5 +103,6 @@
     - Replaced sound files.
 - 2022-XX-YY ver.2.8
     - Added stars around mouse pointer.
-    - Improved Type3, Type4 and Type5.
+    - Minor improvements of Type3, Type4 and Type5.
     - Changed icon.
+    - Speaking slower in low pitch.

@@ -452,7 +452,10 @@ static DWORD WINAPI speechThreadProc(LPVOID)
         return -1;
     }
 
-    str_t str = g_strText;
+    // slow and low-pitch
+    str_t str = TEXT("<pitch absmiddle=\"-10\"><rate absspeed=\"-4\">");
+    str += g_strText;
+    str += TEXT("</rate></pitch>");
     mstr_replace_all(str, str_t(TEXT("\uFF5E")), str_t(TEXT("\u30FC"))); // "Å`" --> "Å["
 
     while (g_hSpeechThread)
