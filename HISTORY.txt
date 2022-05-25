@@ -52,6 +52,7 @@
     - Type3とType4とType5の小さな改良。
     - アイコンを変更。
     - 低いピッチで遅くしゃべる。
+    - インターフェイスを改良。
 ------------------------------------------------------
 (English)
 ------------------------------------------------------
@@ -106,3 +107,4 @@
     - Minor improvements of Type3, Type4 and Type5.
     - Changed icon.
     - Speaking slower in low pitch.
+    - Improved the interface.

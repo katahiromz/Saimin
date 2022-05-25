@@ -8,6 +8,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <commctrl.h>
+#include <shellapi.h>
 #include <tchar.h>
 #include <mmsystem.h>
 #include <shlwapi.h>
@@ -54,13 +55,13 @@ BOOL g_bMaximized = FALSE;
 WNDPROC g_fnOldWndProc = NULL;
 HWND g_hCmb1 = NULL;
 HWND g_hCmb2 = NULL;
-HWND g_hCmb3 = NULL;
 HWND g_hCmb4 = NULL;
 HWND g_hChx1 = NULL;
 str_t g_strText;
 str_t g_strSound;
 std::vector<str_t> g_texts;
 HWND g_hPsh1 = NULL;
+HWND g_hPsh2 = NULL;
 HWND g_hStc1 = NULL;
 INT g_cxStc1 = 100;
 INT g_cyStc1 = 100;
@@ -1512,27 +1513,6 @@ BOOL createControls(HWND hwnd)
         PostMessage(g_hwnd, WM_COMMAND, IDOK, 0);
     }
 
-    // cmb3: Messages ComboBox
-    style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWN | WS_CHILD | WS_VISIBLE;
-    exstyle = 0;
-    g_hCmb3 = CreateWindowEx(exstyle, TEXT("COMBOBOX"), NULL, style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)cmb3, g_hInstance, NULL);
-    if (!g_hCmb3)
-        return FALSE;
-    SetWindowFont(g_hCmb3, g_hUIFont, TRUE);
-    ComboBox_AddString(g_hCmb3, TEXT(""));
-    for (INT i = 200; i <= 209; ++i)
-    {
-        ComboBox_AddString(g_hCmb3, doLoadString(i));
-    }
-    for (size_t i = 0; i < g_texts.size(); ++i)
-    {
-        if (g_texts[i].empty())
-            continue;
-        ComboBox_AddString(g_hCmb3, g_texts[i].c_str());
-    }
-    ComboBox_SetCurSel(g_hCmb3, CB_ERR);
-    SetWindowText(g_hCmb3, g_strText.c_str());
-
     // cmb4: Division ComboBox
     style = CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE;
     exstyle = 0;
@@ -1555,13 +1535,19 @@ BOOL createControls(HWND hwnd)
     SetWindowFont(g_hChx1, g_hUIFont, TRUE);
     setSpeech(g_bSpeech);
 
-    // psh1: The "Set" Button
+    // psh1: The "msg" Button
     style = BS_PUSHBUTTON | BS_CENTER | WS_CHILD | WS_VISIBLE;
     exstyle = 0;
-    g_hPsh1 = CreateWindowEx(exstyle, TEXT("BUTTON"), TEXT("Set"), style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)psh1, g_hInstance, NULL);
+    g_hPsh1 = CreateWindowEx(exstyle, TEXT("BUTTON"), TEXT("msg"), style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)psh1, g_hInstance, NULL);
     if (!g_hPsh1)
         return FALSE;
     SetWindowFont(g_hPsh1, g_hUIFont, TRUE);
+
+    // psh2: The "?" Button
+    g_hPsh2 = CreateWindowEx(exstyle, TEXT("BUTTON"), TEXT("?"), style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)psh2, g_hInstance, NULL);
+    if (!g_hPsh2)
+        return FALSE;
+    SetWindowFont(g_hPsh2, g_hUIFont, TRUE);
 
     // stc1: The Message
     style = SS_CENTER | SS_NOPREFIX | WS_CHILD | WS_VISIBLE;
@@ -1599,12 +1585,12 @@ void destroyControls(HWND hwnd)
     g_hSpeechThread = NULL;
     DestroyWindow(g_hCmb1);
     g_hCmb1 = NULL;
-    DestroyWindow(g_hCmb3);
-    g_hCmb3 = NULL;
     DestroyWindow(g_hCmb4);
     g_hCmb4 = NULL;
     DestroyWindow(g_hPsh1);
     g_hPsh1 = NULL;
+    DestroyWindow(g_hPsh2);
+    g_hPsh2 = NULL;
     DestroyWindow(g_hStc1);
     g_hStc1 = NULL;
     DeleteObject(g_hUIFont);
@@ -1683,35 +1669,23 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
         break;
     case psh1:
         {
-            iItem = ComboBox_GetCurSel(g_hCmb3);
-            if (iItem == CB_ERR)
-            {
-                GetWindowText(g_hCmb3, szText, _countof(szText));
-            }
-            else
-            {
-                ComboBox_GetLBText(g_hCmb3, iItem, szText);
-            }
-            StrTrim(szText, TEXT(" \t\r\n"));
-
-            iItem = ComboBox_FindStringExact(g_hCmb3, -1, szText);
-            if (szText[0] && iItem == CB_ERR)
-            {
-                g_texts.push_back(szText);
-                ComboBox_AddString(g_hCmb3, szText);
-            }
-            g_strText = szText;
-
-            stc1_CalcSize(g_hStc1);
-            if (g_hbm)
-            {
-                DeleteObject(g_hbm);
-                g_hbm = NULL;
-            }
-            InvalidateRect(g_hStc1, NULL, TRUE);
-            setSpeech(g_bSpeech);
+            TCHAR szPath[MAX_PATH];
+            GetModuleFileName(NULL, szPath, _countof(szPath));
+            str_t str = TEXT("--set-message \"");
+            str += g_strText;
+            str += TEXT("\"");
+            ShellExecute(hwnd, NULL, szPath, str.c_str(), NULL, SW_SHOWNORMAL);
         }
         saveSettings();
+        break;
+    case psh2:
+        {
+            TCHAR szPath[MAX_PATH];
+            GetModuleFileName(NULL, szPath, _countof(szPath));
+            PathRemoveFileSpec(szPath);
+            PathAppend(szPath, TEXT("ReadMe.txt"));
+            ShellExecute(hwnd, NULL, szPath, NULL, NULL, SW_SHOWNORMAL);
+        }
         break;
     case chx1:
         setSpeech((IsDlgButtonChecked(hwnd, chx1) == BST_CHECKED));
@@ -1738,10 +1712,10 @@ void OnSize(HWND hwnd, UINT state, int cx, int cy)
     INT nHeight = ComboBox_GetItemHeight(g_hCmb1);
     MoveWindow(g_hCmb1, rc.left, rc.bottom - 24, 80, nHeight * 10, TRUE);
     MoveWindow(g_hCmb2, rc.left + 90, rc.bottom - 24, 150, nHeight * 10, TRUE);
-    MoveWindow(g_hCmb3, rc.right - 150 - 40, rc.bottom - 24, 150, nHeight * 10, TRUE);
-    MoveWindow(g_hCmb4, rc.right - 240 - 40, rc.bottom - 24, 80, nHeight * 10, TRUE);
     MoveWindow(g_hChx1, rc.left + 250, rc.bottom - 24, 80, 24, TRUE);
-    MoveWindow(g_hPsh1, rc.right - 40, rc.bottom - 24, 40, 24, TRUE);
+    MoveWindow(g_hCmb4, rc.right - 160 - 40, rc.bottom - 24, 90, nHeight * 10, TRUE);
+    MoveWindow(g_hPsh1, rc.right - 100, rc.bottom - 24, 60, 24, TRUE);
+    MoveWindow(g_hPsh2, rc.right - 30, rc.bottom - 24, 30, 24, TRUE);
 
     g_bMaximized = IsZoomed(hwnd);
     saveSettings();
@@ -1766,6 +1740,25 @@ void OnMouseMove(HWND hwnd, int x, int y, UINT keyFlags)
     FORWARD_WM_MOUSEMOVE(hwnd, x, y, keyFlags, DefWndProc);
 }
 
+BOOL OnCopyData(HWND hwnd, HWND hwndFrom, PCOPYDATASTRUCT pcds)
+{
+    if (!pcds || pcds->dwData != 0xDEADBEEF)
+        return FALSE;
+
+    std::wstring str((LPWSTR)pcds->lpData, pcds->cbData / sizeof(WCHAR));
+    g_strText = str;
+
+    stc1_CalcSize(g_hStc1);
+    if (g_hbm)
+    {
+        DeleteObject(g_hbm);
+        g_hbm = NULL;
+    }
+    InvalidateRect(g_hStc1, NULL, TRUE);
+    setSpeech(g_bSpeech);
+    return TRUE;
+}
+
 LRESULT CALLBACK
 WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1775,6 +1768,7 @@ WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         HANDLE_MSG(hwnd, WM_SIZE, OnSize);
         HANDLE_MSG(hwnd, WM_DESTROY, OnDestroy);
         HANDLE_MSG(hwnd, WM_MOUSEMOVE, OnMouseMove);
+        HANDLE_MSG(hwnd, WM_COPYDATA, OnCopyData);
     case MM_MCINOTIFY:
         switch (wParam)
         {
@@ -1964,22 +1958,28 @@ void atexit_function(void)
     }
 }
 
-#define WIN32_PROGRAM 1
+INT ShowInputBox(HINSTANCE hInstance, INT myargc, LPWSTR *myargv);
 
-#ifdef WIN32_PROGRAM
 extern "C"
 INT WINAPI
 _tWinMain(HINSTANCE   hInstance,
           HINSTANCE   hPrevInstance,
           LPTSTR      lpCmdLine,
           INT         nCmdShow)
-#else
-int main(int argc, char **argv)
-#endif
 {
     InitCommonControls();
 
     loadSettings();
+
+    if (lpCmdLine && lpCmdLine[0])
+    {
+        INT myargc;
+        LPWSTR *myargv = CommandLineToArgvW(GetCommandLineW(), &myargc);
+        INT ret = ShowInputBox(hInstance, myargc, myargv);
+        LocalFree(myargv);
+        return ret;
+    }
+
     if (!doAdultCheck())
     {
         saveSettings();
@@ -1998,11 +1998,7 @@ int main(int argc, char **argv)
 
     g_bPerfCounter = QueryPerformanceFrequency(&g_freq);
 
-#ifdef WIN32_PROGRAM
     initGLUT(0, NULL);
-#else
-    initGLUT(argc, argv);
-#endif
 
     atexit(atexit_function);
 
