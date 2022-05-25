@@ -38,7 +38,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 STRINGTABLE
 {
     100, "Age check"
-    101, "Are you a child?"
+    101, "Are you a child or childlen?"
     102, "Are you over 18 years old?"
     103, "Children should not use this software."
     104, "Failed to RegisterClass."
