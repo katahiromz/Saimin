@@ -46,7 +46,7 @@ Windows XP以降。
 4. 最初はいくつか質問しますので、正直にボタンクリックで応えて下さい。
 5. 画面（ウィンドウ）が立ち上がります。一番左下のコンボボックスから映像の種類を選んで下さい。
 6. その右にあるコンボボックスから音声を選ぶことができます。
-7. 右下のコンボボックスからメッセージを選んで「Set」ボタンを押すとメッセージを設定できます。
+7. 右下の「msg」ボタンでメッセージを設定できます。
 8. 使用をやめたいときは、右上のバツ印をクリックしてウィンドウを閉じて下さい。
 
 【操作】
@@ -67,8 +67,7 @@ Copyright (C) 2022 片山博文MZ. All Rights Reserved.
 
 【年齢制限の理由】
 
-子どもは怪奇なものに好奇心があり、その精神は脆弱で、いじめの加害者や被害者を
-増やす恐れがあるため。
+子どもは怪奇なものに好奇心があり、その精神は壊れやすく、いじめの加害者や被害者を増やす恐れがあるため。
 
 【連絡先】
 
@@ -123,7 +122,7 @@ Windows XP and later.
 4. At first, the application will ask you some questions, so please be honest and answer with a click of a button.
 5. The screen (window) will start up. Select the video type from the combo box at the bottom left.
 6. You can select the audio from the combo box to the right of it.
-7. You can set a message by selecting a message from the combo box at the bottom right and pressing the "Set" button.
+7. You can set the message with the "msg" button at the bottom right.
 8. If you want to stop using it, click the cross mark on the upper right to close the window.
 
 [(Operations)]
