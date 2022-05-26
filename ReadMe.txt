@@ -65,6 +65,11 @@ Saimin はフリーソフトですので、無料で使用できます。
 Copyright (C) 2022 片山博文MZ. All Rights Reserved.
 ※ 一部、OtoLogicの音声素材を使用。
 
+【年齢制限の理由】
+
+子どもは怪奇なものに好奇心があり、その精神は脆弱で、いじめの加害者や被害者を
+増やす恐れがあるため。
+
 【連絡先】
 
 作者へメール：katayama.hirofumi.mz@gmail.com
@@ -137,6 +142,10 @@ The author assumes no responsibility for any consequences resulting from the use
 Copyright (C) 2022 katahiromz. All Rights Reserved.
 
 * Some OtoLogic audio materials are used.
+
+[(Reasons for age restriction)]
+
+Children are curious about strange things, their spirits are fragile, and they may increase the number of perpetrators and victims of bullying.
 
 [(Contact)]
 
