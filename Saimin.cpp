@@ -14,6 +14,7 @@
 #include <shlwapi.h>
 #include <strsafe.h>
 #include <dlgs.h>
+#include <algorithm>
 #include "MRegKey.hpp"
 #include "WinVoice.hpp"
 #ifndef _OBJBASE_H_
@@ -362,6 +363,9 @@ BOOL loadSettings(void)
             break;
         g_texts.push_back(str);
     }
+
+    std::sort(g_texts.begin(), g_texts.end());
+    g_texts.erase(std::unique(g_texts.begin(), g_texts.end()), g_texts.end());
 
     return TRUE;
 }
@@ -1747,6 +1751,7 @@ BOOL OnCopyData(HWND hwnd, HWND hwndFrom, PCOPYDATASTRUCT pcds)
 
     std::wstring str((LPWSTR)pcds->lpData, pcds->cbData / sizeof(WCHAR));
     g_strText = str;
+    g_texts.push_back(str);
 
     stc1_CalcSize(g_hStc1);
     if (g_hbm)
@@ -1756,6 +1761,7 @@ BOOL OnCopyData(HWND hwnd, HWND hwndFrom, PCOPYDATASTRUCT pcds)
     }
     InvalidateRect(g_hStc1, NULL, TRUE);
     setSpeech(g_bSpeech);
+    loadSettings();
     return TRUE;
 }
 

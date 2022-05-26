@@ -17,7 +17,7 @@ STRINGTABLE
     103, "こどもはつかってはいけません。"
     104, "RegisterClassに失敗しました。"
     105, "CreateWindowに失敗しました。"
-    106, "Saimin 2.8 by 片山博文MZ"
+    106, "Saimin 2.9 by 片山博文MZ"
     200, "あなたはだんだん眠くな～る..."
     201, "そろそろ自白しようぜ..."
     202, "高得点を取りたい...もっと勉強..."
@@ -38,7 +38,7 @@ CAPTION "メッセージの設定"
 STYLE DS_CENTER | DS_MODALFRAME | WS_POPUPWINDOW | WS_CAPTION
 FONT 9, "MS UI Gothic"
 {
-    LTEXT "メッセージテキスト(&M):", -1, 5, 5, 90, 15, SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT "メッセージ テキスト(&M):", -1, 5, 5, 90, 15, SS_CENTERIMAGE | NOT WS_GROUP
     COMBOBOX cmb1, 35, 25, 120, 150, CBS_DISABLENOSCROLL | CBS_HASSTRINGS | CBS_AUTOHSCROLL | CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON "OK", IDOK, 5, 45, 60, 20
     PUSHBUTTON "キャンセル", IDCANCEL, 70, 45, 60, 20
@@ -55,7 +55,7 @@ STRINGTABLE
     103, "Children should not use this software."
     104, "Failed to RegisterClass."
     105, "Failed to CreateWindow."
-    106, "Saimin 2.8 by katahiromz"
+    106, "Saimin 2.9 by katahiromz"
     200, "You are getting sleepy..."
     201, "Confess, confess now..."
     202, "Wanna get high score. Learn more..."

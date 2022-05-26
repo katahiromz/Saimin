@@ -94,6 +94,8 @@ DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
+BOOL saveSettings(void);
+
 INT ShowInputBox(HINSTANCE hInstance, INT myargc, LPWSTR *myargv)
 {
     if (myargc != 3)
@@ -101,6 +103,8 @@ INT ShowInputBox(HINSTANCE hInstance, INT myargc, LPWSTR *myargv)
     if (lstrcmpiW(myargv[1], L"--set-message") != 0)
         return -2;
     s_strMessage = myargv[2];
-    DialogBox(hInstance, MAKEINTRESOURCE(1), NULL, DialogProc);
+    if (DialogBox(hInstance, MAKEINTRESOURCE(1), NULL, DialogProc) == IDCANCEL)
+        return -1;
+    saveSettings();
     return 0;
 }
