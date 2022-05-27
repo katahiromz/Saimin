@@ -17,7 +17,7 @@
 #include <algorithm>
 #include "MRegKey.hpp"
 #include "WinVoice.hpp"
-#include "microphone/microphone.h"
+#include "mic/mic.h"
 #ifndef _OBJBASE_H_
     #include <objbase.h>
 #endif
@@ -92,6 +92,7 @@ WinVoice *g_pWinVoice = NULL;
 BOOL g_bCoInit = FALSE;
 BOOL g_bSpeech = FALSE;
 BOOL g_bMic = FALSE;
+HANDLE g_hMicThread = NULL;
 
 #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
@@ -2000,7 +2001,12 @@ void atexit_function(void)
 {
     echoOff();
     micOff();
-    //endMic();
+
+    if (g_hMicThread)
+    {
+        micEnd(g_hMicThread);
+        g_hMicThread = NULL;
+    }
 
     destroyControls(g_hwnd);
 
@@ -2040,10 +2046,11 @@ _tWinMain(HINSTANCE   hInstance,
         return ret;
     }
 
-    startMic();
-    micVolume(2.0);
-    micOff();
-    echoOff();
+    g_hMicThread = micStart(FALSE);
+    if (g_hMicThread)
+    {
+        micVolume(2.0);
+    }
 
     if (!doAdultCheck())
     {

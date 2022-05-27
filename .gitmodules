@@ -4,3 +4,6 @@
 [submodule "microphone"]
 	path = microphone
 	url = https://github.com/katahiromz/microphone.git
+[submodule "mic"]
+	path = mic
+	url = https://github.com/katahiromz/mic.git
