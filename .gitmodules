@@ -1,3 +1,6 @@
 [submodule "freeglut"]
 	path = freeglut
 	url = https://github.com/katahiromz/freeglut.git
+[submodule "microphone"]
+	path = microphone
+	url = https://github.com/katahiromz/microphone.git

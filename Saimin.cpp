@@ -17,6 +17,7 @@
 #include <algorithm>
 #include "MRegKey.hpp"
 #include "WinVoice.hpp"
+#include "microphone/microphone.h"
 #ifndef _OBJBASE_H_
     #include <objbase.h>
 #endif
@@ -58,6 +59,7 @@ HWND g_hCmb1 = NULL;
 HWND g_hCmb2 = NULL;
 HWND g_hCmb4 = NULL;
 HWND g_hChx1 = NULL;
+HWND g_hChx2 = NULL;
 str_t g_strText;
 str_t g_strSound;
 std::vector<str_t> g_texts;
@@ -89,6 +91,7 @@ INT g_stc1deltay = 0;
 WinVoice *g_pWinVoice = NULL;
 BOOL g_bCoInit = FALSE;
 BOOL g_bSpeech = FALSE;
+BOOL g_bMic = FALSE;
 
 #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
@@ -349,6 +352,10 @@ BOOL loadSettings(void)
     if (error)
         g_bSpeech = FALSE;
 
+    error = keyApp.QueryDword(TEXT("Mic"), (DWORD&)g_bMic);
+    if (error)
+        g_bMic = FALSE;
+
     INT nTextCount = 0;
     error = keyApp.QueryDword(TEXT("TextCount"), (DWORD&)nTextCount);
     if (error)
@@ -383,6 +390,7 @@ BOOL saveSettings(void)
     keyApp.SetDword(TEXT("division"), g_division);
     keyApp.SetDword(TEXT("Maximized"), g_bMaximized);
     keyApp.SetDword(TEXT("Speech"), g_bSpeech);
+    keyApp.SetDword(TEXT("Mic"), g_bMic);
 
     keyApp.SetSz(TEXT("Text"), g_strText.c_str());
     keyApp.SetSz(TEXT("Sound"), g_strSound.c_str());
@@ -1539,6 +1547,20 @@ BOOL createControls(HWND hwnd)
     SetWindowFont(g_hChx1, g_hUIFont, TRUE);
     setSpeech(g_bSpeech);
 
+    // chx2: "mic" checkbox
+    style = BS_AUTOCHECKBOX | WS_CHILD | WS_VISIBLE;
+    exstyle = 0;
+    g_hChx2 = CreateWindowEx(exstyle, TEXT("BUTTON"), TEXT("mic"), style, 0, 0, 0, 0, hwnd, (HMENU)(INT_PTR)chx2, g_hInstance, NULL);
+    if (!g_hChx2)
+        return FALSE;
+    SetWindowFont(g_hChx2, g_hUIFont, TRUE);
+    if (g_bMic)
+    {
+        CheckDlgButton(hwnd, chx2, BST_CHECKED);
+        micOn();
+        echoOn();
+    }
+
     // psh1: The "msg" Button
     style = BS_PUSHBUTTON | BS_CENTER | WS_CHILD | WS_VISIBLE;
     exstyle = 0;
@@ -1694,6 +1716,21 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
     case chx1:
         setSpeech((IsDlgButtonChecked(hwnd, chx1) == BST_CHECKED));
         break;
+    case chx2:
+        if (IsDlgButtonChecked(hwnd, chx2) == BST_CHECKED)
+        {
+            g_bMic = TRUE;
+            micOn();
+            echoOn();
+        }
+        else
+        {
+            g_bMic = FALSE;
+            micOff();
+            echoOff();
+        }
+        saveSettings();
+        break;
     case IDYES:
         createControls(hwnd);
         break;
@@ -1715,6 +1752,7 @@ void OnSize(HWND hwnd, UINT state, int cx, int cy)
 
     INT nHeight = ComboBox_GetItemHeight(g_hCmb1);
     MoveWindow(g_hCmb1, rc.left, rc.bottom - 24, 80, nHeight * 10, TRUE);
+    MoveWindow(g_hChx2, rc.left, rc.bottom - 48, 60, 24, TRUE);
     MoveWindow(g_hCmb2, rc.left + 90, rc.bottom - 24, 150, nHeight * 10, TRUE);
     MoveWindow(g_hChx1, rc.left + 250, rc.bottom - 24, 80, 24, TRUE);
     MoveWindow(g_hCmb4, rc.right - 160 - 40, rc.bottom - 24, 90, nHeight * 10, TRUE);
@@ -1960,6 +1998,9 @@ BOOL doAdultCheck(void)
 
 void atexit_function(void)
 {
+    echoOff();
+    endMic();
+
     destroyControls(g_hwnd);
 
     if (g_pWinVoice)
@@ -1997,6 +2038,10 @@ _tWinMain(HINSTANCE   hInstance,
         LocalFree(myargv);
         return ret;
     }
+
+    startMic();
+    micOff();
+    echoOff();
 
     if (!doAdultCheck())
     {
