@@ -1999,7 +1999,8 @@ BOOL doAdultCheck(void)
 void atexit_function(void)
 {
     echoOff();
-    endMic();
+    micOff();
+    //endMic();
 
     destroyControls(g_hwnd);
 
