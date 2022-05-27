@@ -1559,7 +1559,7 @@ BOOL createControls(HWND hwnd)
     {
         CheckDlgButton(hwnd, chx2, BST_CHECKED);
         micOn();
-        echoOn();
+        micEchoOn();
     }
 
     // psh1: The "msg" Button
@@ -1722,13 +1722,13 @@ void OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
         {
             g_bMic = TRUE;
             micOn();
-            echoOn();
+            micEchoOn();
         }
         else
         {
             g_bMic = FALSE;
             micOff();
-            echoOff();
+            micEchoOff();
         }
         saveSettings();
         break;
@@ -1999,7 +1999,7 @@ BOOL doAdultCheck(void)
 
 void atexit_function(void)
 {
-    echoOff();
+    micEchoOff();
     micOff();
 
     if (g_hMicThread)
