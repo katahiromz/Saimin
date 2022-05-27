@@ -2040,6 +2040,7 @@ _tWinMain(HINSTANCE   hInstance,
     }
 
     startMic();
+    micVolume(1.5);
     micOff();
     echoOff();
 
