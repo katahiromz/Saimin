@@ -30,6 +30,7 @@ Windows XP以降。
 - 精神に何らかの影響が発生する可能性をあらかじめ留意して下さい。
 - 医師法により効用をうたうことはできません。
 - 18才未満は使用禁止です。
+- てんかんの症状のある方は使用しないで下さい。
 - 幼い子どもに試すのはやめて下さい。親子の不仲と精神異常の恐れがあります。
 - 急性期の統合失調症患者は使用禁止です。
 - 繰り返し使用すると、反応が鈍くなり、社会性が低下する恐れがあります。
@@ -67,7 +68,7 @@ Copyright (C) 2022 片山博文MZ. All Rights Reserved.
 
 【年齢制限の理由】
 
-子どもは怪奇なものに好奇心があり、その精神は壊れやすく、いじめの加害者や被害者を増やす恐れがあるため。
+- 子どもは怪奇なものに好奇心があり、その精神は壊れやすく、いじめの加害者や被害者を増やす恐れがあるため。
 
 【連絡先】
 
@@ -106,6 +107,7 @@ Windows XP and later.
 - Please keep in mind in advance the possibility that some effects on the psyche may occur.
 - The benefits of the software cannot be insisted by the Medical Practitioners Act in some countries.
 - Persons under 18 years of age are prohibited from using this software.
+- Do not use this software if you have epilepsy symptoms.
 - Please do not try this software on young child. It may cause parent-child disagreement and mental illness.
 - Acute schizophrenic patients should not use this software.
 - Repeated use of this software may lead to slower reactions and reducing social skills.

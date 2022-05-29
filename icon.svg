@@ -2,14 +2,14 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="64"
-   height="64"
-   viewBox="0 0 16.933333 16.933334"
+   width="256"
+   height="256"
+   viewBox="0 0 67.733332 67.733336"
    version="1.1"
    id="svg5"
    inkscape:version="1.1.2 (b8e25be833, 2022-02-05)"
    sodipodi:docname="icon.svg"
-   inkscape:export-filename="C:\dev\Saimin\Saimin\icon.png"
+   inkscape:export-filename="C:\Users\katahiromz\Desktop\icon-256.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -26,7 +26,7 @@
      inkscape:pagecheckerboard="0"
      inkscape:document-units="mm"
      showgrid="false"
-     width="64mm"
+     width="256px"
      units="px"
      inkscape:snap-bbox="true"
      inkscape:bbox-paths="true"
@@ -38,9 +38,9 @@
      inkscape:snap-grids="false"
      inkscape:snap-to-guides="false"
      inkscape:snap-object-midpoints="true"
-     inkscape:zoom="1.6997475"
-     inkscape:cx="114.42876"
-     inkscape:cy="24.12123"
+     inkscape:zoom="0.84987375"
+     inkscape:cx="152.37557"
+     inkscape:cy="78.835239"
      inkscape:window-width="1366"
      inkscape:window-height="705"
      inkscape:window-x="-8"
@@ -54,14 +54,14 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#e3e3e3;fill-opacity:1;stroke:#000000;stroke-width:0.521149;stroke-linecap:round;stroke-linejoin:round;paint-order:fill markers stroke;stop-color:#000000"
+       style="fill:#e3e3e3;fill-opacity:1;stroke:#000000;stroke-width:2.05253;stroke-linecap:round;stroke-linejoin:round;paint-order:fill markers stroke;stop-color:#000000"
        id="rect846"
-       width="16.676767"
-       height="16.676767"
-       x="0.26057467"
-       y="0.26057467"
-       rx="3.9393914"
-       ry="3.9393914" />
+       width="65.680809"
+       height="65.680809"
+       x="1.0262628"
+       y="1.0262628"
+       rx="15.515141"
+       ry="15.515141" />
     <path
        sodipodi:type="spiral"
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:6;stroke-miterlimit:4;stroke-dasharray:none"
@@ -74,12 +74,12 @@
        sodipodi:argument="-24.360001"
        sodipodi:t0="0"
        d="m -40.594265,2.3532908 c 1.415883,1.380486 -1.162321,2.5896652 -2.294459,2.3532908 -3.068023,-0.6405601 -3.609449,-4.55307613 -2.412123,-6.9422079 2.141737,-4.2735963 7.836628,-4.8431584 11.589958,-2.4709553 5.508162,3.4813034 6.112762,11.1644807 2.529787,16.2377066 -4.775541,6.761812 -14.508028,7.397619 -20.885456,2.58862 -8.025342,-6.0516354 -8.690359,-17.8590484 -2.647452,-25.533206 7.31877,-9.294432 21.214276,-9.987661 30.180955,-2.706284 10.566921,8.5808511 11.287828,24.572125 2.765116,34.828704 -9.839807,11.841626 -27.931725,12.589906 -39.476453,2.823949 -13.117853,-11.096701 -13.89332,-31.2925559 -2.882781,-44.124203"
-       transform="matrix(0.26458333,0,0,0.26458333,20.20333,7.177878)" />
+       transform="matrix(1.0420513,0,0,1.0420513,79.570039,28.269796)" />
     <circle
-       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.5875;stroke-linecap:round;stroke-linejoin:round;paint-order:fill markers stroke;stop-color:#000000"
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:6.25231;stroke-linecap:round;stroke-linejoin:round;paint-order:fill markers stroke;stop-color:#000000"
        id="path1270"
-       cx="8.9336481"
-       cy="7.9996848"
-       r="0.52916664" />
+       cx="35.18483"
+       cy="31.506451"
+       r="2.0841024" />
   </g>
 </svg>
