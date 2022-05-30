@@ -31,6 +31,7 @@ Windows XP以降。
 - 医師法により効用をうたうことはできません。
 - 18才未満は使用禁止です。
 - てんかんの症状のある方は使用しないで下さい。
+- あなたの国・学校・宗教・地域が催眠を禁じている場合は、本アプリを使用しないで下さい。
 - 幼い子どもに試すのはやめて下さい。親子の不仲と精神異常の恐れがあります。
 - 急性期の統合失調症患者は使用禁止です。
 - 繰り返し使用すると、反応が鈍くなり、社会性が低下する恐れがあります。
@@ -108,6 +109,7 @@ Windows XP and later.
 - The benefits of the software cannot be insisted by the Medical Practitioners Act in some countries.
 - Persons under 18 years of age are prohibited from using this software.
 - Do not use this software if you have epilepsy symptoms.
+- If your country, school, religion or region prohibits hypnosis, do not use this application.
 - Please do not try this software on young child. It may cause parent-child disagreement and mental illness.
 - Acute schizophrenic patients should not use this software.
 - Repeated use of this software may lead to slower reactions and reducing social skills.
