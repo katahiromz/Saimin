@@ -57,6 +57,7 @@
     - テキストの保存を修正。
     - ReadMeを修正。
     - マイクを有効に。
+    - クリック時にきらきら音を追加。
 ------------------------------------------------------
 (English)
 ------------------------------------------------------
@@ -116,3 +117,4 @@
     - Fixed saving of texts.
     - Fixed ReadMe.
     - Enabled microphone.
+    - Added sparkling sound when clicking.

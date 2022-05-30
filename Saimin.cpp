@@ -93,6 +93,7 @@ BOOL g_bCoInit = FALSE;
 BOOL g_bSpeech = FALSE;
 BOOL g_bMic = FALSE;
 HANDLE g_hMicThread = NULL;
+static INT s_iSound = 1;
 
 #ifndef _countof
     #define _countof(array) (sizeof(array) / sizeof(array[0]))
@@ -105,6 +106,8 @@ LPTSTR doLoadString(INT id)
     LoadString(NULL, id, s_szText, _countof(s_szText));
     return s_szText;
 }
+
+MCIERROR mciSendF(LPCTSTR fmt, ...);
 
 template <typename T_STR>
 inline bool
@@ -1119,6 +1122,12 @@ void mouseCB(int button, int state, int x, int y)
             {
                 setType((g_nType % TYPE_COUNT) + 1);
             }
+
+            // play kirakira.mp3
+            mciSendF(TEXT("stop file%d"), 0);
+            mciSendF(TEXT("seek file%d to start"), 0);
+            mciSendF(TEXT("play file%d notify"), 0);
+
             g_bMouseLeftButton = true;
         }
         else if (state == GLUT_UP)
@@ -1406,8 +1415,6 @@ MCIERROR mciSendF(LPCTSTR fmt, ...)
     return ret;
 }
 
-static INT s_iSound = 0;
-
 VOID doRepeatSound(void)
 {
     mciSendF(TEXT("seek file%d to start"), s_iSound);
@@ -1598,6 +1605,13 @@ BOOL createControls(HWND hwnd)
     SetWindowText(g_hStc1, g_strText.c_str());
     stc1_CalcSize(g_hStc1);
     g_hMessageThread = CreateThread(NULL, 0, messageThreadProc, NULL, 0, NULL);
+
+    // ready kirakira.mp3
+    TCHAR szText[MAX_PATH];
+    GetModuleFileName(NULL, szText, _countof(szText));
+    PathRemoveFileSpec(szText);
+    PathAppend(szText, TEXT("kirakira.mp3"));
+    mciSendF(TEXT("open \"%s\" type mpegvideo alias file%d"), szText, 0);
 
     // Reposition
     PostMessage(hwnd, WM_SIZE, 0, 0);
@@ -2001,6 +2015,10 @@ void atexit_function(void)
 {
     micEchoOff();
     micOff();
+
+    // stop kirakira.mp3
+    mciSendF(TEXT("stop file%d"), 0);
+    mciSendF(TEXT("close file%d"), 0);
 
     if (g_hMicThread)
     {
