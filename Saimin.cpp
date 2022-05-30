@@ -1126,7 +1126,7 @@ void mouseCB(int button, int state, int x, int y)
             // play kirakira.mp3
             mciSendF(TEXT("stop file%d"), 0);
             mciSendF(TEXT("seek file%d to start"), 0);
-            mciSendF(TEXT("play file%d notify"), 0);
+            mciSendF(TEXT("play file%d"), 0);
 
             g_bMouseLeftButton = true;
         }

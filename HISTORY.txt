@@ -58,6 +58,8 @@
     - ReadMeを修正。
     - マイクを有効に。
     - クリック時にきらきら音を追加。
+- 2022-XX-YY ver.3.0
+    - 勝手にプレイバックする不具合を修正。
 ------------------------------------------------------
 (English)
 ------------------------------------------------------
@@ -118,3 +120,5 @@
     - Fixed ReadMe.
     - Enabled microphone.
     - Added sparkling sound when clicking.
+- 2022-XX-YY ver.3.0
+    - Fixed a bug that the audio plays back on its own.
