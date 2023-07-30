@@ -1,0 +1,8 @@
+
+C:\dev\Saimin\Saimin>g++ -c -O3 -DUNICODE -D_UNICODE Saimin.cpp -o Saimin.o 
+
+C:\dev\Saimin\Saimin>windres -i Saimin_res.rc -o Saimin_res.o 
+
+C:\dev\Saimin\Saimin>g++ -O3 -o Saimin Saimin.o Saimin_res.o -lshlwapi 
+
+C:\dev\Saimin\Saimin>strip Saimin.exe 

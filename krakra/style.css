@@ -1,0 +1,278 @@
+body {
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: black;
+}
+#saimin_canvas {
+	z-index: 1;
+	background-color: #222;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+}
+label {
+	cursor: pointer;
+}
+.ui_line {
+	padding-top: 1mm;
+	padding-bottom: 1mm;
+}
+.nobr {
+	white-space:nowrap;
+	-webkit-hyphens: none;
+	-ms-hyphens: none;
+	hyphens: none;
+}
+input[type='checkbox'] {
+	cursor: pointer;
+	font-size: 0.5cm;
+	padding: 0;
+}
+#floating_text1 {
+	position: absolute;
+	left: 0;
+	top: 0;
+	color: white;
+	background-color: black;
+	z-index: 3;
+	max-width: 80%;
+	word-break: break-all;
+	padding: 4px;
+	border: 1px solid white;
+}
+#floating_text2 {
+	position: absolute;
+	left: 0;
+	top: 0;
+	color: white;
+	background-color: black;
+	z-index: 3;
+	max-width: 80%;
+	word-break: break-all;
+	padding: 4px;
+	border: 1px solid white;
+}
+.font_size_small {
+	font-size: 0.4cm;
+}
+.font_size_normal {
+	font-size: 0.6cm;
+}
+.font_size_large {
+	font-size: 1.0cm;
+}
+.font_size_huge {
+	font-size: 2.0cm;
+}
+#type_select_button {
+	position: absolute;
+	left: calc(100% / 5 * 0);
+	bottom: 0;
+	width: calc(100% / 5 - 5px);
+	font-family: san-serif;
+}
+#microphone_label {
+	position: absolute;
+	left: calc(100% / 5 * 1);
+	bottom: 0;
+	width: calc(100% / 5 - 5px);
+}
+#sound_button {
+	position: absolute;
+	left: calc(100% / 5 * 2);
+	bottom: 0;
+	width: calc(100% / 5 - 5px);
+}
+#config_play_button {
+	width: 35pt;
+	height: 22pt;
+	position: relative;
+	top: -1pt;
+	vertical-align: middle;
+	background-color: #333;
+}
+#config_play_button img {
+	position: relative;
+	top: -1pt;
+	vertical-align: middle;
+}
+.releasing {
+	background-color: red !important;
+	text-align: center;
+}
+#text_button {
+	position: absolute;
+	left: calc(100% / 5 * 3);
+	bottom: 0;
+	width: calc(100% / 5 - 5px);
+}
+#speech_label {
+	position: absolute;
+	left: calc(100% / 5 * 4);
+	bottom: 0;
+	width: calc(100% / 5 - 5px);
+}
+.round-button {
+	width: 1.3cm;
+	height: 1.3cm;
+	background-color: rgba(255, 181, 230, 0%);
+	border: 0;
+	border-radius: 100%;
+	padding: 0;
+	margin: 0;
+}
+.round-button img {
+	width: 1.3cm;
+	height: 1.3cm;
+}
+#config_button {
+	position: absolute;
+	left: 3px;
+	top: 3px;
+}
+#about_button {
+	position: absolute;
+	right: 3px;
+	top: 3px;
+}
+.invisible {
+	display: none;
+}
+.center {
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+textarea {
+	font-size: 0.5cm;
+	font-family: monospace, ui-monospace;
+}
+.navigate-button {
+	outline: 1px solid white;
+	border-radius: 4px;
+	background-color: rgba(255, 181, 230, 75%);
+	color: black;
+	padding: 4px;
+	height: 1.2cm;
+	line-height: 1.2cm;
+	z-index: 2;
+	font-size: 0.5cm;
+	font-weight: bold;
+	padding: 0;
+	text-align: center;
+}
+button.navigate-button {
+	vertical-align: top;
+	line-height: 0.5cm;
+}
+.navigate-button img {
+	vertical-align: middle;
+}
+.navigate-button:hover {
+	background-color: rgba(255, 210, 230, 85%);
+}
+.checked {
+	background-color: rgba(204, 101, 198, 90%);
+}
+.ui-dialog-content div {
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+.ui-dialog-content div select {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+.version-text {
+	margin: 0;
+	padding: 0;
+}
+.ui-widget {
+	font-size: 0.9em;
+}
+#notice_text {
+	width: 90%;
+	font-size: 9pt;
+}
+
+/* https://www.tutorialstonight.com/css-toggle-switch-with-text */
+/* BEGIN FROM HERE */
+.toggle {
+    --width: 80px;
+    --height: calc(var(--width) / 3);
+    position: relative;
+    display: inline-block;
+    width: var(--width);
+    height: var(--height);
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+    border-radius: var(--height);
+    cursor: pointer;
+    vertical-align: middle;
+}
+.toggle input {
+    display: none;
+}
+.toggle .slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--height);
+    background-color: #ccc;
+    transition: all 0.4s ease-in-out;
+}
+.toggle .slider::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(var(--height));
+    height: calc(var(--height));
+    border-radius: calc(var(--height) / 2);
+    background-color: #fff;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+    transition: all 0.4s ease-in-out;
+}
+.toggle input:checked + .slider {
+    background-color: #2196F3;
+}
+.toggle input:checked + .slider::before {
+    transform: translateX(calc(var(--width) - var(--height)));
+}
+.toggle .labels {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 12px;
+    font-family: sans-serif;
+    transition: all 0.4s ease-in-out;
+}
+.toggle .labels::after {
+    content: attr(data-off);
+    position: absolute;
+    right: 5px;
+    color: #4d4d4d;
+    opacity: 1;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+    transition: all 0.4s ease-in-out;
+}
+.toggle .labels::before {
+    content: attr(data-on);
+    position: absolute;
+    left: 5px;
+    color: #ffffff;
+    opacity: 0;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.4);
+    transition: all 0.4s ease-in-out;
+}
+.toggle input:checked~.labels::after {
+    opacity: 0;
+}
+.toggle input:checked~.labels::before {
+    opacity: 1;
+}
+/* END AT HERE */

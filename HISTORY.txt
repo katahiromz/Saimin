@@ -1,0 +1,130 @@
+------------------------------------------------------
+(Japanese)
+------------------------------------------------------
+【開発履歴】
+
+- 2022-03-11 ver.1.1
+    - 初公開。
+- 2022-03-11 ver.1.2
+    - 調整。
+- 2022-03-11 ver.1.3
+    - Type 4 の改良。
+- 2022-03-12 ver.1.4
+    - Random の改良。
+    - Unicode サポート。
+    - レジストリの使用。
+- 2022-04-05 ver.1.5
+    - Type 1 の改良。
+- 2022-04-12 ver.1.6
+    - ReadMeの改良。
+- 2022-04-18 ver.1.7
+    - ReadMeの改良。
+- 2022-04-23 ver.1.8
+    - マウスホイールで回転調整可能に。
+- 2022-04-23 ver.1.9
+    - 速度設定を改善。
+- 2022-04-25 ver.2.0
+    - 音声を改良。
+- 2022-04-25 ver.2.1
+    - Color チェックボックス追加。
+    - 最大化状態を保存。
+- 2022-04-25 ver.2.2
+    - テキストの表示を改善。
+- 2022-04-27 ver.2.3
+    - ReadMeを改良。
+    - 調整。
+    - Type 5を追加。
+- 2022-04-28 ver.2.4
+    - Type 2を改良。
+    - Type 5を改良。
+    - 音声追加。
+- 2022-05-07 ver.2.5
+    - Type 3を置き換え。
+    - 音声を改良。
+- 2022-05-18 ver.2.6
+    - 全部書き直し。
+    - freeglut.dllを追加。
+- 2022-05-20 ver.2.7
+    - InitCommonControls()を使用。
+    - 音声ファイルを置き換え。
+- 2022-05-26 ver.2.8
+    - マウスポインタの周りに星を追加。
+    - Type3とType4とType5の小さな改良。
+    - アイコンを変更。
+    - 低いピッチで遅くしゃべる。
+    - インターフェイスを改良。
+- 2022-05-30 ver.2.9
+    - テキストの保存を修正。
+    - ReadMeを修正。
+    - マイクを有効に。
+    - クリック時にきらきら音を追加。
+- 2022-05-30 ver.2.9.1
+    - 音声が勝手にプレイバックする不具合を修正。
+    - きらきら音を小さく。
+- 2023-07-29 ver.3.4.0
+    - Webアプリ「催眠くらくら」を導入。
+------------------------------------------------------
+(English)
+------------------------------------------------------
+【History of Saimin】
+
+- 2022-03-11 ver.1.1
+    - First release.
+- 2022-03-11 ver.1.2
+    - Adjustment.
+- 2022-03-11 ver.1.3
+    - Improved Type 4.
+- 2022-03-12 ver.1.4
+    - Improved Random.
+    - Unicode support.
+    - Usage of Registry.
+- 2022-04-05 ver.1.5
+    - Improved Type 1.
+- 2022-04-12 ver.1.6
+    - Improved ReadMe.
+- 2022-04-18 ver.1.7
+    - Improved ReadMe.
+- 2022-04-23 ver.1.8
+    - Mouse wheel.
+- 2022-04-23 ver.1.9
+    - Improved speed setting.
+- 2022-04-25 ver.2.0
+    - Improved sound.
+- 2022-04-25 ver.2.1
+    - Color checkbox added.
+    - Save maximized status.
+- 2022-04-25 ver.2.2
+    - Improved text display.
+- 2022-04-27 ver.2.3
+    - Improved ReadMe.
+    - Adjustment.
+    - Added Type 5.
+- 2022-04-28 ver.2.4
+    - Improved Type 2.
+    - Improved Type 5.
+    - Add sound.
+- 2022-05-07 ver.2.5
+    - Replaced Type 3.
+    - Improved sound.
+- 2022-05-18 ver.2.6
+    - Totally rewritten.
+    - Added freeglut.dll.
+- 2022-05-20 ver.2.7
+    - Used InitCommonControls().
+    - Replaced sound files.
+- 2022-05-26 ver.2.8
+    - Added stars around mouse pointer.
+    - Minor improvements of Type3, Type4 and Type5.
+    - Changed icon.
+    - Speaking slower in low pitch.
+    - Improved the interface.
+- 2022-05-30 ver.2.9
+    - Fixed saving of texts.
+    - Fixed ReadMe.
+    - Enabled microphone.
+    - Added sparkling sound when clicking.
+- 2022-05-30 ver.2.9.1
+    - Fixed a bug that the audio plays back on its own.
+    - Made sparkling sound smaller.
+- 2023-07-29 ver.3.4.0
+    - Introduced Web app "Hypnosis KraKra"
