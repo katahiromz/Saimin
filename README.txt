@@ -42,6 +42,12 @@ Saimin はフリーソフトですので、無料で使用できます。
 Copyright (C) 2022-2023 片山博文MZ. All Rights Reserved.
 ※ 一部、OtoLogicの音声素材を使用。
 
+【Webアプリ「くらくら」の紹介】
+
+次のURLからWebアプリをインストールした方が使いやすいかもしれません。
+
+- https://katahiromz.github.io/saimin/
+
 【連絡先】
 
 作者へメール：katayama.hirofumi.mz@gmail.com
@@ -91,6 +97,12 @@ The author assumes no responsibility for any consequences resulting from the use
 Copyright (C) 2022-2023 katahiromz. All Rights Reserved.
 
 * Some OtoLogic audio materials are used.
+
+[(Introduction to the Web app "KraKra")]
+
+It may be easier to use if you install the Web app from the following URL:
+
+- https://katahiromz.github.io/saimin/
 
 [(Contact)]
 
