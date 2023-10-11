@@ -86,7 +86,7 @@ WinMain(HINSTANCE   hInstance,
 
     GetModuleFileName(NULL, szPath, _countof(szPath));
     PathRemoveFileSpec(szPath);
-    PathAppend(szPath, TEXT("krakra\\index2.html"));
+    PathAppend(szPath, TEXT("krakra\\index.html"));
 
     _sntprintf(szParam, _countof(szParam),
                TEXT("--kiosk \"%s\" --edge-kiosk-type=fullscreen"), szPath);
