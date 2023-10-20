@@ -90,26 +90,49 @@
 					<select id="sai_id_select_sound" title="sai_id_select_sound">
 						<option value="" selected>(None)</option>
 						<option value="Cattish">Cattish</option>
-						<option value="Drill">Drill</option>
 						<option value="Exciting">Exciting</option>
 						<option value="Horror">Horror</option>
 						<option value="Hunting">Hunting</option>
-						<option value="Lonely">Lonely</option>
 						<option value="Longing">Longing</option>
 						<option value="Lovely">Lovely</option>
 						<option value="Magic">Magic</option>
 						<option value="OraSaimin">Ora! Saimin!</option>
+						<option value="Noise">Noise</option>
+						<option value="432Hz">432Hz</option>
+						<option value="Heli">Heli</option>
+						<option value="HeliPlus432Hz">Heli+432Hz</option>
 					</select>
-					<button id="sai_id_button_sound_play" type="button"><img src="images/play.svg" alt="[Play]" loading="lazy" /></button>
+					<button id="sai_id_button_sound_config_play" type="button"><img id="sai_id_image_play_pause" src="images/play.svg" alt="[Play]" loading="lazy" /></button>
 				</span>
 			</div>
 			<hr />
 			<div class="sai_class_ui_line">
-				<span id="sai_id_text_switch_sound" class="sai_config_label">Pic change sound:</span>
+				<span id="sai_id_text_sound_volume" class="sai_config_label">Sound Volume:</span>
+			</div>
+			<div class="sai_class_ui_line">
+				<span class="sai_class_nobr">
+					<input type="range" id="sai_id_range_sound_volume" name="sai_id_range_sound_volume" min="0" max="100" value="100" step="1" title="Volume" />
+				</span><br />
+				<output id="sai_id_text_sound_volume_output" name="sai_id_text_sound_volume_output" for="sai_id_range_sound_volume">100%</output>
+			</div>
+			<hr />
+			<div class="sai_class_ui_line">
+				<span id="sai_id_text_auto_repeat_sound" class="sai_config_label">Auto-repeating sound:</span>
 			</div>
 			<div class="sai_class_ui_line">
 				<label class="sai_class_toggle_button">
-					<input type="checkbox" id="sai_id_checkbox_pic_change_sound" title="Pic Change Sound" />
+					<input type="checkbox" id="sai_id_checkbox_auto_repeat_sound" title="Auto Repeat" />
+					<span class="sai_class_slider"></span>
+					<span class="sai_class_toggle_label" data-on="ON" data-off="OFF"></span>
+				</label>
+			</div>
+			<hr />
+			<div class="sai_class_ui_line">
+				<span id="sai_id_text_switch_sound" class="sai_config_label">Switching sound:</span>
+			</div>
+			<div class="sai_class_ui_line">
+				<label class="sai_class_toggle_button">
+					<input type="checkbox" id="sai_id_checkbox_switching_sound" title="Switching Sound" />
 					<span class="sai_class_slider"></span>
 					<span class="sai_class_toggle_label" data-on="ON" data-off="OFF"></span>
 				</label>
@@ -251,6 +274,24 @@
 			<button type="button" id="sai_id_button_config_ok" class="sai_class_nav_button">OK</button>
 		</div>
 	</div>
+	<div id="sai_id_page_message" class="sai_class_page sai_class_center sai_class_config_page sai_class_invisible">
+		<h1 id="sai_id_page_message_header">Message</h1>
+		<img class="sai_class_img_config_logo" alt="" width="165" height="31" loading="lazy" />
+		<form onsubmit="return false">
+			<input id="sai_id_text_message" type="text" placeholder="Input message" enterkeyhint="done" />
+			<div id="sai_id_message_scrollable" class="sai_class_scrollable_3">
+				<div id="sai_id_message_list">
+					<!-- Filled by SAI_populate_message_list -->
+				</div>
+			</div>
+			<div class="sai_class_config_navi_line">
+				<hr />
+				<button type="button" id="sai_id_button_mesage_reset" class="sai_class_nav_button">Reset</button>
+				<button type="button" id="sai_id_button_mesage_cancel" class="sai_class_nav_button">Cancel</button>
+				<button type="submit" id="sai_id_button_mesage_ok" class="sai_class_nav_button">OK</button>
+			</div>
+		</form>
+	</div>
 	<div id="sai_id_page_main" class="sai_class_page sai_class_invisible">
 		<!-- The "configuration" button -->
 		<button type="button" id="sai_id_button_config" class="sai_class_rounded_button sai_class_button_main_control">
@@ -283,17 +324,17 @@
 		</button>
 
 		<!-- The "microphone" button -->
-		<button type="button" id="sai_id_button_microphone" class="sai_class_navi_button sai_tool_button">
+		<button type="button" id="sai_id_button_microphone" class="sai_class_navi_button sai_class_tool_button">
 			<img id="sai_id_img_mic" src="images/mic.png" alt="mic" loading="lazy" />
 		</button>
 
 		<!-- The "note" button -->
-		<button type="button" id="sai_id_button_sound" class="sai_class_navi_button sai_tool_button">
+		<button type="button" id="sai_id_button_sound_play" class="sai_class_navi_button sai_class_tool_button">
 			<img id="sai_id_img_sound" src="images/sound.png" alt="play!" loading="lazy" />
 		</button>
 
 		<!-- The "speech" button -->
-		<button type="button" id="sai_id_button_speech" class="sai_class_navi_button sai_tool_button">
+		<button type="button" id="sai_id_button_speech" class="sai_class_navi_button sai_class_tool_button">
 			<img id="sai_id_img_speech" src="images/speak.png" alt="spch" loading="lazy" />
 		</button>
 
