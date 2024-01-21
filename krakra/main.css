@@ -1,3 +1,4 @@
+/* 『催眠くらくら』CSSファイル。*/
 * {
 	/* いったん、すべての要素をスクロール不能にする。スクロールしたいものは個別に指定する。 */
 	overflow: hidden;
@@ -16,8 +17,13 @@ label {
 	cursor: pointer;
 }
 select {
-	background-color: #010;
-	color: #0f0;
+	background-color: #300;
+	color: #fcf;
+}
+button {
+	font-weight: bold;
+	background-color: #f9f;
+	color: #003;
 }
 .sai_class_page {
 	margin: 0;
@@ -26,8 +32,8 @@ select {
 	width: 100dvw;
 	height: 100vh;
 	height: 100dvh;
-	background-color: #605;
-	color: #cf6;
+	background-color: #b06;
+	color: #fff;
 }
 #sai_id_main_page {
 	position: absolute;
@@ -114,28 +120,32 @@ select {
 .sai_class_font_size_huge {
 	font-size: 2.0cm;
 }
+#sai_id_button_target {
+	position: absolute;
+	left: calc(100% / 4 * 0 + 5px/2);
+	bottom: 0;
+	width: calc(100% / 4 - 5px);
+}
 #sai_id_button_microphone {
 	position: absolute;
-	left: calc(100% / 3 * 0 + 5px/2);
+	left: calc(100% / 4 * 1 + 5px/2);
 	bottom: 0;
-	width: calc(100% / 3 - 5px);
+	width: calc(100% / 4 - 5px);
 }
 #sai_id_button_sound_play {
 	position: absolute;
-	left: calc(100% / 3 * 1 + 5px/2);
+	left: calc(100% / 4 * 2 + 5px/2);
 	bottom: 0;
-	width: calc(100% / 3 - 5px);
+	width: calc(100% / 4 - 5px);
 }
 #sai_id_button_speech {
 	position: absolute;
-	left: calc(100% / 3 * 2 + 5px/2);
+	left: calc(100% / 4 * 3 + 5px/2);
 	bottom: 0;
-	width: calc(100% / 3 - 5px);
+	width: calc(100% / 4 - 5px);
 }
-.sai_class_config_page button {
+.sai_class_config_button {
 	position: relative;
-	color: #afa;
-	background-color: #363;
 	height: 3rem;
 	font-weight: bold;
 	padding: 0.2rem 1.1rem 0.2rem 1.1rem;
@@ -144,6 +154,15 @@ select {
 .sai_class_releasing {
 	background-color: red !important;
 	text-align: center;
+}
+input[type='color'] {
+	width: 2cm;
+	height: 1cm;
+}
+.sai_class_button_color_reset {
+	height: 1cm;
+	padding: 0.5rem;
+	vertical-align: top;
 }
 .sai_class_rounded_button {
 	width: 1.3cm;
@@ -163,6 +182,21 @@ select {
 	left: 3px;
 	top: 3px;
 }
+#sai_id_button_config_back {
+	position: absolute;
+	left: 3px;
+	top: 3px;
+}
+#sai_id_button_message_back {
+	position: absolute;
+	left: 3px;
+	top: 3px;
+}
+#sai_id_button_agreement_back {
+	position: absolute;
+	left: 3px;
+	top: 3px;
+}
 #sai_id_button_about {
 	position: absolute;
 	right: 3px;
@@ -171,22 +205,23 @@ select {
 #sai_id_button_previous_image {
 	position: absolute;
 	left: 0.5rem;
-	top: calc(50vh - 2.5rem / 2);
-	top: calc(50dvh - 2.5rem / 2);
-	width: 1.5cm;
-	height: 1.5cm;
-	background-color: rgba(50%, 50%, 50%, 80%);
-	font-size: 1.5rem;
 }
 #sai_id_button_next_image {
 	position: absolute;
 	right: 0.5rem;
+}
+.sai_class_button_arrow {
+	vertical-align: middle;
+	outline: 1px solid white;
+	border-radius: 4px;
+	text-align: center;
+	background-color: rgba(50%, 50%, 50%, 80%);
 	top: calc(50vh - 2.5rem / 2);
 	top: calc(50dvh - 2.5rem / 2);
-	width: 1.5cm;
-	height: 1.5cm;
-	background-color: rgba(50%, 50%, 50%, 80%);
-	font-size: 1.5rem;
+}
+.sai_class_button_arrow img {
+	width: 100%;
+	height: 100%;
 }
 #sai_id_button_start_hypnosis {
 	position: absolute;
@@ -198,9 +233,7 @@ select {
 	left: calc(50dvw - 50dvw / 2);
 	top: calc(50vh - 15vh / 2);
 	top: calc(50dvh - 15dvh / 2);
-	background-color: rgba(100%, 50%, 100%, 100%);
 	font-size: 6vmin;
-	font-weight: bold;
 }
 #sai_id_button_release_hypnosis {
 	position: absolute;
@@ -212,9 +245,7 @@ select {
 	left: calc(50dvw - 50dvw / 2);
 	top: calc(70vh - 15vh / 2);
 	top: calc(70dvh - 15dvh / 2);
-	background-color: rgba(100%, 50%, 100%, 100%);
 	font-size: 6vmin;
-	font-weight: bold;
 }
 @media screen and (max-height: 360px) {
 	#sai_id_button_start_hypnosis {
@@ -283,11 +314,12 @@ select {
 	font-size: 0.6cm;
 	width: 95%;
 }
-.sai_class_scrollable_3 div div {
+#sai_id_message_list div {
 	border: solid 1px black;
 	padding: 0.2cm;
+	min-height: 0.8cm;
 }
-.sai_class_scrollable_3 div div:hover {
+#sai_id_message_list div:hover {
 	background-color: #c0c;
 }
 #sai_id_page_message .sai_class_nav_button {
@@ -344,7 +376,7 @@ select {
 	color: black;
 }
 /* https://www.tutorialstonight.com/css-toggle-switch-with-text */
-/* BEGIN toggle switch */
+/* 【トグルスイッチ】ここから */
 .sai_class_toggle_button {
     --width: 80px;
     --height: 30px;
@@ -378,12 +410,13 @@ select {
     width: calc(var(--height));
     height: calc(var(--height));
     border-radius: calc(var(--height) / 2);
-    background-color: #cfc;
+    background-color: #fcf;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
     transition: all 0.4s ease-in-out;
 }
 .sai_class_toggle_button input:checked + .sai_class_slider {
-    background-color: #070;
+    background-color: #f0f;
+    color: black;
 }
 .sai_class_toggle_button input:checked + .sai_class_slider::before {
     transform: translateX(calc(var(--width) - var(--height)));
@@ -397,12 +430,13 @@ select {
     font-size: 12px;
     font-family: sans-serif;
     transition: all 0.4s ease-in-out;
+    font-weight: bold;
 }
 .sai_class_toggle_button .sai_class_toggle_label::after {
     content: attr(data-off);
     position: absolute;
     right: 5px;
-    color: #9f9;
+    color: #fff;
     opacity: 1;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
     transition: all 0.4s ease-in-out;
@@ -411,7 +445,7 @@ select {
     content: attr(data-on);
     position: absolute;
     left: 5px;
-    color: #cfc;
+    color: #000;
     opacity: 0;
     text-shadow: 1px 1px 2px rgba(0, 255, 0, 0.4);
     transition: all 0.4s ease-in-out;
@@ -422,4 +456,74 @@ select {
 .sai_class_toggle_button input:checked~.sai_class_toggle_label::before {
     opacity: 1;
 }
-/* END toggle switch */
+/* 【トグルスイッチ】ここまで */
+/* 【顔認識のページ】ここから */
+#sai_id_button_side {
+	position: absolute;
+	right: 3px;
+	top: 3px;
+}
+#sai_id_button_face_getter_back {
+	position: absolute;
+	left: 3px;
+	top: 3px;
+}
+#sai_id_canvas_1 {
+	z-index: 1;
+	background-color: #222;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	width: 100dvw;
+	height: 100vh;
+	height: 100dvh;
+}
+#sai_id_button_lock_on {
+	position: absolute;
+	width: 50vw;
+	width: 50dvw;
+	height: 1cm;
+	left: calc(50vw - 50vw / 2);
+	left: calc(50dvw - 50dvw / 2);
+	top: calc(80vh - 1cm / 2);
+	top: calc(80dvh - 1cm / 2);
+	font-size: 0.6cm;
+}
+#sai_id_button_close {
+	position: absolute;
+	width: 50vw;
+	width: 50dvw;
+	height: 1cm;
+	left: calc(50vw - 50vw / 2);
+	left: calc(50dvw - 50dvw / 2);
+	top: calc(90vh - 1cm / 2);
+	top: calc(90dvh - 1cm / 2);
+	font-size: 0.6cm;
+}
+@media screen and (max-height: 360px) {
+	#sai_id_button_lock_on {
+		width: 20vw;
+		width: 20dvw;
+		height: 1cm;
+		left: calc(30vw - 20vw / 2);
+		left: calc(30dvw - 20dvw / 2);
+		top: calc(80vh - 1cm / 2);
+		top: calc(80dvh - 1cm / 2);
+	}
+	#sai_id_button_close {
+		width: 20vw;
+		width: 20dvw;
+		height: 1cm;
+		left: calc(70vw - 20vw / 2);
+		left: calc(70dvw - 20dvw / 2);
+		top: calc(80vh - 1cm / 2);
+		top: calc(80dvh - 1cm / 2);
+	}
+}
+.sai_class_face_button {
+	background: rgba(255, 255, 255, 60%);
+}
+.sai_class_face_button:disabled {
+	color: rgb(191, 191, 191);
+}
+/* 【顔認識のページ】ここまで */

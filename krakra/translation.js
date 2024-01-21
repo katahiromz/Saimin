@@ -4,6 +4,13 @@ let trans_currentLanguage = 'en';
 
 // {{LANGUAGE_SPECIFIC}}
 const trans_DEFAULT_MESSAGE_LIST_EN = [
+	"It is dangerous. Run away quickly.",
+	"It's a tsunami. Run to higher ground.",
+	"I need help.",
+	"I'm injured. Call an ambulance.",
+	"They are unconscious. Call an ambulance.",
+	"It's a molester.",
+	"it's okay.",
 	"You are getting sleepier and sleepier...",
 	"I want to study and get good grades...",
 	"You'll love working for the company...",
@@ -56,6 +63,13 @@ const trans_DEFAULT_MESSAGE_LIST_EN = [
 	"How about tonight?",
 ];
 const trans_DEFAULT_MESSAGE_LIST_KO_KR = [
+	"위험합니다. 빨리 도망쳐.",
+	"쓰나미입니다. 높은 곳으로 도망 가라.",
+	"도움이 필요합니다.",
+	"부상입니다. 구급차를 부르십시오.",
+	"의식 불명입니다. 구급차를 부르십시오.",
+	"치한.",
+	"괜찮아.",
 	"너는 점점 졸린다",
 	"공부하고 좋은 성적을 얻고 싶어진다",
 	"회사에서 일하는 것을 좋아한다",
@@ -108,6 +122,13 @@ const trans_DEFAULT_MESSAGE_LIST_KO_KR = [
 	"오늘 밤은 어때?",
 ];
 const trans_DEFAULT_MESSAGE_LIST_JA = [
+	"危険です。早く逃げて。",
+	"津波です。高い場所に逃げろ。",
+	"助けが必要です。",
+	"怪我人がいます。救急車を呼んで下さい。",
+	"意識不明の人がいます。救急車を呼んで下さい",
+	"痴漢です。",
+	"大丈夫です。",
 	"あなたはだんだん眠くなーる",
 	"勉強して良い成績を取りたくなーる",
 	"会社で働くのが好きになーる",
@@ -160,6 +181,13 @@ const trans_DEFAULT_MESSAGE_LIST_JA = [
 	"今夜はどうですか",
 ];
 const trans_DEFAULT_MESSAGE_LIST_ZW_CN = [
+	"有危险。赶紧逃跑。",
+	"这是一场海啸。跑向更高的地方。",
+	"我需要帮助。",
+	"有受伤人员。打电话叫救护车。",
+	"有人失去了知觉。打电话叫救护车。",
+	"这是一个猥亵者。",
+	"没关系。",
 	"你越来越困了...",
 	"我想学习并取得好成绩...",
 	"你会喜欢为公司工作...",
@@ -212,6 +240,13 @@ const trans_DEFAULT_MESSAGE_LIST_ZW_CN = [
 	"今晚怎么样？",
 ];
 const trans_DEFAULT_MESSAGE_LIST_ZH_TW = [
+	"有危險。趕緊逃跑。",
+	"這是一場海嘯。跑向更高的地方。",
+	"我需要幫助。",
+	"有受傷人員。打電話叫救護車。",
+	"有人失去了知覺。打電話叫救護車。",
+	"這是一個猥褻者。",
+	"沒關係。",
 	"你越來越困了。。。",
 	"我想學習並取得好成績。。。",
 	"熱愛在公司工作。。。",
@@ -264,6 +299,13 @@ const trans_DEFAULT_MESSAGE_LIST_ZH_TW = [
 	"你今晚怎麼樣",
 ];
 const trans_DEFAULT_MESSAGE_LIST_IT = [
+	"È pericoloso. Scappare velocemente.",
+	"È uno tsunami. Corri verso un terreno più elevato.",
+	"Ho bisogno di aiuto.",
+	"Ci sono persone ferite. Chiami un'ambulanza.",
+	"Qualcuno è incosciente. Chiami un'ambulanza.",
+	"E' un molestatore.",
+	"Va bene.",
 	"Stai diventando sempre più assonnato...",
 	"Voglio studiare e prendere bei voti...",
 	"Ti piacerà lavorare per l'azienda...",
@@ -316,6 +358,13 @@ const trans_DEFAULT_MESSAGE_LIST_IT = [
 	"Che ne dici di stasera?",
 ];
 const trans_DEFAULT_MESSAGE_LIST_DE = [
+	"Es ist gefährlich. Lauf schnell weg.",
+	"Es ist ein Tsunami. Laufen Sie auf eine höhere Ebene.",
+	"Ich brauche Hilfe.",
+	"Es gibt Verletzte. Rufen Sie einen Krankenwagen.",
+	"Jemand ist bewusstlos. Rufen Sie einen Krankenwagen.",
+	"Es ist ein Perverser.",
+	"Es ist okay.",
 	"Du wirst immer schläfriger...",
 	"Ich möchte lernen und gute Noten bekommen...",
 	"Sie werden es lieben, für das Unternehmen zu arbeiten...",
@@ -365,10 +414,10 @@ const trans_DEFAULT_MESSAGE_LIST_DE = [
 	"Hilf mir bei der Hausarbeit.",
 	"Ich bin müde, also werde ich mich ausruhen.",
 	"Ich gehe jetzt ins Bett.",
-	"Wie wäre es mit heute Nacht?"
+	"Wie wäre es mit heute Nacht?",
 ];
 
-function trans_message_list(){
+const trans_message_list = function(){
 	// {{LANGUAGE_SPECIFIC}}
 	if(trans_currentLanguage == 'ja' || trans_currentLanguage == 'ja-JP') // Japanese
 		return trans_DEFAULT_MESSAGE_LIST_JA;
@@ -386,7 +435,7 @@ function trans_message_list(){
 		return trans_DEFAULT_MESSAGE_LIST_EN;
 }
 
-function trans_message_placefolder(){
+const trans_message_placefolder = function(){
 	// {{LANGUAGE_SPECIFIC}}
 	if(trans_currentLanguage == 'ja' || trans_currentLanguage == 'ja-JP') // Japanese
 		return "メッセージを入力";
@@ -410,9 +459,14 @@ const trans_NOTICE_EN = `=========================
 Hypnosis KraKra
 =========================
 
-This software is an application to enjoy hypnotic moving pictures.
-It generates hypnosis video in real time without using any video files.
-How you use it is up to you.
+"Hypnosis KraKra" is a full-fledged joke app equipped with 16 types of videos, 20 types of audio, microphone input, and face recognition.
+We provide real entertainment where you can enjoy hypnotic images and sounds.
+
+- It displays captivating images to fill the entire screen. There are no annoying ads.
+- You can lock on to the target with face recognition.
+- It delivers your voice to the target with microphone input.
+- Let's shake up your target's emotions by playing audio.
+- It displays the message you want to convey on the screen, and the app itself will speak.
 
 * Source: https://github.com/katahiromz/KraKra_ja_jp
 * Some OtoLogic audio material is used.
@@ -439,24 +493,10 @@ How you use it is up to you.
 - The 'gear' button will open Configuration.
 - When you run your finger on the screen, the screen sparks to attract their attention.
 
-[(Keyboard Operation)]
-
-When a keyboard is connected, the following operations are available:
-
-- Press [0] to [9] keys to switch pictures.
-- Press [C] key to open the configuration.
-- Press [H] key to open the version information.
-- Press [P] key to play sound.
-- Press [M] key to turn on/off the microphone (it needs permission).
-- Press [T] key to open the message settings.
-- Press [S] key to speak the current message automatically.
-- Press [X] key to pause.
-- Press [-] or [K] keys to kill hypnosis.
-- Press [D] key to split the screen.
-- Press [B] key to toggle display of the buttons.
-
-Copyright (c) 2022-2023 Katayama Hirofumi MZ
+Copyright (c) 2022-2024 Katayama Hirofumi MZ
 Copyright (c) 2023 Murayama Akira
+Copyright (c) 2023 TT
+Copyright (c) 2021 Nenad Markuš
 Copyright (c) 2018 Robert Eisele
 `
 
@@ -466,9 +506,14 @@ const trans_NOTICE_KO_KR = `=========================
 Hypnosis KraKra
 =========================
 
-이 소프트웨어는 최면 같은 영상을 즐기는 응용 프로그램입니다.
-동영상 파일을 일절 사용하지 않고 실시간으로 최면 영상을 생성합니다.
-사용법은 당신에게 달려 있습니다.
+"최면 크라크라" 는 16종의 동영상, 20종의 오디오, 마이크 입력, 얼굴 인식 기능을 갖춘 본격적인 농담 앱입니다.
+최면에 걸린 영상과 사운드를 즐길 수 있는 리얼 엔터테인먼트를 제공합니다.
+
+- 전체 화면이 가득한 매력적인 이미지를 표시합니다. 성가신 광고는 없습니다.
+- 얼굴인식으로 대상을 락온할 수 있습니다.
+- 마이크 입력을 통해 대상에게 음성을 전달합니다.
+- 오디오를 재생하여 대상의 감정을 움직입니다.
+- 전달하고 싶은 메시지를 화면에 표시하고, 앱 자체가 말을 하게 됩니다.
 
 ※ 소스 코드: https://github.com/katahiromz/KraKra_ja_jp
 ※ 일부, OtoLogic의 음성 소재를 사용.
@@ -496,24 +541,10 @@ Hypnosis KraKra
 - '기어' 버튼으로 일반 설정을 할 수 있습니다.
 - 화면을 손가락으로 추적하면 반짝임이 표시되어 상대방의 주의를 끌 수 있습니다.
 
-【키보드 조작】
-
-키보드를 연결하면 다음과 같은 조작을 할 수 있습니다.
-
-- "0"~"9" 키를 누르면 영상이 전환됩니다.
-- "C" 키를 누르면 일반 설정이 열립니다.
-- "H" 키를 누르면 버전 정보가 열립니다.
-- "P" 키를 누르면 소리가 납니다.
-- "M" 키를 누르면 마이크의 ON/OFF를 전환합니다(권한이 필요합니다).
-- "T" 키를 누르면 메시지 설정이 열립니다.
-- "S" 키를 누르면 현재 메시지를 자동 음성으로 말합니다.
-- "X" 키를 누르면 일시정지됩니다.
-- "-" 키 또는 "K" 키를 누르면 최면을 끕니다.
-- "D" 키를 누르면 화면 분할이 전환됩니다.
-- "B" 키를 누르면 버튼 표시가 전환됩니다.
-
-Copyright (c) 2022-2023 Katayama Hirofumi MZ
+Copyright (c) 2022-2024 Katayama Hirofumi MZ
 Copyright (c) 2023 Murayama Akira
+Copyright (c) 2023 TT
+Copyright (c) 2021 Nenad Markuš
 Copyright (c) 2018 Robert Eisele
 `
 
@@ -523,9 +554,14 @@ const trans_NOTICE_JA = `=========================
 Hypnosis KraKra
 =========================
 
-本ソフトウェアは、催眠っぽい映像を楽しむアプリです。
-動画ファイルを一切使わず、リアルタイムで催眠映像を生成します。
-使い方はあなた次第。
+「催眠くらくら」は、16種類の映像と20種類の音声、マイク入力、顔認証を搭載した本格的なジョークアプリです。
+催眠っぽい映像や音声を楽しめる本物のエンターテインメントを提供します。
+
+- 画面いっぱいに魅惑の映像を表示します。邪魔な広告はありません。
+- 顔認証でターゲットをロックオンできます。
+- マイク入力であなたの声をターゲットに届けます。
+- 音声再生でターゲットの気持ちを揺さぶります。
+- 伝えたいメッセージを画面に表示し、アプリ自身がしゃべります。
 
 ※ ソース: https://github.com/katahiromz/KraKra_ja_jp
 ※ 一部、OtoLogicの音声素材を使用。
@@ -552,24 +588,10 @@ Hypnosis KraKra
 - 「歯車」ボタンで全般設定ができます。
 - 画面を指でなぞると、きらめきが表示され、相手の注意を引くことができます。
 
-【キーボード操作】
-
-キーボードを接続すると次のような操作ができます。
-
-- 「0」～「9」キーを押すと、映像が切り替わります。
-- 「C」キーを押すと全般設定が開きます。
-- 「H」キーを押すとバージョン情報を開きます。
-- 「P」キーを押すと音を鳴らします。
-- 「M」キーを押すとマイクのON/OFFを切り替えます(権限が必要です)。
-- 「T」キーを押すとメッセージの設定を開きます。
-- 「S」キーを押すと現在のメッセージを自動音声でしゃべります。
-- 「X」キーを押すと一時停止します。
-- 「-」キーか「K」キーを押すと催眠を消します。
-- 「D」キーを押すと画面分割が切り替わります。
-- 「B」キーを押すとボタンの表示が切り替わります。
-
-Copyright (c) 2022-2023 Katayama Hirofumi MZ
+Copyright (c) 2022-2024 Katayama Hirofumi MZ
 Copyright (c) 2023 Murayama Akira
+Copyright (c) 2023 TT
+Copyright (c) 2021 Nenad Markuš
 Copyright (c) 2018 Robert Eisele
 `
 
@@ -579,9 +601,14 @@ const trans_NOTICE_ZW_CN = `=========================
 Hypnosis KraKra
 =========================
 
-本软件是一款欣赏催眠动态图片的应用程序。
-它无需使用任何视频文件即可实时生成催眠视频。
-如何使用它取决于您。
+《催眠克拉克拉》是一款成熟的笑话应用程序，配备16种视频、20种音频、麦克风输入和面部识别。
+我们提供真正的娱乐，您可以享受催眠的图像和声音。
+
+- 它显示迷人的图像以填满整个屏幕。 没有烦人的广告。
+- 您可以通过人脸识别锁定目标。
+- 它通过麦克风输入将您的声音传递给目标。
+- 让我们通过播放音频来动摇目标的情绪。
+- 它会在屏幕上显示您想要传达的消息，并且应用程序本身会说话。
 
 * 来源: https://github.com/katahiromz/KraKra_ja_jp
 * 使用了一些 OtoLogic 音频材料。
@@ -608,24 +635,10 @@ Hypnosis KraKra
 - “齿轮”按钮将打开配置。
 - 当你的手指在屏幕上运行时，屏幕会产生火花，吸引他们的注意力。
 
-【键盘操作】
-
-当连接键盘时，可以进行以下操作：
-
-- 按[0]至[9]键切换图像。
-- 按[C]键打开配置。
-- 按[H]键打开版本信息。
-- 按[P]键播放声音。
-- 按[M]键打开/关闭麦克风（需要许可）。
-- 按[T]键打开消息设置。
-- 按[S]键自动说出当前消息。
-- 按[X]键暂停。
-- 按[-]或[K]键终止催眠。
-- 按[D]键分割屏幕。
-- 按[B]键切换按钮的显示。
-
-Copyright (c) 2022-2023 片山博文MZ
+Copyright (c) 2022-2024 片山博文MZ
 Copyright (c) 2023 Murayama Akira
+Copyright (c) 2023 TT
+Copyright (c) 2021 Nenad Markuš
 Copyright (c) 2018 Robert Eisele
 `
 
@@ -635,9 +648,14 @@ const trans_NOTICE_ZH_TW = `=========================
 Hypnosis KraKra
 =========================
 
-該軟件是一款可以讓您享受催眠圖像的應用程序。
-無需使用任何視頻文件即可實時生成催眠視頻。
-如何使用它取決於您。
+《催眠克拉克拉》是一款成熟的笑話應用程序，配備16種視頻、20種音頻、麥克風輸入和麵部識別。
+我們提供真正的娛樂，您可以享受催眠的圖像和聲音。
+
+- 它顯示迷人的圖像以填滿整個螢幕。 沒有煩人的廣告。
+- 您可以透過人臉辨識鎖定目標。
+- 它透過麥克風輸入將您的聲音傳遞給目標。
+- 讓我們透過播放音訊來動搖目標的情緒。
+- 它會在螢幕上顯示您想要傳達的訊息，並且應用程式本身會說話。
 
 ※ 源代碼: https://github.com/katahiromz/KraKra_ja_jp
 ※ 部分使用 OtoLogic 音頻材料。
@@ -664,24 +682,10 @@ Hypnosis KraKra
 - 用於常規設置的“齒輪”按鈕。
 - 在屏幕上滑動手指即可顯示閃爍的光芒，吸引對手的注意力。
 
-【鍵盤操作】
-
-連接鍵盤後，您可以執行以下操作。
-
-- 按“0”至“9”鍵切換圖像。
-- 按“C”鍵打開常規設置。
-- 按“H”鍵打開版本信息。
-- 按“P”鍵播放聲音。
-- 按“M”鍵打開/關閉麥克風（需要許可）。
-- 按“T”鍵打開消息設置。
-- 按“S”鍵以自動語音說出當前消息。
-- 按“X”鍵暫停。
-- 按“-”或“K”關閉催眠。
-- 按“D”鍵在屏幕分割之間切換。
-- 按“B”鍵切換按鈕顯示。
-
-Copyright (c) 2022-2023 片山博文MZ
+Copyright (c) 2022-2024 片山博文MZ
 Copyright (c) 2023 Murayama Akira
+Copyright (c) 2023 TT
+Copyright (c) 2021 Nenad Markuš
 Copyright (c) 2018 Robert Eisele
 `
 
@@ -691,9 +695,14 @@ Ipnosi KraKra
 Hypnosis KraKra
 =========================
 
-Questo software è un'applicazione per godere di immagini in movimento ipnotiche.
-Genera video di ipnosi in tempo reale senza utilizzare alcun file video.
-Come lo usi dipende da te.
+"Ipnosi KraKra" è un'app per scherzi completa dotata di 16 tipi di video, 20 tipi di audio, ingresso microfono e riconoscimento facciale.
+Forniamo un vero intrattenimento in cui puoi goderti immagini e suoni ipnotici.
+
+- Visualizza immagini accattivanti per riempire l'intero schermo. Non ci sono annunci fastidiosi.
+- Puoi agganciare il bersaglio con il riconoscimento facciale.
+- Fornisce la tua voce al bersaglio con l'ingresso del microfono.
+- Scuotiamo le emozioni del tuo bersaglio riproducendo l'audio.
+- Visualizza sullo schermo il messaggio che vuoi trasmettere e l'app stessa parlerà.
 
 * Codice sorgente: https://github.com/katahiromz/KraKra_ja_jp
 * Viene utilizzato del materiale audio OtoLogic.
@@ -720,24 +729,10 @@ Come lo usi dipende da te.
 - Il pulsante "ingranaggio" aprirà Configurazione.
 - Quando fai scorrere il dito sullo schermo, lo schermo si illumina per attirare la loro attenzione.
 
-[(Funzionamento della tastiera)]
-
-Quando è collegata una tastiera, sono disponibili le seguenti operazioni:
-
-- Premere i tasti da [0] a [9] per cambiare immagine.
-- Premere il tasto [C] per aprire la configurazione.
-- Premere il tasto [H] per aprire le informazioni sulla versione.
-- Premere il tasto [P] per riprodurre il suono.
-- Premere il tasto [M] per accendere/spegnere il microfono (è necessario il permesso).
-- Premere il tasto [T] per aprire le impostazioni del messaggio.
-- Premere il tasto [S] per pronunciare automaticamente il messaggio corrente.
-- Premere il tasto [X] per mettere in pausa.
-- Premi i tasti [-] o [K] per eliminare l'ipnosi.
-- Premere il tasto [D] per dividere lo schermo.
-- Premere il tasto [B] per alternare la visualizzazione dei pulsanti.
-
-Copyright (c) 2022-2023 Katayama Hirofumi MZ
+Copyright (c) 2022-2024 Katayama Hirofumi MZ
 Copyright (c) 2023 Murayama Akira
+Copyright (c) 2023 TT
+Copyright (c) 2021 Nenad Markuš
 Copyright (c) 2018 Robert Eisele
 `
 
@@ -747,9 +742,14 @@ Hypnose KraKra
 Hypnosis KraKra
 =========================
 
-Diese Software ist eine Anwendung zum Genießen hypnotischer bewegter Bilder.
-Es generiert Hypnosevideos in Echtzeit, ohne dass Videodateien verwendet werden müssen.
-Wie Sie es nutzen, bleibt Ihnen überlassen.
+„Hypnose KraKra“ ist eine vollwertige Scherz-App, die mit 16 Arten von Videos, 20 Arten von Audio, Mikrofoneingang und Gesichtserkennung ausgestattet ist.
+Wir bieten echte Unterhaltung, bei der Sie hypnotische Bilder und Töne genießen können.
+
+- Es zeigt fesselnde Bilder an, die den gesamten Bildschirm ausfüllen. Es gibt keine störende Werbung.
+- Sie können das Ziel mithilfe der Gesichtserkennung erfassen.
+- Es überträgt Ihre Stimme über den Mikrofoneingang an das Ziel.
+- Lassen Sie uns die Emotionen Ihres Ziels wecken, indem wir Audio abspielen.
+- Die Nachricht, die Sie übermitteln möchten, wird auf dem Bildschirm angezeigt und die App selbst spricht.
 
 * Quellcode: https://github.com/katahiromz/KraKra_ja_jp
 * Es wird teilweise Audiomaterial von OtoLogic verwendet.
@@ -776,29 +776,15 @@ Wie Sie es nutzen, bleibt Ihnen überlassen.
 - Die Schaltfläche „Zahnrad“ öffnet die Konfiguration.
 - Wenn Sie mit dem Finger über den Bildschirm fahren, erzeugt der Bildschirm Funken, um ihre Aufmerksamkeit zu erregen.
 
-[(Tastaturbedienung)]
-
-Wenn eine Tastatur angeschlossen ist, stehen folgende Vorgänge zur Verfügung:
-
-- Drücken Sie die Tasten [0] bis [9], um zwischen den Bildern zu wechseln.
-- Drücken Sie die Taste [C], um die Konfiguration zu öffnen.
-- Drücken Sie die Taste [H], um die Versionsinformationen zu öffnen.
-- Drücken Sie die Taste [P], um den Ton abzuspielen.
-- Drücken Sie die Taste [M], um das Mikrofon ein-/auszuschalten (es erfordert eine Genehmigung).
-- Drücken Sie die Taste [T], um die Nachrichteneinstellungen zu öffnen.
-- Drücken Sie die Taste [S], um die aktuelle Nachricht automatisch vorzulesen.
-- Drücken Sie die Taste [X], um zu pausieren.
-- Drücken Sie die Tasten [-] oder [K], um die Hypnose zu beenden.
-- Drücken Sie die Taste [D], um den Bildschirm zu teilen.
-- Drücken Sie die Taste [B], um die Anzeige der Schaltflächen umzuschalten.
-
-Copyright (c) 2022-2023 Katayama Hirofumi MZ
+Copyright (c) 2022-2024 Katayama Hirofumi MZ
 Copyright (c) 2023 Murayama Akira
+Copyright (c) 2023 TT
+Copyright (c) 2021 Nenad Markuš
 Copyright (c) 2018 Robert Eisele
 `
 
 // {{LANGUAGE_SPECIFIC}}
-function trans_getText(str_id){
+const trans_getText = function(str_id){
 	let lang = localStorage.getItem('saiminLanguage3');
 	if(!lang)
 		lang = 'en';
@@ -811,7 +797,7 @@ function trans_getText(str_id){
 		case 'TEXT_NO': return 'いいえ';
 		case 'TEXT_CHOOSE_LANGUAGE': return '言語選択 (Choose a language)';
 		case 'TEXT_ABOUT_APP': return 'バージョン情報';
-		case 'TEXT_INIT_APP': return 'アプリの初期化';
+		case 'TEXT_INIT_APP': return 'このアプリを初期化しますか？';
 		case 'TEXT_INITTED_APP': return 'アプリを初期化しました。';
 		case 'TEXT_CONFIGURATION': return '全般設定';
 		case 'TEXT_APPEARANCE': return '見た目の設定';
@@ -821,12 +807,12 @@ function trans_getText(str_id){
 		case 'TEXT_PERIOD_SPACE': return '。';
 		case 'TEXT_RELEASE_HYPNOSIS': return '催眠解除';
 		case 'TEXT_HYPNOSIS_RELEASED': return '催眠解除。';
-		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'images/killing-hypnosis_ja.svg';
-		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'images/hypnosis-released_ja.svg';
-		case 'TEXT_ALL_RELEASED_IMG': return 'images/all-released_ja.svg';
+		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'img/killing-hypnosis_ja.svg';
+		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'img/hypnosis-released_ja.svg';
+		case 'TEXT_ALL_RELEASED_IMG': return 'img/all-released_ja.svg';
 		case 'TEXT_NO_BLINKING': return '点滅なし';
-		case 'TEXT_LOGO': return 'images/logo_ja.svg';
-		case 'TEXT_TAP_HERE': return 'images/please-tap-here_ja.svg';
+		case 'TEXT_LOGO': return 'img/logo_ja.svg';
+		case 'TEXT_TAP_HERE': return 'img/please-tap-here_ja.svg';
 		case 'TEXT_MP3_RELEASED_HYPNOSIS': return 'sn/ReleasedHypnosis_ja.mp3';
 		case 'TEXT_I_AGREE': return '私は同意します';
 		case 'TEXT_SIZE_SMALL': return '小さい';
@@ -839,6 +825,14 @@ function trans_getText(str_id){
 		case 'TEXT_SPEED_FAST': return '速い';
 		case 'TEXT_SPEED_SUPER_FAST': return '超速い';
 		case 'TEXT_SPEED_IRREGULAR': return '不規則';
+		case 'TEXT_RAINBOW': return '虹色';
+		case 'TEXT_FACE_GETTER': return '顔認識';
+		case 'TEXT_TAP_ON_TARGET': return 'ターゲットをタップして下さい';
+		case 'TEXT_CAN_LOCK_ON': return 'ロックオンできます';
+		case 'TEXT_CANT_FIND_FACE': return '顔が見つかりません';
+		case 'TEXT_LOCK_ON': return 'ロックオン';
+		case 'TEXT_UNLOCK': return 'ロック解除';
+		case 'TEXT_CLOSE': return '閉じる';
 		}
 	}else if(lang == 'zh-CN' || lang == 'cn'){ // Chinese (Simplified)
 		switch(str_id){
@@ -849,7 +843,7 @@ function trans_getText(str_id){
 		case 'TEXT_NO': return '否';
 		case 'TEXT_CHOOSE_LANGUAGE': return '语言选择 (Choose a language)';
 		case 'TEXT_ABOUT_APP': return '关于这个应用程序';
-		case 'TEXT_INIT_APP': return '初始化应用程序';
+		case 'TEXT_INIT_APP': return '您想初始化这个应用程序吗？';
 		case 'TEXT_INITTED_APP': return '初始化了应用程序。';
 		case 'TEXT_CONFIGURATION': return '配置';
 		case 'TEXT_APPEARANCE': return '外貌';
@@ -859,12 +853,12 @@ function trans_getText(str_id){
 		case 'TEXT_PERIOD_SPACE': return '。';
 		case 'TEXT_RELEASE_HYPNOSIS': return '去催眠';
 		case 'TEXT_HYPNOSIS_RELEASED': return '我取消了催眠。';
-		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'images/killing-hypnosis_zh-CN.svg';
-		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'images/hypnosis-released_zh-CN.svg';
-		case 'TEXT_ALL_RELEASED_IMG': return 'images/all-released_zh-CN.svg';
+		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'img/killing-hypnosis_zh-CN.svg';
+		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'img/hypnosis-released_zh-CN.svg';
+		case 'TEXT_ALL_RELEASED_IMG': return 'img/all-released_zh-CN.svg';
 		case 'TEXT_NO_BLINKING': return '无闪光灯';
-		case 'TEXT_LOGO': return 'images/logo_zh-CN.svg';
-		case 'TEXT_TAP_HERE': return 'images/please-tap-here_zh-CN.svg';
+		case 'TEXT_LOGO': return 'img/logo_zh-CN.svg';
+		case 'TEXT_TAP_HERE': return 'img/please-tap-here_zh-CN.svg';
 		case 'TEXT_MP3_RELEASED_HYPNOSIS': return 'sn/ReleasedHypnosis_zh-CN.mp3';
 		case 'TEXT_I_AGREE': return '我同意';
 		case 'TEXT_SIZE_SMALL': return '小的';
@@ -877,6 +871,14 @@ function trans_getText(str_id){
 		case 'TEXT_SPEED_FAST': return '快速地';
 		case 'TEXT_SPEED_SUPER_FAST': return '超级快';
 		case 'TEXT_SPEED_IRREGULAR': return '不规律的';
+		case 'TEXT_RAINBOW': return '彩虹色';
+		case 'TEXT_FACE_GETTER': return '人脸识别';
+		case 'TEXT_TAP_ON_TARGET': return '请点击目标';
+		case 'TEXT_CAN_LOCK_ON': return '可以锁定';
+		case 'TEXT_CANT_FIND_FACE': return '未找到面孔';
+		case 'TEXT_LOCK_ON': return '锁上';
+		case 'TEXT_UNLOCK': return '开锁';
+		case 'TEXT_CLOSE': return '关闭';
 		}
 	}else if(lang == 'zh-TW'){ // Chinese (Traditional)
 		switch(str_id){
@@ -887,7 +889,7 @@ function trans_getText(str_id){
 		case 'TEXT_NO': return '否';
 		case 'TEXT_CHOOSE_LANGUAGE': return '語言選擇 (Choose a language)';
 		case 'TEXT_ABOUT_APP': return '版本信息';
-		case 'TEXT_INIT_APP': return '應用程序初始化';
+		case 'TEXT_INIT_APP': return '您想初始化這個應用程式嗎？';
 		case 'TEXT_INITTED_APP': return '初始化了應用程序。';
 		case 'TEXT_CONFIGURATION': return '常規設置';
 		case 'TEXT_APPEARANCE': return '外觀設置';
@@ -897,12 +899,12 @@ function trans_getText(str_id){
 		case 'TEXT_PERIOD_SPACE': return '。';
 		case 'TEXT_RELEASE_HYPNOSIS': return '催眠釋放';
 		case 'TEXT_HYPNOSIS_RELEASED': return '催眠釋放。';
-		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'images/killing-hypnosis_zh-TW.svg';
-		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'images/hypnosis-released_zh-TW.svg';
-		case 'TEXT_ALL_RELEASED_IMG': return 'images/all-released_zh-TW.svg';
+		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'img/killing-hypnosis_zh-TW.svg';
+		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'img/hypnosis-released_zh-TW.svg';
+		case 'TEXT_ALL_RELEASED_IMG': return 'img/all-released_zh-TW.svg';
 		case 'TEXT_NO_BLINKING': return '無閃光燈';
-		case 'TEXT_LOGO': return 'images/logo_zh-TW.svg';
-		case 'TEXT_TAP_HERE': return 'images/please-tap-here_zh-TW.svg';
+		case 'TEXT_LOGO': return 'img/logo_zh-TW.svg';
+		case 'TEXT_TAP_HERE': return 'img/please-tap-here_zh-TW.svg';
 		case 'TEXT_MP3_RELEASED_HYPNOSIS': return 'sn/ReleasedHypnosis_zh-TW.mp3';
 		case 'TEXT_I_AGREE': return '我同意';
 		case 'TEXT_SIZE_SMALL': return '小的';
@@ -915,6 +917,14 @@ function trans_getText(str_id){
 		case 'TEXT_SPEED_FAST': return '快速地';
 		case 'TEXT_SPEED_SUPER_FAST': return '超快';
 		case 'TEXT_SPEED_IRREGULAR': return '不規律的';
+		case 'TEXT_RAINBOW': return '彩虹色';
+		case 'TEXT_FACE_GETTER': return '人臉辨識';
+		case 'TEXT_TAP_ON_TARGET': return '請點選目標';
+		case 'TEXT_CAN_LOCK_ON': return '可以鎖定';
+		case 'TEXT_CANT_FIND_FACE': return '未找到臉孔';
+		case 'TEXT_LOCK_ON': return '鎖上';
+		case 'TEXT_UNLOCK': return '開鎖';
+		case 'TEXT_CLOSE': return '關閉';
 		}
 	}else if(lang == 'ko' || lang == 'kr' || lang == 'ko-KR'){ // Korean
 		switch(str_id){
@@ -925,7 +935,7 @@ function trans_getText(str_id){
 		case 'TEXT_NO': return '아니오';
 		case 'TEXT_CHOOSE_LANGUAGE': return '언어 선택 (Choose a language)';
 		case 'TEXT_ABOUT_APP': return '버전 정보';
-		case 'TEXT_INIT_APP': return '앱 초기화';
+		case 'TEXT_INIT_APP': return '이 앱을 초기화하시겠습니까?';
 		case 'TEXT_INITTED_APP': return '앱을 초기화했습니다.';
 		case 'TEXT_CONFIGURATION': return '구성';
 		case 'TEXT_APPEARANCE': return '모습';
@@ -935,12 +945,12 @@ function trans_getText(str_id){
 		case 'TEXT_PERIOD_SPACE': return '. ';
 		case 'TEXT_RELEASE_HYPNOSIS': return '최면 해제';
 		case 'TEXT_HYPNOSIS_RELEASED': return '최면 해제.';
-		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'images/killing-hypnosis_ko-KR.svg';
-		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'images/hypnosis-released_ko-KR.svg';
-		case 'TEXT_ALL_RELEASED_IMG': return 'images/all-released_ko-KR.svg';
+		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'img/killing-hypnosis_ko-KR.svg';
+		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'img/hypnosis-released_ko-KR.svg';
+		case 'TEXT_ALL_RELEASED_IMG': return 'img/all-released_ko-KR.svg';
 		case 'TEXT_NO_BLINKING': return '깜박임 없음';
-		case 'TEXT_LOGO': return 'images/logo_ko-KR.svg';
-		case 'TEXT_TAP_HERE': return 'images/please-tap-here_ko-KR.svg';
+		case 'TEXT_LOGO': return 'img/logo_ko-KR.svg';
+		case 'TEXT_TAP_HERE': return 'img/please-tap-here_ko-KR.svg';
 		case 'TEXT_MP3_RELEASED_HYPNOSIS': return 'sn/ReleasedHypnosis_ko-KR.mp3';
 		case 'TEXT_I_AGREE': return '동의합니다';
 		case 'TEXT_SIZE_SMALL': return '작은';
@@ -953,6 +963,14 @@ function trans_getText(str_id){
 		case 'TEXT_SPEED_FAST': return '빠른';
 		case 'TEXT_SPEED_SUPER_FAST': return '매우 빠른';
 		case 'TEXT_SPEED_IRREGULAR': return '불규칙한';
+		case 'TEXT_RAINBOW': return '무지개 색';
+		case 'TEXT_FACE_GETTER': return '얼굴 인식';
+		case 'TEXT_TAP_ON_TARGET': return '타겟을 탭해주세요';
+		case 'TEXT_CAN_LOCK_ON': return '잠글 수 있습니다';
+		case 'TEXT_CANT_FIND_FACE': return '얼굴을 찾을 수 없음';
+		case 'TEXT_LOCK_ON': return '잠금';
+		case 'TEXT_UNLOCK': return '잠금 해제';
+		case 'TEXT_CLOSE': return '닫다';
 		}
 	}else if(lang == 'it' || lang == 'it-IT'){ // Italian
 		switch(str_id){
@@ -963,7 +981,7 @@ function trans_getText(str_id){
 		case 'TEXT_NO': return 'No';
 		case 'TEXT_CHOOSE_LANGUAGE': return 'Scegli una lingua (Choose a language)';
 		case 'TEXT_ABOUT_APP': return 'Informazioni sull\'app';
-		case 'TEXT_INIT_APP': return 'Inizializza l\'app';
+		case 'TEXT_INIT_APP': return 'Vuoi inizializzare questa app?';
 		case 'TEXT_INITTED_APP': return 'Inizializzata l\'app.';
 		case 'TEXT_CONFIGURATION': return 'Configurazione';
 		case 'TEXT_APPEARANCE': return 'Aspetto';
@@ -973,12 +991,12 @@ function trans_getText(str_id){
 		case 'TEXT_PERIOD_SPACE': return '. ';
 		case 'TEXT_RELEASE_HYPNOSIS': return 'Uccidi l\'ipnosi';
 		case 'TEXT_HYPNOSIS_RELEASED': return 'Ipnosi liberata.';
-		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'images/killing-hypnosis_it.svg';
-		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'images/hypnosis-released_it.svg';
-		case 'TEXT_ALL_RELEASED_IMG': return 'images/all-released_it.svg';
+		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'img/killing-hypnosis_it.svg';
+		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'img/hypnosis-released_it.svg';
+		case 'TEXT_ALL_RELEASED_IMG': return 'img/all-released_it.svg';
 		case 'TEXT_NO_BLINKING': return 'Senza il flash';
-		case 'TEXT_LOGO': return 'images/logo_it.svg';
-		case 'TEXT_TAP_HERE': return 'images/please-tap-here_it.svg';
+		case 'TEXT_LOGO': return 'img/logo_it.svg';
+		case 'TEXT_TAP_HERE': return 'img/please-tap-here_it.svg';
 		case 'TEXT_MP3_RELEASED_HYPNOSIS': return 'sn/ReleasedHypnosis_it.mp3';
 		case 'TEXT_I_AGREE': return 'Sono d\'accordo';
 		case 'TEXT_SIZE_SMALL': return 'Piccola';
@@ -991,6 +1009,14 @@ function trans_getText(str_id){
 		case 'TEXT_SPEED_FAST': return 'Veloce';
 		case 'TEXT_SPEED_SUPER_FAST': return 'Super Veloce';
 		case 'TEXT_SPEED_IRREGULAR': return 'Irregolare';
+		case 'TEXT_RAINBOW': return 'Arcobaleno';
+		case 'TEXT_FACE_GETTER': return 'Riconoscimento Facciale';
+		case 'TEXT_TAP_ON_TARGET': return 'Per favore tocca il bersaglio';
+		case 'TEXT_CAN_LOCK_ON': return 'Può essere bloccato';
+		case 'TEXT_CANT_FIND_FACE': return 'Volto non trovato';
+		case 'TEXT_LOCK_ON': return 'Blocco su';
+		case 'TEXT_UNLOCK': return 'Sbloccare';
+		case 'TEXT_CLOSE': return 'Vicino';
 		}
 	}else if(lang == 'de' || lang == 'de-DE'){ // German
 		switch(str_id){
@@ -1001,7 +1027,7 @@ function trans_getText(str_id){
 		case 'TEXT_NO': return 'Nein';
 		case 'TEXT_CHOOSE_LANGUAGE': return 'Wähle eine Sprache (Choose a language)';
 		case 'TEXT_ABOUT_APP': return 'Über diese App';
-		case 'TEXT_INIT_APP': return 'App initialisieren';
+		case 'TEXT_INIT_APP': return 'Möchten Sie diese App initialisieren?';
 		case 'TEXT_INITTED_APP': return 'Initialisierte die App.';
 		case 'TEXT_CONFIGURATION': return 'Aufbau';
 		case 'TEXT_APPEARANCE': return 'Aussehen';
@@ -1011,12 +1037,12 @@ function trans_getText(str_id){
 		case 'TEXT_PERIOD_SPACE': return '. ';
 		case 'TEXT_RELEASE_HYPNOSIS': return 'Töte Hypnose';
 		case 'TEXT_HYPNOSIS_RELEASED': return 'Hypnose freigegeben.';
-		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'images/killing-hypnosis_de.svg';
-		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'images/hypnosis-released_de.svg';
-		case 'TEXT_ALL_RELEASED_IMG': return 'images/all-released_de.svg';
+		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'img/killing-hypnosis_de.svg';
+		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'img/hypnosis-released_de.svg';
+		case 'TEXT_ALL_RELEASED_IMG': return 'img/all-released_de.svg';
 		case 'TEXT_NO_BLINKING': return 'Kein Blitz';
-		case 'TEXT_LOGO': return 'images/logo_de.svg';
-		case 'TEXT_TAP_HERE': return 'images/please-tap-here_de.svg';
+		case 'TEXT_LOGO': return 'img/logo_de.svg';
+		case 'TEXT_TAP_HERE': return 'img/please-tap-here_de.svg';
 		case 'TEXT_MP3_RELEASED_HYPNOSIS': return 'sn/ReleasedHypnosis_de.mp3';
 		case 'TEXT_I_AGREE': return 'Ich stimme zu';
 		case 'TEXT_SIZE_SMALL': return 'Klein';
@@ -1029,6 +1055,14 @@ function trans_getText(str_id){
 		case 'TEXT_SPEED_FAST': return 'Schnell';
 		case 'TEXT_SPEED_SUPER_FAST': return 'Super Schnell';
 		case 'TEXT_SPEED_IRREGULAR': return 'Irregulär';
+		case 'TEXT_RAINBOW': return 'Regenbogen';
+		case 'TEXT_FACE_GETTER': return 'Gesichtserkennung';
+		case 'TEXT_TAP_ON_TARGET': return 'Bitte tippen Sie auf das Ziel';
+		case 'TEXT_CAN_LOCK_ON': return 'Abschließbar';
+		case 'TEXT_CANT_FIND_FACE': return 'Gesicht nicht gefunden';
+		case 'TEXT_LOCK_ON': return 'Sperren';
+		case 'TEXT_UNLOCK': return 'Freischalten';
+		case 'TEXT_CLOSE': return 'Schließen';
 		}
 	}else{ // English is default
 		switch(str_id){
@@ -1039,7 +1073,7 @@ function trans_getText(str_id){
 		case 'TEXT_NO': return 'No';
 		case 'TEXT_CHOOSE_LANGUAGE': return 'Choose a language (言語選択)';
 		case 'TEXT_ABOUT_APP': return 'About this app';
-		case 'TEXT_INIT_APP': return 'Initialize app';
+		case 'TEXT_INIT_APP': return 'Do you want to initialize this app?';
 		case 'TEXT_INITTED_APP': return 'Initialized the app.';
 		case 'TEXT_CONFIGURATION': return 'Configuration';
 		case 'TEXT_APPEARANCE': return 'Appearance';
@@ -1049,12 +1083,12 @@ function trans_getText(str_id){
 		case 'TEXT_PERIOD_SPACE': return '. ';
 		case 'TEXT_RELEASE_HYPNOSIS': return 'Kill hypnosis';
 		case 'TEXT_HYPNOSIS_RELEASED': return 'Hypnosis released.';
-		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'images/killing-hypnosis_en.svg';
-		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'images/hypnosis-released_en.svg';
-		case 'TEXT_ALL_RELEASED_IMG': return 'images/all-released_en.svg';
+		case 'TEXT_KILLING_HYPNOSIS_IMG': return 'img/killing-hypnosis_en.svg';
+		case 'TEXT_HYPNOSIS_RELEASED_IMG': return 'img/hypnosis-released_en.svg';
+		case 'TEXT_ALL_RELEASED_IMG': return 'img/all-released_en.svg';
 		case 'TEXT_NO_BLINKING': return 'No blinking';
-		case 'TEXT_LOGO': return 'images/logo_en.svg';
-		case 'TEXT_TAP_HERE': return 'images/please-tap-here_en.svg';
+		case 'TEXT_LOGO': return 'img/logo_en.svg';
+		case 'TEXT_TAP_HERE': return 'img/please-tap-here_en.svg';
 		case 'TEXT_MP3_RELEASED_HYPNOSIS': return 'sn/ReleasedHypnosis_en.mp3';
 		case 'TEXT_I_AGREE': return 'I agree';
 		case 'TEXT_SIZE_SMALL': return 'Small';
@@ -1067,17 +1101,25 @@ function trans_getText(str_id){
 		case 'TEXT_SPEED_FAST': return 'Fast';
 		case 'TEXT_SPEED_SUPER_FAST': return 'Super Fast';
 		case 'TEXT_SPEED_IRREGULAR': return 'Irregular';
+		case 'TEXT_RAINBOW': return 'Rainbow';
+		case 'TEXT_FACE_GETTER': return 'Face Recognition';
+		case 'TEXT_TAP_ON_TARGET': return 'Please tap on the target';
+		case 'TEXT_CAN_LOCK_ON': return 'Ready to lock on';
+		case 'TEXT_CANT_FIND_FACE': return 'Face not found';
+		case 'TEXT_LOCK_ON': return 'Lock on';
+		case 'TEXT_UNLOCK': return 'Unlock';
+		case 'TEXT_CLOSE': return 'Close';
 		}
 	}
 }
 
-function trans_setHtmlText(id, text){
+const trans_setHtmlText = function(id, text){
 	if(typeof(id) == 'string')
 		id = document.getElementById(id);
 	id.textContent = text;
 }
 
-function trans_setSelectOptionText(id, value, text){
+const trans_setSelectOptionText = function(id, value, text){
 	if(typeof(id) == 'string')
 		id = document.getElementById(id);
 	value = value.toString();
@@ -1090,7 +1132,7 @@ function trans_setSelectOptionText(id, value, text){
 	}
 }
 
-function trans_getSelectOptionText(id, value){
+const trans_getSelectOptionText = function(id, value){
 	if(typeof(id) == 'string')
 		id = document.getElementById(id);
 	value = value.toString();
@@ -1103,14 +1145,14 @@ function trans_getSelectOptionText(id, value){
 	return "";
 }
 
-function trans_setImageSrc(id, src){
+const trans_setImageSrc = function(id, src){
 	if(typeof(id) == 'string')
 		id = document.getElementById(id);
 	id.src = src;
 }
 
 // {{LANGUAGE_SPECIFIC}}
-function trans_getDefaultLanguage(){
+const trans_getDefaultLanguage = function(){
 	switch (navigator.language){
 	case 'zh':
 	case 'zh-CN':
@@ -1148,16 +1190,11 @@ function trans_getDefaultLanguage(){
 }
 
 // {{LANGUAGE_SPECIFIC}}
-function trans_localize(lang){
+const trans_localize = function(lang){
 	localStorage.setItem('saiminLanguage3', lang);
 	trans_currentLanguage = lang;
 	if(lang == 'ja' || lang == 'jp'){ // Japanese
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_JA);
-		trans_setImageSrc(sai_id_img_mic, 'images/mic.png');
-		trans_setImageSrc(sai_id_img_sound, 'images/sound.png');
-		trans_setImageSrc(sai_id_img_speech, 'images/speak.png');
-		trans_setImageSrc(sai_id_img_gear, 'images/gear.png');
-		trans_setImageSrc(sai_id_img_question, 'images/question.png');
 		trans_setHtmlText(sai_id_text_language, '言語 (Language):');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-CN', 'Chinese (Simplified) (简体中文)');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-TW', 'Chinese (Traditional) (繁體中文)');
@@ -1174,18 +1211,23 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_language_2, 'ja', 'Japanese (日本語)');
 		trans_setSelectOptionText(sai_id_select_language_2, 'ko-KR', 'Korean (한국어)');
 		trans_setHtmlText(sai_id_pic_type, '映像の種類:');
-		trans_setSelectOptionText(sai_id_select_pic_type, '-1', '画-1: 催眠解除');
 		trans_setSelectOptionText(sai_id_select_pic_type, '0', '画0: ダミー画面（練習用）');
-		trans_setSelectOptionText(sai_id_select_pic_type, '1', '画1: ピンク色の渦巻き');
+		trans_setSelectOptionText(sai_id_select_pic_type, '1', '画1: 対数らせん');
 		trans_setSelectOptionText(sai_id_select_pic_type, '2', '画2: 同心円状');
 		trans_setSelectOptionText(sai_id_select_pic_type, '3', '画3: 目が回る');
-		trans_setSelectOptionText(sai_id_select_pic_type, '4', '画4: 白黒の渦巻き');
+		trans_setSelectOptionText(sai_id_select_pic_type, '4', '画4: アルキメデスのらせん');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', '画5: 広がるハート');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', '画6: 五円玉');
 		trans_setSelectOptionText(sai_id_select_pic_type, '7', '画7: ぼわんぼわん');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', '画8: クレージーな色');
-		trans_setSelectOptionText(sai_id_select_pic_type, '9', '画9: 黄金スパイラル');
+		trans_setSelectOptionText(sai_id_select_pic_type, '9', '画9: 対数らせん2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', '画10: アナログディスク');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', '画11: ミックス渦巻き');
+		trans_setSelectOptionText(sai_id_select_pic_type, '12', '画12: 万華鏡');
+		trans_setSelectOptionText(sai_id_select_pic_type, '13', '画13: 1番目の色の画面');
+		trans_setSelectOptionText(sai_id_select_pic_type, '14', '画14: 2番目の色の画面');
+		trans_setSelectOptionText(sai_id_select_pic_type, '15', '画15: ただの黒い画面');
+		trans_setSelectOptionText(sai_id_select_pic_type, '16', '画16: ただの白い画面');
 		trans_setHtmlText(sai_id_text_split, '画面分割:');
 		trans_setHtmlText(sai_id_text_speed, 'スピード:');
 		trans_setHtmlText(speed_irregular_label, '不規則');
@@ -1194,6 +1236,8 @@ function trans_localize(lang){
 		trans_setHtmlText(sai_id_text_fullscreen_mode, 'フルスクリーン モード:');
 		trans_setHtmlText(sai_id_page_message_header, 'メッセージ');
 		trans_setHtmlText(sai_id_button_mesage_reset, 'リセット');
+		trans_setHtmlText(sai_id_color_1st_reset, 'リセット');
+		trans_setHtmlText(sai_id_color_2nd_reset, 'リセット');
 		trans_setHtmlText(sai_id_button_mesage_cancel, 'キャンセル');
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, 'メッセージの大きさ:');
@@ -1212,25 +1256,25 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_sound, 'Heli', 'ヘリコプター');
 		trans_setSelectOptionText(sai_id_select_sound, 'HeliPlus432Hz', 'ヘリ+432Hz');
 		trans_setHtmlText(sai_id_text_sound_volume, '音量:');
+		trans_setHtmlText(sai_id_text_auto_play_sound, '音声の自動再生:');
 		trans_setHtmlText(sai_id_text_auto_repeat_sound, '音声の自動繰り返し:');
 		trans_setHtmlText(sai_id_text_switch_sound, '切り替え音:');
 		trans_setHtmlText(sai_id_text_brightness, '画面の明るさ:');
 		trans_setSelectOptionText(sai_id_select_brightness, 'normal', '普通');
 		trans_setSelectOptionText(sai_id_select_brightness, 'brighter', '明るくする');
-		trans_setHtmlText(sai_id_page_config_header_1, '設定');
+		trans_setHtmlText(sai_id_page_config_header, '設定');
 		trans_setHtmlText(sai_id_text_label_message_text, 'メッセージ テキスト:');
 		trans_setHtmlText(sai_id_button_message, 'メッセージ...');
 		trans_setHtmlText(sai_id_button_start_hypnosis, '催眠開始...');
 		trans_setHtmlText(sai_id_button_release_hypnosis, '催眠解除');
 		trans_setHtmlText(sai_id_text_count_down, 'カウントダウン:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'メッセージをしゃべる:');
+		trans_setHtmlText(sai_id_text_color_1st, "1番目の色:");
+		trans_setHtmlText(sai_id_text_color_2nd, "2番目の色:");
+		trans_setHtmlText(sai_id_button_init_app, "初期化");
+		trans_setHtmlText(sai_id_text_label_message_volume, "メッセージボイスの音量:");
 	}else if(lang == 'zh-CN' || lang == 'cn'){ // Chinese (Simplified)
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_ZW_CN);
-		trans_setImageSrc(sai_id_img_mic, 'images/mic.png');
-		trans_setImageSrc(sai_id_img_sound, 'images/sound.png');
-		trans_setImageSrc(sai_id_img_speech, 'images/speak.png');
-		trans_setImageSrc(sai_id_img_gear, 'images/gear.png');
-		trans_setImageSrc(sai_id_img_question, 'images/question.png');
 		trans_setHtmlText(sai_id_text_language, '语言 (Language):');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-CN', 'Chinese (Simplified) (简体中文)');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-TW', 'Chinese (Traditional) (繁體中文)');
@@ -1247,18 +1291,23 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_language_2, 'ja', 'Japanese (日本語)');
 		trans_setSelectOptionText(sai_id_select_language_2, 'ko-KR', 'Korean (한국어)');
 		trans_setHtmlText(sai_id_pic_type, '视频类型：');
-		trans_setSelectOptionText(sai_id_select_pic_type, '-1', '图-1: 释放催眠');
 		trans_setSelectOptionText(sai_id_select_pic_type, '0', '图0: 虚拟屏幕（用于练习）');
-		trans_setSelectOptionText(sai_id_select_pic_type, '1', '图1: 粉红色漩涡');
+		trans_setSelectOptionText(sai_id_select_pic_type, '1', '图1: 对数螺线');
 		trans_setSelectOptionText(sai_id_select_pic_type, '2', '图2: 同心圆');
 		trans_setSelectOptionText(sai_id_select_pic_type, '3', '图3: 旋转的眼');
-		trans_setSelectOptionText(sai_id_select_pic_type, '4', '图4: 黑色和白色的漩涡');
+		trans_setSelectOptionText(sai_id_select_pic_type, '4', '图4: 阿基米德螺旋线');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', '图5: 扩展的心');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', '图6: 5日元硬币');
 		trans_setSelectOptionText(sai_id_select_pic_type, '7', '图7: 头晕 头晕');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', '图8: 疯狂的颜色');
-		trans_setSelectOptionText(sai_id_select_pic_type, '9', '图9: 黄金螺旋');
+		trans_setSelectOptionText(sai_id_select_pic_type, '9', '图9: 对数螺线 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', '图10: 模拟光盘');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', '图11: ミックス渦巻き');
+		trans_setSelectOptionText(sai_id_select_pic_type, '12', '图12: 万花筒');
+		trans_setSelectOptionText(sai_id_select_pic_type, '13', '图13: 第一个彩色屏幕');
+		trans_setSelectOptionText(sai_id_select_pic_type, '14', '图14: 第二个彩色屏幕');
+		trans_setSelectOptionText(sai_id_select_pic_type, '15', '图15：只是黑屏');
+		trans_setSelectOptionText(sai_id_select_pic_type, '16', '图16：只是白屏');
 		trans_setHtmlText(sai_id_text_split, '分屏：');
 		trans_setHtmlText(sai_id_text_speed, '速度：');
 		trans_setHtmlText(speed_irregular_label, '不规律的');
@@ -1267,6 +1316,8 @@ function trans_localize(lang){
 		trans_setHtmlText(sai_id_text_fullscreen_mode, '全屏模式：');
 		trans_setHtmlText(sai_id_page_message_header, '信息');
 		trans_setHtmlText(sai_id_button_mesage_reset, '重置');
+		trans_setHtmlText(sai_id_color_1st_reset, '重置');
+		trans_setHtmlText(sai_id_color_2nd_reset, '重置');
 		trans_setHtmlText(sai_id_button_mesage_cancel, '取消');
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, '消息大小：');
@@ -1285,25 +1336,25 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_sound, 'Heli', '直升机');
 		trans_setSelectOptionText(sai_id_select_sound, 'HeliPlus432Hz', '直升机+432Hz');
 		trans_setHtmlText(sai_id_text_sound_volume, '音量：');
+		trans_setHtmlText(sai_id_text_auto_play_sound, '自动播放音频：');
 		trans_setHtmlText(sai_id_text_auto_repeat_sound, '自动重复音频：');
 		trans_setHtmlText(sai_id_text_switch_sound, '切换声音');
 		trans_setHtmlText(sai_id_text_brightness, '屏幕亮度：');
 		trans_setSelectOptionText(sai_id_select_brightness, 'normal', '通常');
 		trans_setSelectOptionText(sai_id_select_brightness, 'brighter', '明亮');
-		trans_setHtmlText(sai_id_page_config_header_1, '配置');
+		trans_setHtmlText(sai_id_page_config_header, '配置');
 		trans_setHtmlText(sai_id_text_label_message_text, '留言内容：');
 		trans_setHtmlText(sai_id_button_message, '信息...');
 		trans_setHtmlText(sai_id_button_start_hypnosis, '开始催眠...');
 		trans_setHtmlText(sai_id_button_release_hypnosis, '释放催眠');
 		trans_setHtmlText(sai_id_text_count_down, '倒数：');
 		trans_setHtmlText(sai_id_text_label_message_speech, '留言演讲：');
+		trans_setHtmlText(sai_id_text_color_1st, "第一种颜色：");
+		trans_setHtmlText(sai_id_text_color_2nd, "第二种颜色：");
+		trans_setHtmlText(sai_id_button_init_app, "初始化");
+		trans_setHtmlText(sai_id_text_label_message_volume, "留言音量：");
 	}else if(lang == 'zh-TW'){ // Chinese (Traditional)
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_ZH_TW);
-		trans_setImageSrc(sai_id_img_mic, 'images/mic.png');
-		trans_setImageSrc(sai_id_img_sound, 'images/sound.png');
-		trans_setImageSrc(sai_id_img_speech, 'images/speak.png');
-		trans_setImageSrc(sai_id_img_gear, 'images/gear.png');
-		trans_setImageSrc(sai_id_img_question, 'images/question.png');
 		trans_setHtmlText(sai_id_text_language, '語言 (Language):');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-CN', 'Chinese (Simplified) (简体中文)');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-TW', 'Chinese (Traditional) (繁體中文)');
@@ -1320,18 +1371,23 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_language_2, 'ja', 'Japanese (日本語)');
 		trans_setSelectOptionText(sai_id_select_language_2, 'ko-KR', 'Korean (한국어)');
 		trans_setHtmlText(sai_id_pic_type, '視頻類型：');
-		trans_setSelectOptionText(sai_id_select_pic_type, '-1', '圖-1: 催眠釋放');
 		trans_setSelectOptionText(sai_id_select_pic_type, '0', '圖0: 虛擬螢幕（用於練習）');
-		trans_setSelectOptionText(sai_id_select_pic_type, '1', '圖1: 粉紅色漩渦');
+		trans_setSelectOptionText(sai_id_select_pic_type, '1', '圖1: 對數螺線');
 		trans_setSelectOptionText(sai_id_select_pic_type, '2', '圖2: 同心圆');
 		trans_setSelectOptionText(sai_id_select_pic_type, '3', '圖3: 旋轉的眼');
-		trans_setSelectOptionText(sai_id_select_pic_type, '4', '圖4: 黑色和白色漩渦');
+		trans_setSelectOptionText(sai_id_select_pic_type, '4', '圖4: 阿基米德螺旋線');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', '圖5: 擴展的心');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', '圖6: 5日元硬幣');
 		trans_setSelectOptionText(sai_id_select_pic_type, '7', '圖7: 頭暈 頭暈');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', '圖8: 瘋狂的顏色');
-		trans_setSelectOptionText(sai_id_select_pic_type, '9', '圖9: 黃金螺旋');
+		trans_setSelectOptionText(sai_id_select_pic_type, '9', '圖9: 對數螺線 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', '圖10: 類比光碟');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', '圖11: 混合漩涡');
+		trans_setSelectOptionText(sai_id_select_pic_type, '12', '圖12: 萬花筒');
+		trans_setSelectOptionText(sai_id_select_pic_type, '13', '圖13: 第一个彩色屏幕');
+		trans_setSelectOptionText(sai_id_select_pic_type, '14', '圖14: 第二个彩色屏幕');
+		trans_setSelectOptionText(sai_id_select_pic_type, '15', '圖15: 只是黑屏');
+		trans_setSelectOptionText(sai_id_select_pic_type, '16', '圖16: 只是白屏');
 		trans_setHtmlText(sai_id_text_split, '分屏：');
 		trans_setHtmlText(sai_id_text_speed, '速度：');
 		trans_setHtmlText(speed_irregular_label, '不規律的');
@@ -1340,6 +1396,8 @@ function trans_localize(lang){
 		trans_setHtmlText(sai_id_text_fullscreen_mode, '全螢幕模式：');
 		trans_setHtmlText(sai_id_page_message_header, '資訊');
 		trans_setHtmlText(sai_id_button_mesage_reset, '重置');
+		trans_setHtmlText(sai_id_color_1st_reset, '重置');
+		trans_setHtmlText(sai_id_color_2nd_reset, '重置');
 		trans_setHtmlText(sai_id_button_mesage_cancel, '取消');
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, '消息大小：');
@@ -1358,25 +1416,25 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_sound, 'Heli', '直升機');
 		trans_setSelectOptionText(sai_id_select_sound, 'HeliPlus432Hz', '直升機+432Hz');
 		trans_setHtmlText(sai_id_text_sound_volume, '音量：');
+		trans_setHtmlText(sai_id_text_auto_play_sound, '自動播放音訊：');
 		trans_setHtmlText(sai_id_text_auto_repeat_sound, '自動重複音訊：');
 		trans_setHtmlText(sai_id_text_switch_sound, '切換聲音：');
 		trans_setHtmlText(sai_id_text_brightness, '屏幕亮度：');
 		trans_setSelectOptionText(sai_id_select_brightness, 'normal', '正常亮度');
 		trans_setSelectOptionText(sai_id_select_brightness, 'brighter', '提亮');
-		trans_setHtmlText(sai_id_page_config_header_1, '配置');
+		trans_setHtmlText(sai_id_page_config_header, '配置');
 		trans_setHtmlText(sai_id_text_label_message_text, '留言內容：');
 		trans_setHtmlText(sai_id_button_message, '訊息...');
 		trans_setHtmlText(sai_id_button_start_hypnosis, '開始催眠...');
 		trans_setHtmlText(sai_id_button_release_hypnosis, '釋放催眠');
 		trans_setHtmlText(sai_id_text_count_down, '倒數：');
 		trans_setHtmlText(sai_id_text_label_message_speech, '留言演講：');
+		trans_setHtmlText(sai_id_text_color_1st, "第一種顏色：");
+		trans_setHtmlText(sai_id_text_color_2nd, "第二種顏色：");
+		trans_setHtmlText(sai_id_button_init_app, "初始化");
+		trans_setHtmlText(sai_id_text_label_message_volume, "留言音量：");
 	}else if(lang == 'kr' || lang == 'ko' || lang == 'ko-KR'){ // Korean
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_KO_KR);
-		trans_setImageSrc(sai_id_img_mic, 'images/mic.png');
-		trans_setImageSrc(sai_id_img_sound, 'images/sound.png');
-		trans_setImageSrc(sai_id_img_speech, 'images/speak.png');
-		trans_setImageSrc(sai_id_img_gear, 'images/gear.png');
-		trans_setImageSrc(sai_id_img_question, 'images/question.png');
 		trans_setHtmlText(sai_id_text_language, '언어 (Language):');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-CN', 'Chinese (Simplified) (简体中文)');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-TW', 'Chinese (Traditional) (繁體中文)');
@@ -1393,18 +1451,23 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_language_2, 'ja', 'Japanese (日本語)');
 		trans_setSelectOptionText(sai_id_select_language_2, 'ko-KR', 'Korean (한국어)');
 		trans_setHtmlText(sai_id_pic_type, '그림 유형:');
-		trans_setSelectOptionText(sai_id_select_pic_type, '-1', 'pic-1: 최면 해제');
 		trans_setSelectOptionText(sai_id_select_pic_type, '0', 'pic0: 더미 화면 (연습용)');
-		trans_setSelectOptionText(sai_id_select_pic_type, '1', 'pic1: 핑크색 소용돌이');
+		trans_setSelectOptionText(sai_id_select_pic_type, '1', 'pic1: 로그 나선');
 		trans_setSelectOptionText(sai_id_select_pic_type, '2', 'pic2: 동심원형');
 		trans_setSelectOptionText(sai_id_select_pic_type, '3', 'pic3: 회전하는 눈');
-		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: 흑백 소용돌이');
+		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: 아르키메데스의 나선');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'pic5: 퍼지는 하트들');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'pic6: 오엔 구슬');
 		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: 보완 보완');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'pic8: 미친 색');
-		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: 황금 나선');
+		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: 로그 나선 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'pic10: 아날로그 디스크');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: 믹스 소용돌이');
+		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'pic12: 만화경');
+		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'pic13: 첫 번째 컬러 화면');
+		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'pic14: 두 번째 색상 화면');
+		trans_setSelectOptionText(sai_id_select_pic_type, '15', 'pic15: 그냥 검은 화면');
+		trans_setSelectOptionText(sai_id_select_pic_type, '16', 'pic16: 그냥 흰색 화면');
 		trans_setHtmlText(sai_id_text_split, '화면 분할:');
 		trans_setHtmlText(sai_id_text_speed, '속도:');
 		trans_setHtmlText(speed_irregular_label, '불규칙');
@@ -1413,6 +1476,8 @@ function trans_localize(lang){
 		trans_setHtmlText(sai_id_text_fullscreen_mode, '전체 화면 모드:');
 		trans_setHtmlText(sai_id_page_message_header, '메시지');
 		trans_setHtmlText(sai_id_button_mesage_reset, '초기화');
+		trans_setHtmlText(sai_id_color_1st_reset, '초기화');
+		trans_setHtmlText(sai_id_color_2nd_reset, '초기화');
 		trans_setHtmlText(sai_id_button_mesage_cancel, '취소');
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, '메시지 크기:');
@@ -1431,25 +1496,25 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_sound, 'Heli', '헬리콥터');
 		trans_setSelectOptionText(sai_id_select_sound, 'HeliPlus432Hz', '헬리콥터+432Hz');
 		trans_setHtmlText(sai_id_text_sound_volume, '사운드 볼륨:');
+		trans_setHtmlText(sai_id_text_auto_play_sound, '오디오 자동 재생:');
 		trans_setHtmlText(sai_id_text_auto_repeat_sound, '음성 자동 반복:');
 		trans_setHtmlText(sai_id_text_switch_sound, '전환음:');
 		trans_setHtmlText(sai_id_text_brightness, '화면 밝기:');
 		trans_setSelectOptionText(sai_id_select_brightness, 'normal', '일반 밝기');
 		trans_setSelectOptionText(sai_id_select_brightness, 'brighter', '밝게 하다');
-		trans_setHtmlText(sai_id_page_config_header_1, '구성');
+		trans_setHtmlText(sai_id_page_config_header, '구성');
 		trans_setHtmlText(sai_id_text_label_message_text, '메시지 텍스트:');
 		trans_setHtmlText(sai_id_button_message, '메시지...');
 		trans_setHtmlText(sai_id_button_start_hypnosis, '최면 시작...');
 		trans_setHtmlText(sai_id_button_release_hypnosis, '최면 해제');
 		trans_setHtmlText(sai_id_text_count_down, '카운트다운:');
 		trans_setHtmlText(sai_id_text_label_message_speech, '메시지 연설:');
+		trans_setHtmlText(sai_id_text_color_1st, "첫 번째 색상:");
+		trans_setHtmlText(sai_id_text_color_2nd, "두 번째 색상:");
+		trans_setHtmlText(sai_id_button_init_app, "앱 재설정");
+		trans_setHtmlText(sai_id_text_label_message_volume, "메시지 음성 음량:");
 	}else if(lang == 'it' || lang == 'it-IT'){ // Italian
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_IT);
-		trans_setImageSrc(sai_id_img_mic, 'images/mic.png');
-		trans_setImageSrc(sai_id_img_sound, 'images/sound.png');
-		trans_setImageSrc(sai_id_img_speech, 'images/speak.png');
-		trans_setImageSrc(sai_id_img_gear, 'images/gear.png');
-		trans_setImageSrc(sai_id_img_question, 'images/question.png');
 		trans_setHtmlText(sai_id_text_language, 'Lingua (Language):');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-CN', 'Chinese (Simplified) (简体中文)');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-TW', 'Chinese (Traditional) (繁體中文)');
@@ -1466,18 +1531,23 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_language_2, 'ja', 'Japanese (日本語)');
 		trans_setSelectOptionText(sai_id_select_language_2, 'ko-KR', 'Korean (한국어)');
 		trans_setHtmlText(sai_id_pic_type, 'Il tipo di immagine:');
-		trans_setSelectOptionText(sai_id_select_pic_type, '-1', 'pic-1: Liberare l\'ipnosi');
 		trans_setSelectOptionText(sai_id_select_pic_type, '0', 'pic0: Schermata fittizia (per esercitarsi)');
-		trans_setSelectOptionText(sai_id_select_pic_type, '1', 'pic1: Spirale Rosa');
+		trans_setSelectOptionText(sai_id_select_pic_type, '1', 'pic1: Spirale Logaritmica');
 		trans_setSelectOptionText(sai_id_select_pic_type, '2', 'pic2: Cerchi concentrici');
 		trans_setSelectOptionText(sai_id_select_pic_type, '3', 'pic3: Gli occhi');
-		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: Spirale in bianco e nero');
+		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: Spirale di Archimede');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'pic5: Cuori che si diffondono');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'pic6: Moneta da 5 Yen');
 		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: Clamore Clamore');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'pic8: Colori Pazzi');
-		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: Spirale Aurea');
+		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: Spirale Logaritmica 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'pic10: Disco Analogico');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: Mescolare il turbinio');
+		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'pic12: Caleidoscopio');
+		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'pic13: 1° schermo a colori');
+		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'pic14: 2° schermo a colori');
+		trans_setSelectOptionText(sai_id_select_pic_type, '15', 'pic15: Solo uno schermo nero');
+		trans_setSelectOptionText(sai_id_select_pic_type, '16', 'pic16: Solo uno schermo bianco');
 		trans_setHtmlText(sai_id_text_split, 'Divisione dello schermo:');
 		trans_setHtmlText(sai_id_text_speed, 'Velocità:');
 		trans_setHtmlText(speed_irregular_label, 'Irregolare');
@@ -1486,6 +1556,8 @@ function trans_localize(lang){
 		trans_setHtmlText(sai_id_text_fullscreen_mode, 'Modalità schermo intero:');
 		trans_setHtmlText(sai_id_page_message_header, 'Messaggio');
 		trans_setHtmlText(sai_id_button_mesage_reset, 'Ripristina');
+		trans_setHtmlText(sai_id_color_1st_reset, 'Ripristina');
+		trans_setHtmlText(sai_id_color_2nd_reset, 'Ripristina');
 		trans_setHtmlText(sai_id_button_mesage_cancel, 'Annulla');
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, 'Dimensione del messaggio:');
@@ -1504,25 +1576,25 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_sound, 'Heli', 'Elicottero');
 		trans_setSelectOptionText(sai_id_select_sound, 'HeliPlus432Hz', 'Elicottero+432Hz');
 		trans_setHtmlText(sai_id_text_sound_volume, 'Volume del suono:');
+		trans_setHtmlText(sai_id_text_auto_play_sound, 'Riproduzione automatica dell\'audio:');
 		trans_setHtmlText(sai_id_text_auto_repeat_sound, 'Ripetere l\'audio:');
 		trans_setHtmlText(sai_id_text_switch_sound, 'Suono di commutazione:');
 		trans_setHtmlText(sai_id_text_brightness, 'Luminosità:');
 		trans_setSelectOptionText(sai_id_select_brightness, 'normal', 'Normale');
 		trans_setSelectOptionText(sai_id_select_brightness, 'brighter', 'Più luminoso');
-		trans_setHtmlText(sai_id_page_config_header_1, 'Configurazione');
+		trans_setHtmlText(sai_id_page_config_header, 'Configurazione');
 		trans_setHtmlText(sai_id_text_label_message_text, 'Messaggio di testo:');
 		trans_setHtmlText(sai_id_button_message, 'Messaggio...');
 		trans_setHtmlText(sai_id_button_start_hypnosis, 'Inizia l\'ipnosi...');
 		trans_setHtmlText(sai_id_button_release_hypnosis, 'Rilascia l\'ipnosi');
 		trans_setHtmlText(sai_id_text_count_down, 'Conto alla rovescia:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'Discorso del messaggio:');
+		trans_setHtmlText(sai_id_text_color_1st, "1° colore:");
+		trans_setHtmlText(sai_id_text_color_2nd, "2° colore:");
+		trans_setHtmlText(sai_id_button_init_app, "Inizializzare");
+		trans_setHtmlText(sai_id_text_label_message_volume, "Volume della voce:");
 	}else if(lang == 'de' || lang == 'de-DE'){ // German
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_DE);
-		trans_setImageSrc(sai_id_img_mic, 'images/mic.png');
-		trans_setImageSrc(sai_id_img_sound, 'images/sound.png');
-		trans_setImageSrc(sai_id_img_speech, 'images/speak.png');
-		trans_setImageSrc(sai_id_img_gear, 'images/gear.png');
-		trans_setImageSrc(sai_id_img_question, 'images/question.png');
 		trans_setHtmlText(sai_id_text_language, 'Sprache (Language):');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-CN', 'Chinese (Simplified) (简体中文)');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-TW', 'Chinese (Traditional) (繁體中文)');
@@ -1539,18 +1611,23 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_language_2, 'ja', 'Japanese (日本語)');
 		trans_setSelectOptionText(sai_id_select_language_2, 'ko-KR', 'Korean (한국어)');
 		trans_setHtmlText(sai_id_pic_type, 'Die Art des Bildes:');
-		trans_setSelectOptionText(sai_id_select_pic_type, '-1', 'pic-1: Hypnose loslassen');
 		trans_setSelectOptionText(sai_id_select_pic_type, '0', 'pic0: Dummy-Bildschirm (zum Üben)');
-		trans_setSelectOptionText(sai_id_select_pic_type, '1', 'pic1: Rosa Spirale');
+		trans_setSelectOptionText(sai_id_select_pic_type, '1', 'pic1: Logarithmische Spirale');
 		trans_setSelectOptionText(sai_id_select_pic_type, '2', 'pic2: Konzentrische Kreise');
 		trans_setSelectOptionText(sai_id_select_pic_type, '3', 'pic3: Die Augen');
-		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: Schwarz-Weiß-Spirale');
+		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: Die Spirale des Archimedes');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'pic5: Herzen verbreiten');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'pic6: 5-Yen-Münze');
 		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: Lärm, Lärm');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'pic8: Verrückte Farben');
-		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: Goldene Spirale');
-		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'pic10: Analoge Disc');
+		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: Logarithmische Spirale 2');
+		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'pic10: Analoge Scheibe');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: Mischwirbel');
+		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'pic12: Kaleidoskop');
+		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'pic13: 1. Farbbildschirm');
+		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'pic14: Zweiter Farbbildschirm');
+		trans_setSelectOptionText(sai_id_select_pic_type, '15', 'pic15: Nur ein schwarzer Bildschirm');
+		trans_setSelectOptionText(sai_id_select_pic_type, '16', 'pic16: Nur ein weißer Bildschirm');
 		trans_setHtmlText(sai_id_text_split, 'Bildschirmaufteilung:');
 		trans_setHtmlText(sai_id_text_speed, 'Geschwindigkeit:');
 		trans_setHtmlText(speed_irregular_label, 'Irregulär');
@@ -1559,6 +1636,8 @@ function trans_localize(lang){
 		trans_setHtmlText(sai_id_text_fullscreen_mode, 'Vollbildmodus:');
 		trans_setHtmlText(sai_id_page_message_header, 'Nachricht');
 		trans_setHtmlText(sai_id_button_mesage_reset, 'Zurücksetzen');
+		trans_setHtmlText(sai_id_color_1st_reset, 'Zurücksetzen');
+		trans_setHtmlText(sai_id_color_2nd_reset, 'Zurücksetzen');
 		trans_setHtmlText(sai_id_button_mesage_cancel, 'Stornieren');
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, 'Größe der Nachricht:');
@@ -1577,25 +1656,25 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_sound, 'Heli', 'Hubschrauber');
 		trans_setSelectOptionText(sai_id_select_sound, 'HeliPlus432Hz', 'Hubschrauber+432Hz');
 		trans_setHtmlText(sai_id_text_sound_volume, 'Lautstärke:');
+		trans_setHtmlText(sai_id_text_auto_play_sound, 'Audio automatisch abspielen:');
 		trans_setHtmlText(sai_id_text_auto_repeat_sound, 'Sich Wiederholender Ton:');
 		trans_setHtmlText(sai_id_text_switch_sound, 'Schaltgeräusch:');
 		trans_setHtmlText(sai_id_text_brightness, 'Helligkeit:');
 		trans_setSelectOptionText(sai_id_select_brightness, 'normal', 'Normal');
 		trans_setSelectOptionText(sai_id_select_brightness, 'brighter', 'Heller');
-		trans_setHtmlText(sai_id_page_config_header_1, 'Aufbau');
+		trans_setHtmlText(sai_id_page_config_header, 'Aufbau');
 		trans_setHtmlText(sai_id_text_label_message_text, 'Nachrichtentext:');
 		trans_setHtmlText(sai_id_button_message, 'Nachricht...');
 		trans_setHtmlText(sai_id_button_start_hypnosis, 'Beginnen Sie mit der Hypnose...');
 		trans_setHtmlText(sai_id_button_release_hypnosis, 'Hypnose loslassen');
 		trans_setHtmlText(sai_id_text_count_down, 'Countdown:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'Nachrichtenansprache:');
+		trans_setHtmlText(sai_id_text_color_1st, "1. Farbe:");
+		trans_setHtmlText(sai_id_text_color_2nd, "2. Farbe:");
+		trans_setHtmlText(sai_id_button_init_app, "Initialisieren");
+		trans_setHtmlText(sai_id_text_label_message_volume, "Stimmen Lautstärke:");
 	}else{ // English is default
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_EN);
-		trans_setImageSrc(sai_id_img_mic, 'images/mic.png');
-		trans_setImageSrc(sai_id_img_sound, 'images/sound.png');
-		trans_setImageSrc(sai_id_img_speech, 'images/speak.png');
-		trans_setImageSrc(sai_id_img_gear, 'images/gear.png');
-		trans_setImageSrc(sai_id_img_question, 'images/question.png');
 		trans_setHtmlText(sai_id_text_language, 'Language (言語):');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-CN', 'Chinese (Simplified) (简体中文)');
 		trans_setSelectOptionText(sai_id_select_language_1, 'zh-TW', 'Chinese (Traditional) (繁體中文)');
@@ -1612,18 +1691,23 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_language_2, 'ja', 'Japanese (日本語)');
 		trans_setSelectOptionText(sai_id_select_language_2, 'ko-KR', 'Korean (한국어)');
 		trans_setHtmlText(sai_id_pic_type, 'The type of picture:');
-		trans_setSelectOptionText(sai_id_select_pic_type, '-1', 'pic-1: Release Hypnosis');
 		trans_setSelectOptionText(sai_id_select_pic_type, '0', 'pic0: Dummy Screen (for practice)');
-		trans_setSelectOptionText(sai_id_select_pic_type, '1', 'pic1: Pink Spiral');
+		trans_setSelectOptionText(sai_id_select_pic_type, '1', 'pic1: Logarithmic Spiral');
 		trans_setSelectOptionText(sai_id_select_pic_type, '2', 'pic2: Concentric Circles');
 		trans_setSelectOptionText(sai_id_select_pic_type, '3', 'pic3: The Eyes');
-		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: Black/White Spiral');
+		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: Archimedes\' Spiral');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'pic5: Spreading Hearts');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'pic6: 5-Yen Coin');
 		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: Clamor Clamor');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'pic8: Crazy Colors');
-		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: Golden Spiral');
+		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: Logarithmic Spiral 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'pic10: Analog Disc');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: Mixed Spiral');
+		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'pic12: Kaleidoscope');
+		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'pic13: 1st color screen');
+		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'pic14: 2st color screen');
+		trans_setSelectOptionText(sai_id_select_pic_type, '15', 'pic15: Just a black screen');
+		trans_setSelectOptionText(sai_id_select_pic_type, '16', 'pic16: Just a white screen');
 		trans_setHtmlText(sai_id_text_split, 'Screen splitting:');
 		trans_setHtmlText(sai_id_text_speed, 'Speed:');
 		trans_setHtmlText(speed_irregular_label, 'Irregular');
@@ -1632,6 +1716,8 @@ function trans_localize(lang){
 		trans_setHtmlText(sai_id_text_fullscreen_mode, 'Fullscreen mode:');
 		trans_setHtmlText(sai_id_page_message_header, 'Message');
 		trans_setHtmlText(sai_id_button_mesage_reset, 'Reset');
+		trans_setHtmlText(sai_id_color_1st_reset, 'Reset');
+		trans_setHtmlText(sai_id_color_2nd_reset, 'Reset');
 		trans_setHtmlText(sai_id_button_mesage_cancel, 'Cancel');
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, 'Size of message:');
@@ -1650,18 +1736,23 @@ function trans_localize(lang){
 		trans_setSelectOptionText(sai_id_select_sound, 'Heli', 'Helicopter');
 		trans_setSelectOptionText(sai_id_select_sound, 'HeliPlus432Hz', 'Heli+432Hz');
 		trans_setHtmlText(sai_id_text_sound_volume, 'Sound volume:');
+		trans_setHtmlText(sai_id_text_auto_play_sound, 'Auto-play audio:');
 		trans_setHtmlText(sai_id_text_auto_repeat_sound, 'Repeating audio:');
 		trans_setHtmlText(sai_id_text_switch_sound, 'Switching sound:');
 		trans_setHtmlText(sai_id_text_brightness, 'Brightness:');
 		trans_setSelectOptionText(sai_id_select_brightness, 'normal', 'Normal');
 		trans_setSelectOptionText(sai_id_select_brightness, 'brighter', 'Brighter');
-		trans_setHtmlText(sai_id_page_config_header_1, 'Configuration');
+		trans_setHtmlText(sai_id_page_config_header, 'Configuration');
 		trans_setHtmlText(sai_id_text_label_message_text, 'Message Text:');
 		trans_setHtmlText(sai_id_button_message, 'Message...');
 		trans_setHtmlText(sai_id_button_start_hypnosis, 'Start Hypnosis...');
 		trans_setHtmlText(sai_id_button_release_hypnosis, 'Release Hypnosis');
 		trans_setHtmlText(sai_id_text_count_down, 'Count Down:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'Message Speech:');
+		trans_setHtmlText(sai_id_text_color_1st, "1st color:");
+		trans_setHtmlText(sai_id_text_color_2nd, "2nd color:");
+		trans_setHtmlText(sai_id_button_init_app, "Initialize");
+		trans_setHtmlText(sai_id_text_label_message_volume, "Message voice volume:");
 	}
 
 	trans_setHtmlText(sai_id_page_agreement_header_1, trans_getText('TEXT_ABOUT_APP'));
@@ -1671,5 +1762,10 @@ function trans_localize(lang){
 	let logo_imgs = document.getElementsByClassName('sai_class_img_config_logo');
 	for (let img of logo_imgs){
 		trans_setImageSrc(img, trans_getText('TEXT_LOGO'));
+	}
+
+	let rainbows = document.getElementsByClassName('sai_class_rainbow');
+	for (let span of rainbows){
+		trans_setHtmlText(span, trans_getText('TEXT_RAINBOW'));
 	}
 }

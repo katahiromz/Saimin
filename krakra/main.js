@@ -1,32 +1,45 @@
 // 催眠アプリ「催眠くらくら」のJavaScriptのメインコード。
 // 暗号名はKraKra。
 
-const sai_VERSION = '3.5.2'; // KraKraバージョン番号。
+const sai_VERSION = '3.5.6'; // KraKraバージョン番号。
 const sai_DEBUGGING = false; // デバッグ中か？
 let sai_FPS = 0; // 実測フレームレート。
-let sai_stopping = true; // 停止中か？
 
 // 【KraKra JavaScript 命名規則】
-//
 // - 関数名の頭に SAI_ を付ける。
 // - 変数名・定数名の頭に sai_ を付ける。
 // - 要素IDの頭に sai_id_ を付ける。
 // - CSSクラスの頭に sai_class_ を付ける。
-//
-// ※ 言語特有の記述が必要な個所は「{{LANGUAGE_SPECIFIC}}」というコメントを付けること。
 
-// メッセージがクリックされた。
-function SAI_on_click_message(id){
+// 【KraKra コーディング ルール】
+// - インデントはTabを使うこと。
+// - 言語特有の記述が必要な個所は「{{LANGUAGE_SPECIFIC}}」というコメントを付けること。
+// - 関数はすべてconst変数にすること。functionキーワードは省略しないこと。
+
+// メッセージ項目がクリックされた。
+const SAI_on_click_message = function(id){
 	sai_id_text_message.value = id.textContent;
 	sai_id_text_message.focus();
+}
+
+// メッセージ項目でキーが入力された。
+const SAI_on_keydown_message = function(e){
+	if(e.code == 'Enter' || e.key == ' '){
+		e.target.click();
+		return false;
+	}
+	return true;
 }
 
 // ドキュメントの読み込みが完了（DOMContentLoaded）されたら無名関数が呼び出される。
 document.addEventListener('DOMContentLoaded', function(){
 	// 変数を保護するため、関数内部に閉じ込める。
-	const sai_NUM_TYPE = 11; // 「画」の個数。
+	const sai_NUM_TYPE = 17; // 「画」の個数。
 	let sai_screen_width = 0; // スクリーンの幅（ピクセル単位）を覚えておく。
 	let sai_screen_height = 0; // スクリーンの高さ（ピクセル単位）を覚えておく。
+	let sai_pic_type = 0; // 映像の種類を表す整数値。
+	let sai_stopping = true; // 停止中か？
+	let sai_hypnosis_releasing_time = null; // 催眠解除中ならば時刻。さもなければnull。
 	let sai_old_time = (new Date()).getTime(); // 処理フレームの時刻を覚えておく。
 	let sai_counter = 0; // 映像を動かす変数。
 	let sai_clock = 0; // スピードが不規則のときに映像の速さを変化させる変数。
@@ -42,13 +55,11 @@ document.addEventListener('DOMContentLoaded', function(){
 	let sai_service_worker_registration = null; // サービスワーカーの登録。
 	let sai_coin_img = new Image(); // 五円玉のイメージ。
 	let sai_rotation_type = 'normal'; // 回転の種類。
-	let sai_hypnosis_released = false; // 催眠術を解放したか？
 	let sai_logo_img = new Image(); // KraKraのロゴ。
 	let sai_tap_here_img = new Image(); // 「ここをタップ」の画像。
 	let sai_hypno_releasing_img = new Image(); // 「催眠術を解放中」の画像。
 	let sai_all_released_img = new Image(); // 「催眠術を解放しました」の画像。
 	let sai_speed_irregular = false; // 映像スピードが不規則か？
-	let sai_pic_type = 0; // 映像の種類を表す整数値。
 	let sai_old_pic_type = 0; // 古い映像の種類。
 	let sai_blinking_interval = 0; // 画面点滅（サブリミナル）の間隔（秒）。
 	let sai_first_time = false; // 初回か？
@@ -56,14 +67,20 @@ document.addEventListener('DOMContentLoaded', function(){
 	let sai_count_down = null; // カウントダウンの時刻またはnull。
 	let sai_spiral_img = new Image();
 	let sai_user_message_list = []; // メッセージリスト。
+	let sai_releasing_sound = null; // 催眠解除の音声。
+	let sai_message_size = 2; // メッセージの寸法。
+	let sai_kaleido_radius = 50; // 万華鏡の細胞の半径。
+	let sai_kaleido_canvas_1 = null; // 万華鏡用の一時的なキャンバス1。
+	let sai_kaleido_canvas_2 = null; // 万華鏡用の一時的なキャンバス2。
+	let sai_face_getter = null; // 顔認識。
 
 	// このアプリはネイティブアプリか？
-	function SAI_is_native_app(){
+	const SAI_is_native_app = function(){
 		return navigator.userAgent.indexOf('/KraKra-native-app/') != -1;
 	}
 
 	// ネイティブアプリならバージョン番号を取得する。
-	function SAI_get_native_app_version(){
+	const SAI_get_native_app_version = function(){
 		let results = navigator.userAgent.match(/\/KraKra-native-app\/([\d\.]+)\//);
 		if(results)
 			return results[1];
@@ -71,12 +88,12 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// HTMLの特殊文字を置換。
-	function SAI_htmlspecialchars(str){
+	const SAI_htmlspecialchars = function(str){
 		return (str + '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#039;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); 
 	}
 
 	// メッセージリストを作成する。
-	function SAI_populate_message_list(){
+	const SAI_populate_message_list = function(){
 		// メッセージリストを構築する。
 		let msg_list = trans_message_list();
 		msg_list = JSON.parse(JSON.stringify(msg_list)); // Deep Copy
@@ -88,18 +105,33 @@ document.addEventListener('DOMContentLoaded', function(){
 		for(let item of sai_user_message_list){
 			msg_list.unshift(item);
 		}
+		msg_list.unshift(''); // 使いやすさのために空文字列を最初に置く。
 
 		let html = '';
 		for(let item of msg_list){
-			html += '<div onclick="SAI_on_click_message(this)">';
+			html += '<div onclick="SAI_on_click_message(this)" tabindex="0" onkeydown="return SAI_on_keydown_message(arguments[0])">';
 			html += SAI_htmlspecialchars(item);
 			html += '</div>';
 		}
 		sai_id_message_list.innerHTML = html;
 	}
 
+	// 音声が再生中か？
+	const SAI_sound_is_playing = function(){
+		return sai_sound_object && !sai_sound_object.paused;
+	}
+
+	// 音声を一時停止。
+	const SAI_sound_pause = function(){
+		// 再生中なら停止する。
+		if(SAI_sound_is_playing())
+			sai_sound_object.pause();
+		// 音声ボタンをチェックを外す。
+		sai_id_button_sound_play.classList.remove('sai_class_checked');
+	}
+
 	// ページを選択。
-	function SAI_choose_page(page_id){
+	const SAI_choose_page = function(page_id){
 		// まず、すべてのページを隠す。
 		let pages = document.getElementsByClassName('sai_class_page');
 		for(let page of pages){
@@ -111,11 +143,14 @@ document.addEventListener('DOMContentLoaded', function(){
 			page_id = document.getElementById(page_id);
 		page_id.classList.remove('sai_class_invisible');
 
-		if (page_id == sai_id_page_main){ // メインページなら
+		if(page_id == sai_id_page_main || page_id == sai_id_page_config){ // メインページか設定ページなら
 			// 必要ならアニメーションを要求する。
 			if(!sai_request_anime){
 				sai_request_anime = window.requestAnimationFrame(SAI_draw_all);
 			}
+			// 催眠解除の音声を止める。
+			if(sai_releasing_sound && !sai_releasing_sound.paused)
+				sai_releasing_sound.pause();
 		}else{
 			// アニメーションをキャンセルする。
 			window.cancelAnimationFrame(sai_request_anime);
@@ -124,7 +159,42 @@ document.addEventListener('DOMContentLoaded', function(){
 			SAI_sound_pause();
 		}
 
-		if (page_id == sai_id_page_message){ // 「メッセージ」ページなら
+		// 顔認識のページか？
+		if(page_id == sai_id_page_face_getter){
+			if (!sai_face_getter) {
+				sai_face_getter = new facelocker(sai_id_canvas_1, function(status){
+					switch(status){
+					case 0: // Unlocked
+						sai_id_button_lock_on.innerText = trans_getText('TEXT_LOCK_ON');
+						sai_id_button_lock_on.disabled = true;
+						break;
+					case 1: // Candidate
+						sai_id_button_lock_on.innerText = trans_getText('TEXT_LOCK_ON');
+						sai_id_button_lock_on.disabled = false;
+						break;
+					case 2: // Locked
+						sai_id_button_lock_on.innerText = trans_getText('TEXT_UNLOCK');
+						sai_id_button_lock_on.disabled = false;
+						if(sai_id_checkbox_auto_play_sound.checked){
+							let lockon_sound = new Audio('sn/LockOn.mp3');
+							if(lockon_sound){
+								lockon_sound.volume = sai_id_range_sound_volume.value / 100.0;
+								lockon_sound.play();
+							}
+						}
+						break;
+					}
+					sai_id_button_close.innerText = trans_getText('TEXT_CLOSE');
+				});
+			}
+			sai_face_getter.resume();
+		}else{
+			if(sai_face_getter){
+				sai_face_getter.stop();
+			}
+		}
+
+		if(page_id == sai_id_page_message){ // 「メッセージ」ページなら
 			// メッセージリスト表示状態を保存する。
 			localStorage.setItem('saiminMessageListShowing', 1);
 			// メッセージリストを埋める。
@@ -139,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function(){
 			}, 100);
 		}
 
-		if (page_id == sai_id_page_config){ // 「設定」ページなら
+		if(page_id == sai_id_page_config){ // 「設定」ページなら
 			// 100ミリ秒後に一番上にスクロールする。
 			setTimeout(function(){
 				sai_id_config_scrollable.scrollLeft = sai_id_config_scrollable.scrollTop = 0;
@@ -148,20 +218,20 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// メッセージリストを表示する。
-	function SAI_message_list_show(){
+	const SAI_message_list_show = function(){
 		SAI_choose_page(sai_id_page_message);
 	}
 
 	// 負の浮動小数点数に対応した剰余（modular; 余り）関数。
-	function SAI_mod(x, y){
+	const SAI_mod = function(x, y){
 		return (x*y < 0) * y + x % y;
 	}
 
 	// きらめきに新しい星を追加する。
-	function SAI_star_add(x, y){
+	const SAI_star_add = function(x, y){
 		sai_stars.shift(); // 古い星を消す。
-
-		if(SAI_screen_is_large()){ // 画面が大きければ
+		let ctx = sai_id_canvas_01.getContext('2d', { alpha: false });
+		if(SAI_screen_is_large(ctx)){ // 画面が大きければ
 			// 大きな星を押し込む。
 			x += (Math.random() - 0.5) * 2 * 20 * 2;
 			y += (Math.random() - 0.5) * 2 * 20 * 2;
@@ -176,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// スピーチを中断する。
-	function SAI_speech_cancel(){
+	const SAI_speech_cancel = function(){
 		console.log('SAI_speech_cancel');
 		try{
 			android.cancelSpeech(); // スピーチのキャンセル。Androidでなければ失敗。
@@ -189,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// メッセージをしゃべるかどうか？
-	function SAI_speech_set(value){
+	const SAI_speech_set = function(value){
 		switch(value){
 		case 0:
 		case '0':
@@ -216,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 画面点滅（サブリミナル）の種類を指定する。
-	function SAI_blink_set_type(value){
+	const SAI_blink_set_type = function(value){
 		value = parseInt(value); // 整数に変換。
 
 		// テキストとヘルツ数を取得する。
@@ -270,8 +340,15 @@ document.addEventListener('DOMContentLoaded', function(){
 		localStorage.setItem('saiminBlinkType', value);
 	}
 
+	// 催眠が解除されたか？
+	const SAI_is_hypno_released = function(){
+		if(!sai_hypnosis_releasing_time)
+			return false;
+		return ((new Date().getTime()) - sai_hypnosis_releasing_time) >= 3000;
+	}
+
 	// KraKraの言語をセットして、UIをローカライズする。
-	function SAI_set_language(lang){
+	const SAI_set_language = function(lang){
 		// 言語が指定されてなければとりあえず英語。
 		if(!lang)
 			lang = 'en';
@@ -284,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 		// 「催眠解除中」の画像を更新。
 		sai_hypno_releasing_img = new Image();
-		if(sai_hypnosis_released){
+		if(SAI_is_hypno_released()){
 			sai_hypno_releasing_img.src = trans_getText('TEXT_HYPNOSIS_RELEASED_IMG');
 		}else{
 			sai_hypno_releasing_img.src = trans_getText('TEXT_KILLING_HYPNOSIS_IMG');
@@ -323,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// スピーチに対応するために、テキストを調整する。
-	function SAI_adjust_text_for_speech(text){
+	const SAI_adjust_text_for_speech = function(text){
 		text = text.replace('～', 'ー');
 
 		// {{LANGUAGE_SPECIFIC}}
@@ -342,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// スピーチを開始する。
-	async function SAI_speech_start(text){
+	const SAI_speech_start = function(text, once_only = false){
 		console.log('SAI_speech_start');
 
 		// 開始する前にいったんキャンセルする。
@@ -351,15 +428,20 @@ document.addEventListener('DOMContentLoaded', function(){
 		// スピーチ用にテキストを調整する。
 		text = SAI_adjust_text_for_speech(text);
 
+		// 音量。
+		let voice_volume = parseFloat(sai_id_range_voice_volume.value) / 100.0;
+
 		try{
 			// Android側のスピーチを開始する。Androidでなければ失敗。
-			android.speechLoop(text);
+			android.speechLoop(text, voice_volume);
 		}catch(error){ // Androidではない。Web側のスピーチを開始する。
 			if(window.speechSynthesis){ // 音声合成に対応していれば
-				text = text.repeat(32); // 32回繰り返す。
+				if(!once_only)
+					text = text.repeat(32); // 32回繰り返す。
 				let speech = new SpeechSynthesisUtterance(text);
 				speech.pitch = 0.6; // 音声の高さ。
 				speech.rate = 0.4; // 音声の速さ。
+				speech.volume = voice_volume; // 音量。
 				// {{LANGUAGE_SPECIFIC}}: スピーチの言語をセットする。
 				if(trans_currentLanguage == 'ja' || trans_currentLanguage == 'ja-JP') // Japanese
 					speech.lang = 'ja-JP';
@@ -383,12 +465,12 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 大きな画面か？
-	function SAI_screen_is_large(){
-		return sai_screen_width >= 1200 || sai_screen_height >= 1200;
+	const SAI_screen_is_large = function(ctx){
+		return ctx.canvas.width >= 1200 || ctx.canvas.height >= 1200;
 	}
 
-	// 音量。
-	function SAI_sound_set_volume(value){
+	// 効果音の音量。
+	const SAI_sound_set_volume = function(value){
 		value = parseInt(value);
 
 		// 音量をセットする。
@@ -403,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 音声オブジェクトを作成する。
-	function SAI_sound_create(){
+	const SAI_sound_create = function(){
 		// 音声名がなければ音声オブジェクトなし。
 		if(!sai_sound_name){
 			if(sai_sound_object)
@@ -415,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		sai_sound_object = new Audio('sn/' + sai_sound_name + '.mp3');
 		sai_sound_object.addEventListener('ended', function(e){ // 音声が停止した？
 			// 音声再生ボタンのイメージを更新する。
-			sai_id_image_play_pause.src = 'images/play.svg';
+			sai_id_image_play_pause.src = 'img/play.svg';
 
 			// チェックを外す。
 			sai_id_button_sound_play.classList.remove('sai_class_checked');
@@ -423,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 音声の名前をセットし、音声オブジェクトを作成する。設定を保存する。
-	function SAI_sound_set_name(value){
+	const SAI_sound_set_name = function(value){
 		// 音声のバリデーション。
 		if(value.indexOf('sn') == 0)
 			value = '';
@@ -442,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 映像切り替えの音の有無をセットする。
-	function SAI_set_type_sound(value, test = false){
+	const SAI_set_type_sound = function(value, test = false){
 		// ローカルストレージから来た値は文字列かもしれない。正規化。
 		switch(value){
 		case true:
@@ -470,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 画面の明るさをセットする。
-	function SAI_screen_set_brightness(value){
+	const SAI_screen_set_brightness = function(value){
 		try{
 			// Android側で明るさをセット。Androidでなければ失敗。
 			android.setBrightness(value);
@@ -486,8 +568,30 @@ document.addEventListener('DOMContentLoaded', function(){
 		localStorage.setItem('saiminScreenBrightness', value);
 	}
 
+	// メッセージボイスの音量を設定する関数。
+	const SAI_message_set_voice_volume = function(value){
+		value = parseFloat(value); // 値を浮動小数点数に変換。
+
+		// 音量を制限。
+		if (value >= 100)
+			value = 100;
+		if (value <= 0)
+			value = 0;
+		
+		// 必要ならUIを更新。
+		if(value != sai_id_range_voice_volume.value)
+			sai_id_range_voice_volume.value = value;
+
+		// outputのUIを更新。
+		let text = parseInt(value).toString() + "%";
+		trans_setHtmlText(sai_id_text_voice_volume_output, text);
+
+		// ローカルストレージに記憶。
+		localStorage.setItem('saiminMessageVolume', value.toString());
+	}
+
 	// メッセージの表示サイズをセットする。
-	function SAI_message_set_size(value){
+	const SAI_message_set_size = function(value){
 		// いったん、すべての文字サイズ設定クラスを削除。
 		sai_id_text_floating_1.classList.remove('sai_class_font_size_small');
 		sai_id_text_floating_1.classList.remove('sai_class_font_size_normal');
@@ -503,12 +607,21 @@ document.addEventListener('DOMContentLoaded', function(){
 		// 文字サイズ設定クラスを追加。テキストを取得。
 		let text = '';
 		switch (value){
-		case 'small':
-		case '1':
-			sai_id_text_floating_1.classList.add('sai_class_font_size_small');
-			sai_id_text_floating_2.classList.add('sai_class_font_size_small');
-			value = '1';
-			text = trans_getText('TEXT_SIZE_SMALL');
+		case 'huge':
+		case '4':
+			sai_id_text_floating_1.classList.add('sai_class_font_size_huge');
+			sai_id_text_floating_2.classList.add('sai_class_font_size_huge');
+			value = '4';
+			text = trans_getText('TEXT_SIZE_HUGE');
+			sai_message_size = 4;
+			break;
+		case 'large':
+		case '3':
+			sai_id_text_floating_1.classList.add('sai_class_font_size_large');
+			sai_id_text_floating_2.classList.add('sai_class_font_size_large');
+			value = '3';
+			text = trans_getText('TEXT_SIZE_LARGE');
+			sai_message_size = 3;
 			break;
 		case 'normal':
 		case '2':
@@ -517,20 +630,15 @@ document.addEventListener('DOMContentLoaded', function(){
 			sai_id_text_floating_2.classList.add('sai_class_font_size_normal');
 			value = '2';
 			text = trans_getText('TEXT_SIZE_NORMAL');
+			sai_message_size = 2;
 			break;
-		case 'large':
-		case '3':
-			sai_id_text_floating_1.classList.add('sai_class_font_size_large');
-			sai_id_text_floating_2.classList.add('sai_class_font_size_large');
-			value = '3';
-			text = trans_getText('TEXT_SIZE_LARGE');
-			break;
-		case 'huge':
-		case '4':
-			sai_id_text_floating_1.classList.add('sai_class_font_size_huge');
-			sai_id_text_floating_2.classList.add('sai_class_font_size_huge');
-			value = '4';
-			text = trans_getText('TEXT_SIZE_HUGE');
+		case 'small':
+		case '1':
+			sai_id_text_floating_1.classList.add('sai_class_font_size_small');
+			sai_id_text_floating_2.classList.add('sai_class_font_size_small');
+			value = '1';
+			text = trans_getText('TEXT_SIZE_SMALL');
+			sai_message_size = 1;
 			break;
 		}
 
@@ -546,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 映像スピードをセットする。
-	function SAI_speed_set_type(value){
+	const SAI_speed_set_type = function(value){
 		// まず「不規則」ではないことを仮定。
 		sai_speed_irregular = false;
 
@@ -572,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function(){
 			break;
 		default:
 			sai_speed = parseFloat(value);
-			if (sai_speed == 0){
+			if(sai_speed == 0){
 				text = trans_getText('TEXT_SPEED_ZERO');
 			}else if(sai_speed <= 27.5){
 				text = trans_getText('TEXT_SPEED_SLOW');
@@ -611,7 +719,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 画面分割の種類をセットする。
-	function SAI_screen_set_split(value){
+	const SAI_screen_set_split = function(value){
 		value = parseInt(value); // 整数値に変換する。
 
 		// チェックボックスと変数を更新。
@@ -632,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// カウントダウンの有無をセットする。なければカウントダウンしない。
-	function SAI_set_count_down(value){
+	const SAI_set_count_down = function(value){
 		// ローカルストレージから来た値は文字列かもしれない。複数の型に対応。
 		switch(value){
 		case "true":
@@ -658,27 +766,36 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 映像の進行を支配する関数。
-	function SAI_get_tick_count(){
+	const SAI_get_tick_count = function(){
 		return sai_counter;
+	}
+	const SAI_get_tick_count_2 = function(){
+		return sai_counter * 10000 / (1 + Math.min(sai_screen_width, sai_screen_height));
 	}
 
 	// 映像の種類を取得する。
-	function SAI_pic_get_type(){
+	const SAI_pic_get_type = function(){
 		return sai_pic_type;
 	};
 
 	// 映像の種類の整数値をセットする。
-	function SAI_pic_set_type(value){
-		sai_pic_type = parseInt(value); // 整数に変換して変数に記憶。
-		if(sai_pic_type == -1){ // 「催眠解除」の場合。
+	const SAI_pic_set_type = function(value){
+		value = parseInt(value); // 整数に変換して変数に記憶。
+
+		if (value != -1){
+			sai_hypnosis_releasing_time = null;
+			sai_pic_type = value;
+		}else{
+			sai_hypnosis_releasing_time = (new Date()).getTime();
+		}
+
+		if(sai_hypnosis_releasing_time){ // 「催眠解除」の場合。
 			// スピーチをキャンセル。
 			SAI_speech_cancel();
 			sai_id_button_speech.classList.remove('sai_class_checked');
+
 			// 音声を停止。
 			SAI_sound_pause();
-
-			// 「催眠解除中」の変数を更新。
-			sai_hypnosis_released = false;
 
 			// 催眠解除クラスを追加。
 			sai_id_button_sound_play.classList.add('sai_class_releasing');
@@ -688,14 +805,13 @@ document.addEventListener('DOMContentLoaded', function(){
 			// 催眠解除の画像のソースを更新。
 			sai_hypno_releasing_img.src = trans_getText('TEXT_KILLING_HYPNOSIS_IMG');
 
-			// 催眠解除まで時間がかかる。
-			setTimeout(function(){
-				// 3秒待った。解除されたと仮定。画像のソースを更新。
-				sai_hypno_releasing_img.src = trans_getText('TEXT_HYPNOSIS_RELEASED_IMG');
-				sai_all_released_img.src = trans_getText('TEXT_ALL_RELEASED_IMG');
-				// 解放された！
-				sai_hypnosis_released = true;
-			}, 3000);
+			// 必要なら催眠解除の音声を流す。
+			if(sai_id_checkbox_auto_play_sound.checked){
+				if(!sai_releasing_sound)
+					sai_releasing_sound = new Audio(trans_getText('TEXT_MP3_RELEASED_HYPNOSIS'));
+				sai_releasing_sound.currentTime = 0;
+				sai_releasing_sound.play();
+			}
 		}else{
 			if(sai_old_pic_type == -1){ // 「催眠解除中」か？
 				sai_message_text = ''; // メッセージテキストをクリア。
@@ -723,11 +839,12 @@ document.addEventListener('DOMContentLoaded', function(){
 		}catch(error){
 			;
 		}
-		sai_old_pic_type = sai_pic_type;
+
+		sai_old_pic_type = value;
 	};
 
 	// メッセージテキストをセットする。
-	function SAI_message_set_text(txt){
+	const SAI_message_set_text = function(txt){
 		console.log('SAI_message_set_text', txt);
 
 		// メッセージテキストを調整。
@@ -754,7 +871,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 映像の回転の向きをセットする。
-	function SAI_rotation_set(value){
+	const SAI_rotation_set = function(value){
 		// valueは文字列かもしれないし、ブール値かもしれない。
 		switch(value){
 		case 'normal':
@@ -777,7 +894,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// フルスクリーンモード。
-	function SAI_screen_set_fullscreen_mode(value){
+	const SAI_screen_set_fullscreen_mode = function(value){
 		switch(value){
 		case '1':
 		case 'true':
@@ -799,7 +916,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 音声の自動繰り返し。
-	function SAI_sound_set_auto_repeat(value){
+	const SAI_sound_set_auto_repeat = function(value){
 		switch(value){
 		case '1':
 		case 'true':
@@ -821,14 +938,14 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// スクリーンのサイズをセットする。必要ならキャンバスのサイズも変更する。
-	function SAI_screen_fit_canvas(){
+	const SAI_screen_fit_canvas = function(){
 		console.log('SAI_screen_fit_canvas');
 		sai_screen_width = sai_id_canvas_01.width = window.innerWidth;
 		sai_screen_height = sai_id_canvas_01.height = window.innerHeight;
 	}
 
 	// スクリーンのサイズをセットし、必要なら画面を復帰する。
-	function SAI_screen_fit(){
+	const SAI_screen_fit = function(){
 		SAI_screen_fit_canvas();
 		let position = { my: 'center', at: 'center', of: window };
 		if(localStorage.getItem('saiminHelpShowing')){
@@ -839,7 +956,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 「バージョン情報」にバージョン番号をセットする。
-	function SAI_update_version_display(){
+	const SAI_update_version_display = function(){
 		let nativeVersion = SAI_get_native_app_version();
 		let text = sai_id_text_version.textContent;
 		if(nativeVersion){
@@ -851,7 +968,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// ユーザを受け入れる。
-	function SAI_user_accepted(){
+	const SAI_user_accepted = function(){
 		// メインコントロール群を表示する。
 		SAI_show_main_controls(true);
 
@@ -864,7 +981,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		}
 
 		// 必要ならアニメーションを要求する。
-		if (!sai_request_anime)
+		if(!sai_request_anime)
 			sai_request_anime = window.requestAnimationFrame(SAI_draw_all);
 
 		// メインページに飛ばす。
@@ -872,7 +989,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 初期時の言語選択を自動化する。
-	function SAI_language_choose(){
+	const SAI_language_choose = function(){
 		// ローカルストレージから言語を取得。
 		let lang = localStorage.getItem('saiminLanguage3');
 		if(!lang){ // 取得できなければブラウザからデフォルトの言語を取得。
@@ -883,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 「バージョン情報」ダイアログ。
-	function SAI_help_and_agreement(){
+	const SAI_help_and_agreement = function(){
 		// バージョン番号の表示を更新。
 		SAI_update_version_display();
 
@@ -892,11 +1009,15 @@ document.addEventListener('DOMContentLoaded', function(){
 			sai_id_text_notice.scrollLeft = sai_id_text_notice.scrollTop = 0;
 		}, 100);
 
-		// ユーザーが同意したか？ ボタンのテキストを変える。
+		// ユーザーが同意したか？ ボタンのテキストを変える。「戻る」ボタンの表示を切り替える。
 		if(localStorage.getItem('saiminUserAccepted')){
 			trans_setHtmlText(sai_id_button_agree, trans_getText('TEXT_OK'));
+			sai_id_button_agreement_back.classList.remove('sai_class_invisible');
+			sai_id_button_init_app.classList.remove('sai_class_invisible');
 		}else{
 			trans_setHtmlText(sai_id_button_agree, trans_getText('TEXT_I_AGREE'));
+			sai_id_button_agreement_back.classList.add('sai_class_invisible');
+			sai_id_button_init_app.classList.add('sai_class_invisible');
 		}
 
 		// ローカルストレージに表示状態を記憶。
@@ -907,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 「設定」ダイアログ。
-	function SAI_config(){
+	const SAI_config = function(){
 		// ローカルストレージに表示状態を記憶。
 		localStorage.setItem('saiminConfigShowing', '1');
 
@@ -916,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 円の描画。
-	function SAI_draw_circle(ctx, x, y, radius, is_fill = true){
+	const SAI_draw_circle = function(ctx, x, y, radius, is_fill = true){
 		ctx.beginPath();
 		ctx.arc(x, y, Math.abs(radius), 0, 2 * Math.PI);
 		ctx.closePath();
@@ -929,7 +1050,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	// 円の描画２。
 	// いくつかの環境では大きな円を描くときにSAI_draw_circleを使うと遅くなる。
 	// こちらの関数は自前で円に近い図形（正多角形）を描画する。
-	function SAI_draw_circle_2(ctx, x, y, radius, is_fill = true, N = 16){
+	const SAI_draw_circle_2 = function(ctx, x, y, radius, is_fill = true, N = 16){
 		ctx.beginPath();
 		for(let i = 0; i < N; ++i){
 			let x0 = x + radius * Math.cos(2 * Math.PI * i / N);
@@ -948,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 線分の描画。
-	function SAI_draw_line(ctx, x0, y0, x1, y1, lineWidth){
+	const SAI_draw_line = function(ctx, x0, y0, x1, y1, lineWidth){
 		ctx.lineWidth = lineWidth;
 		ctx.beginPath();
 		ctx.moveTo(x0, y0);
@@ -959,7 +1080,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	// 線分の描画２。
 	// いくつかの環境ではSAI_draw_lineでかなり太い線を描くと時間がかかる。
 	// こちらの関数は自前で線をレンダリングする。
-	function SAI_draw_line_2(ctx, x0, y0, x1, y1, lineWidth){
+	const SAI_draw_line_2 = function(ctx, x0, y0, x1, y1, lineWidth){
 		let dx = x1 - x0, dy = y1 - y0;
 		let len = Math.sqrt(dx * dx + dy * dy);
 		let ux = dx / len, uy = dy / len;
@@ -974,7 +1095,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// ハート形の描画。
-	function SAI_draw_heart(ctx, x0, y0, x1, y1){
+	const SAI_draw_heart = function(ctx, x0, y0, x1, y1){
 		let x2 = (0.6 * x0 + 0.4 * x1);
 		let y2 = (0.6 * y0 + 0.4 * y1);
 		let comp = new Complex({re:x1 - x0, im:y1 - y0});
@@ -991,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 目の描画。
-	function SAI_draw_eye(ctx, x0, y0, r, opened = 1.0, alpha = 1.0){
+	const SAI_draw_eye = function(ctx, x0, y0, r, opened = 1.0, alpha = 1.0){
 		ctx.beginPath();
 		ctx.moveTo(x0 - r, y0);
 		const r025 = r * 0.25;
@@ -1018,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 目の描画２。
-	function SAI_draw_eye_2(ctx, x0, y0, r, opened = 1.0){
+	const SAI_draw_eye_2 = function(ctx, x0, y0, r, opened = 1.0){
 		ctx.beginPath();
 		ctx.moveTo(x0, y0 - r * 1.3);
 		const r025 = r * 0.25;
@@ -1039,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// きらめきの描画。
-	function SAI_draw_light(ctx, x0, y0, radius){
+	const SAI_draw_light = function(ctx, x0, y0, radius){
 		let r0 = radius;
 		let rmid = radius * 0.333;
 		ctx.beginPath();
@@ -1058,7 +1179,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 長方形領域(px, py, dx, dy)をクリッピングする。
-	function SAI_clip_rect(ctx, px, py, dx, dy){
+	const SAI_clip_rect = function(ctx, px, py, dx, dy){
 		ctx.beginPath();
 		ctx.moveTo(px, py);
 		ctx.lineTo(px + dx, py);
@@ -1069,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// サブリミナルの描画。
-	function SAI_draw_subliminal(ctx, px, py, dx, dy){
+	const SAI_draw_subliminal = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 長方形領域(px, py, dx, dy)をクリッピングする。
@@ -1093,8 +1214,9 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic-1: Release Hyponosis
-	function SAI_draw_pic_minus_1(ctx, px, py, dx, dy){
+	// 映像「画-1: 催眠解除」の描画。
+	// pic-1: Release Hyponosis
+	const SAI_draw_pic_minus_1 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 長方形領域(px, py, dx, dy)をクリッピングする。
@@ -1113,7 +1235,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		let count2 = -SAI_get_tick_count();
 		let factor = 1.2 * Math.abs(Math.sin(count2 * 0.05));
 
-		if(sai_hypnosis_released)
+		if(SAI_is_hypno_released())
 			factor = 1.0;
 
 		// 黄色っぽくて丸いグラデーションを描画する。
@@ -1136,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		}
 
 		// 「催眠解除完了」のイメージを描画する。
-		if(sai_hypnosis_released && sai_all_released_img.complete){
+		if(SAI_is_hypno_released() && sai_all_released_img.complete){
 			let x = px + (dx - sai_all_released_img.width) / 2;
 			let y = py + (dy - sai_all_released_img.height) / 2 + dy * 0.2;
 			ctx.drawImage(sai_all_released_img, x, y);
@@ -1145,8 +1267,29 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic0: Dummy Screen (for practice)
-	function SAI_draw_pic_0(ctx, px, py, dx, dy){
+	// 1番目の色を取得。
+	const SAI_color_get_1st = function(){
+		if(sai_id_checkbox_color_1st_rainbow.checked){
+			let value = SAI_mod(SAI_get_tick_count() * 0.02, 1);
+			return `hsl(${value * 360 % 360}, 100%, 50%)`;
+		}else{
+			return sai_id_color_1st.value;
+		}
+	}
+
+	// 2番目の色を取得。
+	const SAI_color_get_2nd = function(){
+		if(sai_id_checkbox_color_2nd_rainbow.checked){
+			let value = SAI_mod(SAI_get_tick_count() * 0.02 + 0.5, 1);
+			return `hsl(${value * 360 % 360}, 100%, 50%)`;
+		}else{
+			return sai_id_color_2nd.value;
+		}
+	}
+
+	// 映像「画0: ダミー画面（練習用）」の描画。
+	// pic0: Dummy Screen (for practice)
+	const SAI_draw_pic_00 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 長方形領域(px, py, dx, dy)をクリッピングする。
@@ -1172,14 +1315,11 @@ document.addEventListener('DOMContentLoaded', function(){
 		if(sai_logo_img.complete){ // ロゴイメージの読み込みが完了されたか？
 			// 寸法を調整する。
 			let width = sai_logo_img.width, height = sai_logo_img.height;
-			if (width > sai_screen_width){
+			if(width > sai_screen_width){
 				width *= 0.75;
 				height *= 0.75;
 			}else{
-				if(SAI_screen_is_large() &&
-					sai_screen_width * 2 < width &&
-					sai_screen_height * 2 < height)
-				{
+				if(SAI_screen_is_large(ctx) && dx * 2 < width && dy * 2 < height){
 					width *= 2;
 					height *= 2;
 				}
@@ -1199,63 +1339,80 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic1: Pink Spiral
-	function SAI_draw_pic_1(ctx, px, py, dx, dy){
+	// 映像「画1: 対数らせん」の描画。
+	// pic1: Logarithmic Spiral
+	const SAI_draw_pic_01 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
-
-		// 画面中央の座標を計算する。
-		let qx = px + dx / 2, qy = py + dy / 2;
 
 		// 長方形領域(px, py, dx, dy)をクリッピングする。
 		SAI_clip_rect(ctx, px, py, dx, dy);
 
-		// 黒で塗りつぶす。
-		ctx.fillStyle = '#000';
+		// 2番目の色で塗りつぶす。
+		ctx.fillStyle = SAI_color_get_2nd();
 		ctx.fillRect(px, py, dx, dy);
 
-		// 寸法を計算する。
-		let minxy = Math.min(dx, dy), maxxy = Math.min(dx, dy);
-
 		// 画面中央を原点とする。
+		let qx = px + dx / 2, qy = py + dy / 2;
 		ctx.translate(qx, qy);
 
-		// 映像の進行を表す。
+		// 映像の進行を表す変数。
 		let count2 = -SAI_get_tick_count();
 
 		// 原点を中心として、これから描画する図形を回転する。
 		ctx.rotate(-count2 * 0.12);
 
-		// 少し回転のずれを表現する。
-		ctx.translate(25 * Math.cos(count2 * 0.01), 25 * Math.sin(count2 * 0.05));
-		ctx.rotate(count2 * 0.02);
+		// 画面の寸法を使って計算する。
+		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
 
-		ctx.fillStyle = '#f0f'; // ショッキングピンクで描画する。
+		// 視覚的な酩酊感をもたらすために回転運動の中心点をすりこぎ運動させる。
+		let mxy = (maxxy + minxy) * 0.03;
+		ctx.translate(mxy * Math.cos(count2 * 0.007), mxy * Math.sin(count2 * 0.025));
+		ctx.rotate(count2 * 0.01);
 
-		// 発散する渦巻きを描画する。
-		let ci = 8;
-		for(let i = 0; i <= ci; ++i){
-			let delta_theta = 2 * Math.PI * i / ci;
-			// 対数らせんの公式に従って描画する。ただし偏角はdelta_thetaだけずらす。
-			let a = 1, b = 1.1, oldx = 0, oldy = 0;
-			for(let theta = 0; theta <= Math.PI * 2 * 10; theta += 0.2){
+		const num_lines = 24; // これは偶数でなければならない。
+		const a = 1, b = 1.1; // らせんの係数。
+
+		// 発散する渦巻きを表す多角形の頂点を構築する。
+		let lines = [];
+		for(let i = 0; i < num_lines; ++i){
+			let delta_theta = 2 * Math.PI * i / num_lines;
+			// 対数らせんの公式に従って頂点を追加していく。ただし偏角はdelta_thetaだけずらす。
+			let line = [[0, 0]];
+			for(let theta = 0; theta <= 2 * Math.PI; theta += 0.1){
 				let r = a * Math.exp(b * theta);
 				let comp = new Complex({abs:r, arg:theta + delta_theta});
 				let x = comp.re, y = comp.im;
-
-				// 線を描画する。
-				SAI_draw_line_2(ctx, oldx, oldy, x, y, r * 1.8 / ci);
-
-				// 古い(x, y)を記憶する。
-				oldx = x;
-				oldy = y;
+				line.push([x, y]);
 			}
+			lines.push(line);
 		}
+
+		// 多角形を描画する。
+		let even = true;
+		ctx.beginPath();
+		ctx.moveTo(0, 0);
+		for(let i = 0; i < num_lines; ++i){
+			let line = lines[i];
+			if(even){ // 偶数回目はそのままの向き。
+				for(let k = 0; k < line.length; ++k){
+					ctx.lineTo(line[k][0], line[k][1]);
+				}
+			}else{ // 奇数回目は逆向き。
+				for(let k = line.length - 1; k >= 0; --k)
+					ctx.lineTo(line[k][0], line[k][1]);
+			}
+			even = !even;
+		}
+		ctx.closePath();
+		ctx.fillStyle = SAI_color_get_1st(); // 1番目の色で塗りつぶす。
+		ctx.fill();
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic2: Concentric Circles
-	function SAI_draw_pic_2(ctx, px, py, dx, dy, flag=true){
+	// 映像「画2: 同心円状」の描画。
+	// pic2: Concentric Circles
+	const SAI_draw_pic_2_sub = function(ctx, px, py, dx, dy, flag=true){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1279,13 +1436,13 @@ document.addEventListener('DOMContentLoaded', function(){
 			ctx.clip();
 		}
 
-		// 白で長方形領域を塗りつぶす。
-		ctx.fillStyle = '#fff';
+		// 長方形領域を塗りつぶす。
+		ctx.fillStyle = SAI_color_get_1st();
 		ctx.fillRect(px, py, dx, dy);
 
 		// さまざまな計算をする。
 		let dr0 = 30;
-		if(SAI_screen_is_large()){
+		if(SAI_screen_is_large(ctx)){
 			dr0 *= 2;
 			count2 *= 2;
 			ctx.lineWidth = 30;
@@ -1299,6 +1456,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 		// 同心円状に描画する。
 		let size = (dx + dy) * 0.4;
+		ctx.strokeStyle = SAI_color_get_2nd();
 		for(; radius < size; radius += dr0){
 			SAI_draw_circle(ctx, qx, qy, radius, false);
 		}
@@ -1306,8 +1464,16 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic3: The Eyes
-	function SAI_draw_pic_3(ctx, px, py, dx, dy){
+	// 映像「画2: 同心円状」の描画。
+	// pic2: Concentric Circles
+	const SAI_draw_pic_02 = function(ctx, px, py, dx, dy){
+		SAI_draw_pic_2_sub(ctx, px, py, dx, dy, true);
+		SAI_draw_pic_2_sub(ctx, px, py, dx, dy, false);
+	}
+
+	// 映像「画3: 目が回る」の描画。
+	// pic3: The Eyes
+	const SAI_draw_pic_03 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1435,8 +1601,9 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic4: Black/White Spiral
-	function SAI_draw_pic_4(ctx, px, py, dx, dy){
+	// 映像「画4: アルキメデスのらせん」の描画。
+	// pic4: Archimedes' Spiral
+	const SAI_draw_pic_04 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1449,40 +1616,68 @@ document.addEventListener('DOMContentLoaded', function(){
 		SAI_clip_rect(ctx, px, py, dx, dy);
 
 		// 黒で長方形領域を塗りつぶす。
-		ctx.fillStyle = 'white';
+		ctx.fillStyle = SAI_color_get_2nd();
 		ctx.fillRect(px, py, dx, dy);
 
 		// 画面中央を原点とする。
 		ctx.translate(qx, qy);
 
-		// 映像の進行を表す変数。
-		let factor = SAI_get_tick_count() * 0.4;
+		let count2 = SAI_get_tick_count();
 
-		// 原点を中心に発散する渦巻きを描画する。
-		let radius = 1; // 半径。
-		ctx.fillStyle = 'rgba(0, 0, 0, 33%)';
-		for(let radian = 0; radian < 120;){ // 角度によりループ。
-			const radian2 = radian - factor;
+		// 画面の寸法を使って計算する。
+		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
 
-			// 線の始点。
-			const x0 = radius * Math.cos(-radian2), y0 = radius * Math.sin(-radian2);
+		// 視覚的な酩酊感をもたらすために回転運動の中心点をすりこぎ運動させる。
+		let mxy = (maxxy + minxy) * 0.04;
+		ctx.translate(mxy * Math.cos(count2 * 0.08), mxy * Math.sin(count2 * 0.05));
 
-			radius *= 1.009; // 半径は単純増加。
-			radian += 0.08; // 角度も単純増加。
-			const radian3 = radian - factor;
+		// これから描画する図形を回転する。
+		ctx.rotate(count2 * -0.25);
 
-			// 線の終点。
-			const x1 = radius * Math.cos(-radian3), y1 = radius * Math.sin(-radian3);
+		ctx.fillStyle = SAI_color_get_1st(); // 1番目の色で描画する。
 
-			// 線を描画する。
-			SAI_draw_line_2(ctx, x0, y0, x1, y1, radius * 0.325);
+		// 発散する渦巻きを描画する。
+		let ci = 8; // これは偶数でなければならない。
+		let lines = [];
+		const a = 20;
+		for(let i = 0; i < ci; ++i){
+			let delta_theta = 2 * Math.PI * i / ci;
+			// アルキメデスのらせんの公式に従って描画する。ただし偏角はdelta_thetaだけずらす。
+			let line = [];
+			line.push([0, 0]);
+			for(let theta = 0; theta <= 2 * Math.PI * 10; theta += 0.1){
+				let r = a * theta;
+				let comp = new Complex({abs:r, arg:theta + delta_theta});
+				let x = comp.re, y = comp.im;
+				line.push([x, y]);
+			}
+			lines.push(line);
 		}
+
+		// 線を描画する。
+		let even = true;
+		ctx.beginPath();
+		ctx.moveTo(0, 0);
+		for(let i = 0; i < ci; ++i){
+			let line = lines[i];
+			if(even){ // 偶数回目はそのままの向き。
+				for(let k = 0; k < line.length; ++k)
+					ctx.lineTo(line[k][0], line[k][1]);
+			}else{ // 奇数回目は逆向き。
+				for(let k = line.length - 1; k >= 0; --k)
+					ctx.lineTo(line[k][0], line[k][1]);
+			}
+			even = !even;
+		}
+		ctx.closePath();
+		ctx.fill();
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic5: Spreading Rainbow
-	function SAI_draw_pic_5(ctx, px, py, dx, dy){
+	// 映像「画5: 広がるハート」の描画。
+	// pic5: Spreading Rainbow
+	const SAI_draw_pic_05 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1499,7 +1694,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		let factor = count2 * 0.16;
 
 		// 画面中央を少しずらす。
-		if(SAI_screen_is_large()){
+		if(SAI_screen_is_large(ctx)){
 			qx += 60 * Math.cos(factor * 0.8);
 			qy += 60 * Math.sin(factor * 0.8);
 		}else{
@@ -1511,7 +1706,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.translate(qx, qy);
 
 		// 星形のレインボーを描画する。外側から順番に。
-		let isLarge = SAI_screen_is_large();
+		let isLarge = SAI_screen_is_large(ctx);
 		for(let radius = isLarge ? ((dx + dy) * 0.2) : ((dx + dy) * 0.4); radius >= 10; radius *= 0.92){
 			// 虹色の指定はHSL色空間で。
 			ctx.fillStyle = `hsl(${((dxy + factor * 0.3 - radius * 0.015) * 360) % 360}deg, 100%, 50%)`;
@@ -1578,8 +1773,9 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic6: 5-yen coin
-	function SAI_draw_pic_6(ctx, px, py, dx, dy){
+	// 映像「画6: 五円玉」の描画。
+	// pic6: 5-yen coin
+	const SAI_draw_pic_06 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1596,7 +1792,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		const value = Math.sin(count2 * 0.05);
 
 		// 指定した色で長方形領域を塗りつぶす。
-		ctx.fillStyle = `rgb(${value * 30 + 40}, ${value * 20 + 80}, ${value * 15 + 80})`
+		ctx.fillStyle = `rgb(${value * 30 + 40}, ${value * 20 + 80}, ${value * 80 + 180})`
 		ctx.fillRect(px, py, dx, dy);
 
 		// 空を漂う、小さな謎の丸い物体を描画する。
@@ -1637,6 +1833,8 @@ document.addEventListener('DOMContentLoaded', function(){
 		const y = 600, cx = 8000;
 		const deltax = 300, deltaz = 100;
 		let iz = 0;
+		const color_1st = SAI_color_get_1st();
+		const color_2nd = SAI_color_get_2nd();
 		for(let z = 0; z <= 900; z += deltaz){
 			let ix = 0;
 			for(let x = -cx; x < cx; x += deltax){
@@ -1649,7 +1847,7 @@ document.addEventListener('DOMContentLoaded', function(){
 				ctx.lineTo(qx + x1, qy + y1);
 				ctx.lineTo(qx + x2, qy + y2);
 				ctx.lineTo(qx + x3, qy + y3);
-				ctx.fillStyle = ((ix + iz) & 1) ? '#333' : '#833';
+				ctx.fillStyle = ((ix + iz) & 1) ? color_1st : color_2nd;
 				ctx.fill();
 				++ix;
 			}
@@ -1663,15 +1861,16 @@ document.addEventListener('DOMContentLoaded', function(){
 			let angle = Math.PI * Math.sin(count2 * 0.1 - 0.05) * 0.078;
 			ctx.rotate(angle);
 
-			let ratio = SAI_screen_is_large() ? 1.4 : 1;
+			let ratio = SAI_screen_is_large(ctx) ? 1.4 : 1;
 			ctx.drawImage(sai_coin_img, 0, 0, sai_coin_img.width * ratio, sai_coin_img.height * ratio);
 		}
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic7: Clamor Clamor
-	function SAI_draw_pic_7(ctx, px, py, dx, dy){
+	// 映像「画7: ぼわんぼわん」の描画。
+	// pic7: Clamor Clamor
+	const SAI_draw_pic_07 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1688,7 +1887,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		let factor1 = count2 * 0.13, factor2 = count2 * 0.075;
 
 		// 画面中央を少しずらす。
-		if(SAI_screen_is_large()){
+		if(SAI_screen_is_large(ctx)){
 			qx += 60 * Math.cos(count2 * 0.1);
 			qy += 60 * Math.sin(count2 * 0.1);
 		}else{
@@ -1708,11 +1907,9 @@ document.addEventListener('DOMContentLoaded', function(){
 		const delta = dxy * 0.015 + 1;
 		for(let radius = (Math.floor(dxy * 0.35 / delta) + 1) * delta; radius > 0; radius -= delta){
 			// 塗りつぶしの色を選ぶ。
-			switch (i & 3){
-			case 0: ctx.fillStyle = '#f00'; break;
-			case 1: ctx.fillStyle = '#ff0'; break;
-			case 2: ctx.fillStyle = '#f90'; break;
-			case 3: ctx.fillStyle = '#300'; break;
+			switch (i % 2){
+			case 0: ctx.fillStyle = SAI_color_get_1st(); break;
+			case 1: ctx.fillStyle = SAI_color_get_2nd(); break;
 			}
 
 			// パスを構築する。
@@ -1746,8 +1943,9 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic8: Crazy Colors
-	function SAI_draw_pic_8(ctx, px, py, dx, dy){
+	// 映像「画8: クレージーな色」の描画。
+	// pic8: Crazy Colors
+	const SAI_draw_pic_08 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1767,7 +1965,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		let count2 = SAI_get_tick_count();
 
 		// 画面中央を少しずらす。
-		if(SAI_screen_is_large()){
+		if(SAI_screen_is_large(ctx)){
 			qx += 40 * Math.cos(count2 * 0.08);
 			qy += 40 * Math.sin(count2 * 0.08);
 		}else{
@@ -1821,8 +2019,9 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic9: Golden Spiral
-	function SAI_draw_pic_9(ctx, px, py, dx, dy){
+	// 映像「画9: 対数らせん2」の描画。
+	// pic9: Logarithmic Spiral 2
+	const SAI_draw_pic_09 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1832,7 +2031,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
 
 		// 黒で長方形領域を塗りつぶす。
-		ctx.fillStyle = '#000';
+		ctx.fillStyle = SAI_color_get_2nd();
 		ctx.fillRect(px, py, dx, dy);
 
 		// 長方形領域(px, py, dx, dy)をクリッピングする。
@@ -1847,33 +2046,55 @@ document.addEventListener('DOMContentLoaded', function(){
 		// 回転させる。
 		ctx.rotate(-count2 * 0.23);
 
-		// 黄色で塗る。
-		ctx.fillStyle = '#ff0';
+		// 視覚的な酩酊感をもたらすために回転運動の中心点をすりこぎ運動させる。
+		let mxy = (maxxy + minxy) * 0.015;
+		ctx.translate(mxy * Math.cos(count2 * 0.1), mxy * Math.sin(count2 * 0.013));
 
-		// 黄金らせんの公式に従って描画する。ただしtheta_deltaだけ偏角をずらす。
-		const b = 0.3063489, ci = 3;
+		// 1番目の色で塗る。
+		ctx.fillStyle = SAI_color_get_1st();
+
+		// 発散する渦巻きを描画する。
+		let ci = 8; // これは偶数でなければならない。
+		let lines = [];
 		for(let i = 0; i < ci; ++i){
-			let oldx = 0, oldy = 0;
-			let theta_delta = 2 * Math.PI * i / ci;
-			for(let theta = 0; theta <= Math.PI * 2 * 10; theta += 0.13){
-				let r = Math.exp(b * theta);
-				let comp = new Complex({abs:r, arg:theta + theta_delta});
+			let delta_theta = 2 * Math.PI * i / ci;
+			// 黄金らせんの公式に従って描画する。ただしtheta_deltaだけ偏角をずらす。
+			let a = 1, b = 0.3063489;
+			let line = [];
+			line.push([0, 0]);
+			for(let theta = 0; theta <= 2 * Math.PI * 10; theta += 0.1){
+				let r = a * Math.exp(b * theta);
+				let comp = new Complex({abs:r, arg:theta + delta_theta});
 				let x = comp.re, y = comp.im;
-
-				// 線を描画する。
-				SAI_draw_line_2(ctx, oldx, oldy, x, y, r * 0.8 / ci);
-
-				// 古い(x, y)を記憶する。
-				oldx = x;
-				oldy = y;
+				line.push([x, y]);
 			}
+			lines.push(line);
 		}
+
+		// 多角形を描画する。
+		let even = true;
+		ctx.beginPath();
+		ctx.moveTo(0, 0);
+		for(let i = 0; i < ci; ++i){
+			let line = lines[i];
+			if(even){ // 偶数回目はそのままの向き。
+				for(let k = 0; k < line.length; ++k)
+					ctx.lineTo(line[k][0], line[k][1]);
+			}else{ // 奇数回目は逆向き。
+				for(let k = line.length - 1; k >= 0; --k)
+					ctx.lineTo(line[k][0], line[k][1]);
+			}
+			even = !even;
+		}
+		ctx.closePath();
+		ctx.fill();
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像の描画。pic10: Analog Disc
-	function SAI_draw_pic_10(ctx, px, py, dx, dy){
+	// 映像「画10: アナログディスク」の描画。
+	// pic10: Analog Disc
+	const SAI_draw_pic_10 = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1892,7 +2113,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		let updown = minxy * Math.sin(count2 * 0.2) * 0.16;
 		ctx.translate(0, updown);
 
-		if (sai_spiral_img.complete){ // 渦巻きイメージの読み込みが完了していたら
+		if(sai_spiral_img.complete){ // 渦巻きイメージの読み込みが完了していたら
 			// 描画位置を計算。
 			let x = -sai_spiral_img.width / 2, y = -sai_spiral_img.height / 2;
 
@@ -1903,20 +2124,249 @@ document.addEventListener('DOMContentLoaded', function(){
 			let ratio = 2.5 * maxxy / (sai_spiral_img.width + sai_spiral_img.height);
 			ctx.scale(ratio, ratio);
 
-			if (!SAI_screen_is_large())
+			if(!SAI_screen_is_large(ctx))
 				ctx.globalAlpha = 0.5; // 透過効果を付ける。
 
 			ctx.drawImage(sai_spiral_img, x, y); // 渦巻きイメージを描画する。
 
-			if (!SAI_screen_is_large())
+			if(!SAI_screen_is_large(ctx))
 				ctx.globalAlpha = 1.0; // 透過効果を元に戻す。
 		}
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
+	// 映像「画11: ミックス渦巻き」の描画。
+	// pic11: Mixed Spiral
+	const SAI_draw_pic_11 = function(ctx, px, py, dx, dy){
+		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
+
+		// 長方形領域(px, py, dx, dy)をクリッピングする。
+		SAI_clip_rect(ctx, px, py, dx, dy);
+
+		// 2番目の色で塗りつぶす。
+		ctx.fillStyle = SAI_color_get_2nd();
+		ctx.fillRect(px, py, dx, dy);
+
+		// 画面中央を原点とする。
+		let qx = px + dx / 2, qy = py + dy / 2;
+		ctx.translate(qx, qy);
+
+		// 映像の進行を表す変数。
+		let count2 = -SAI_get_tick_count();
+
+		const num_lines = 24; // これは偶数でなければならない。
+
+		// らせんの係数。
+		let a = (1 + Math.sin(count2 * 0.1) * 0.2);
+		let b = (1 + Math.cos(count2 * 0.1) * 0.1);
+
+		// 発散する渦巻きを表す多角形の頂点を構築する。
+		let lines = [];
+		for(let i = 0; i < num_lines; ++i){
+			let delta_theta = 2 * Math.PI * i / num_lines;
+			// 対数らせんの公式に従って頂点を追加していく。ただし偏角はdelta_thetaだけずらす。
+			let line = [[0, 0]];
+			for(let theta = 0; theta <= Math.PI * 3; theta += 0.1){
+				let r = a * Math.exp(b * theta);
+				let comp = new Complex({abs:r, arg:theta + delta_theta});
+				let x = comp.re, y = comp.im;
+				line.push([x, y]);
+			}
+			lines.push(line);
+		}
+
+		// 原点を中心として、これから描画する図形を回転する。
+		ctx.rotate(count2 * 0.035);
+
+		// 多角形を描画する。逆回転で二重にする。
+		ctx.beginPath();
+		for(let m = 0; m < 2; ++m){
+			let even = true;
+			ctx.moveTo(0, 0);
+			for(let i = 0; i < num_lines; ++i){
+				let line = lines[i];
+				if(m == 0){
+					if(even){ // 偶数回目はそのままの向き。
+						for(let k = 0; k < line.length; ++k){
+							ctx.lineTo(line[k][0], line[k][1]);
+						}
+					}else{ // 奇数回目は逆向き。
+						for(let k = line.length - 1; k >= 0; --k)
+							ctx.lineTo(line[k][0], line[k][1]);
+					}
+				}else{
+					if(even){ // 偶数回目はそのままの向き。
+						for(let k = 0; k < line.length; ++k){
+							ctx.lineTo(line[k][0], -line[k][1]);
+						}
+					}else{ // 奇数回目は逆向き。
+						for(let k = line.length - 1; k >= 0; --k)
+							ctx.lineTo(line[k][0], -line[k][1]);
+					}
+				}
+				even = !even;
+			}
+		}
+		ctx.fillStyle = SAI_color_get_1st(); // 1番目の色で塗りつぶす。
+		ctx.fill();
+
+		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
+	}
+
+	// 万華鏡のソースの多角形を作成する。
+	const SAI_create_kaleido_polygon = function(radius){
+		const ROTATE2 = true;
+		let counter = SAI_get_tick_count_2() * 2;
+		return Kaleido_regular_polygon(3, {x:0, y:0}, radius, ROTATE2 ? counter * 0.0005 : -Math.PI / 2);
+	}
+
+	// 円を描画する。
+	const SAI_draw_circle_3 = function(ctx, radius, center, velocity, fillStyle){
+		let counter = SAI_get_tick_count_2();
+		let px = sai_kaleido_radius * Math.cos(counter * velocity.x * 0.0003) * 0.3;
+		let py = sai_kaleido_radius * Math.sin(counter * velocity.y * 0.0003) * 0.3;
+		let radius2 = radius * (3 + Math.sin(counter * 0.001 + (velocity.x + velocity.y) % Math.PI));
+		radius2 *= sai_kaleido_radius / 1000;
+		radius2 += 20;
+		if(false){
+			SAI_draw_circle_2(ctx, px, py, radius2);
+		}else{
+			Kaleido_draw_circle(ctx, {x:px, y:py}, radius2);
+			ctx.fillStyle = fillStyle;
+			ctx.fill();
+		}
+	}
+
+	// 万華鏡のソースを描画する。
+	const draw_kaleido_source = function(ctx, px, py, dx, dy){
+		// 現在の状態を保存する。
+		ctx.save();
+
+		// 映像の進行をつかさどる変数。
+		let counter = SAI_get_tick_count_2();
+
+		// 背景を塗りつぶす。
+		ctx.fillStyle = `hsl(${(counter * 0.1 + 0.2) % 360}deg, 40%, 50%)`;
+		ctx.fillRect(px, py, dx, dy);
+
+		// 中心を原点とする。
+		let cx = px + dx / 2, cy = py + dy / 2;
+		ctx.translate(cx, cy);
+
+		// 格子状の模様を描画する。
+		const GRIDS = true;
+		if(GRIDS){
+			ctx.lineWidth = 3;
+			ctx.strokeStyle = SAI_color_get_1st();
+			let factor = Math.abs(Math.sin(counter * 0.003) + 3);
+			const ROTATE1 = true;
+			if(ROTATE1){
+				ctx.rotate((counter * 0.0002 % 1) * 2 * Math.PI);
+			}
+			const dxy = Math.min(dx, dy) * 0.2;
+			ctx.fillStyle = "pink";
+			for(let y = factor; y < dxy; y += 10 * factor){
+				SAI_draw_line_2(ctx, -dx / 2, y, +dx / 2, y, 5);
+				SAI_draw_line_2(ctx, -dx / 2, -y, +dx / 2, -y, 5);
+			}
+			for(let x = -factor; x < dxy; x += 10 * factor){
+				SAI_draw_line_2(ctx, x, -dy / 2, x, +dy / 2, 5);
+				SAI_draw_line_2(ctx, -x, -dy / 2, -x, +dy / 2, 5);
+			}
+		}
+
+		// ポリゴンを構築する。
+		let polygon = SAI_create_kaleido_polygon(sai_kaleido_radius);
+		if(true){
+			// ポリゴンを描画する。
+			Kaleido_draw_polygon(ctx, polygon);
+			ctx.stroke();
+		}
+
+		// 泡を描画する。
+		const BUBBLES = true;
+		if(BUBBLES){
+			const s = Math.min(ctx.canvas.width, ctx.canvas.height);
+			const color1 = `hsla(${(counter * 0.15 + 2) % 360}deg, 100%, 50%, 60%)`;
+			const color2 = `hsla(${(counter * 0.2 + 0.5) % 360}deg, 100%, 50%, 40%)`;
+			const color3 = `hsla(${(counter * 0.1333 + 1) % 360}deg, 100%, 50%, 60%)`;
+			const color4 = `hsla(${(counter * 0.3 + 2.3) % 360}deg, 100%, 50%, 40%)`;
+			SAI_draw_circle_3(ctx, s * 2 / 24, { x: s * 0.125 * 1, y: s * 0.125 * 5 }, { x: 0.01 * s, y: 0.02 * s }, color1);
+			SAI_draw_circle_3(ctx, s * 3 / 24, { x: s * 0.125 * 4, y: s * 0.125 * 2 }, { x: 0.02 * s, y: 0.01 * s }, color2);
+			SAI_draw_circle_3(ctx, s * 1 / 24, { x: s * 0.125 * 5, y: s * 0.125 * 5 }, { x: -0.02 * s, y: 0.02 * s }, color3);
+			SAI_draw_circle_3(ctx, s * 1.5 / 20, { x: s * 0.125 * 3, y: s * 0.125 * 7 }, { x: -0.015 * s, y: 0.03 * s }, color4);
+		}
+
+		ctx.restore();
+	}
+
+	// 映像「画12: 万華鏡」の描画。
+	// pic12: Kaleidoscope
+	const SAI_draw_pic_12 = function(ctx, px, py, dx, dy){
+		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
+
+		if(false){
+			// 万華鏡のソースを描画する。
+			draw_kaleido_source(ctx, px, py, dx, dy);
+		}else{
+			// 1番目の色で長方形領域を塗りつぶす。
+			ctx.fillStyle = 'black';
+			ctx.fillRect(px, py, dx, dy);
+
+			// 万華鏡のソースを描画する。
+			sai_kaleido_canvas_1 = Kaleido_create_empty_canvas(sai_kaleido_canvas_1, dx, dy);
+			let ctx1 = sai_kaleido_canvas_1.getContext('2d', { alpha: false });
+			draw_kaleido_source(ctx1, 0, 0, dx, dy);
+
+			// 中点を原点とする。
+			ctx1.translate(dx / 2, dy / 2);
+
+			// 万華鏡のキャンバスを作成し、万華鏡を描画する。
+			let polygon = SAI_create_kaleido_polygon(sai_kaleido_radius);
+			sai_kaleido_canvas_2 =
+				Kaleido_create_drawn_canvas(sai_kaleido_canvas_2,
+					sai_kaleido_radius, dx, dy, ctx1, polygon);
+			ctx.drawImage(sai_kaleido_canvas_2, 0, 0, dx, dy, px, py, dx, dy);
+		}
+
+		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
+	}
+
+	// 映像「画13: 1番目の色の画面」の描画。
+	// pic13: 1st color screen
+	const SAI_draw_pic_13 = function(ctx, px, py, dx, dy){
+		// 1番目の色で長方形領域を塗りつぶす。
+		ctx.fillStyle = SAI_color_get_1st();
+		ctx.fillRect(px, py, dx, dy);
+	}
+
+	// 映像「画14: 2番目の色の画面」の描画。
+	// pic14: 2st color screen
+	const SAI_draw_pic_14 = function(ctx, px, py, dx, dy){
+		// 2番目の色で長方形領域を塗りつぶす。
+		ctx.fillStyle = SAI_color_get_2nd();
+		ctx.fillRect(px, py, dx, dy);
+	}
+
+	// 映像「画15: ただの黒い画面」の描画。
+	// pic15: Black screen
+	const SAI_draw_pic_15 = function(ctx, px, py, dx, dy){
+		// 黒で長方形領域を塗りつぶす。
+		ctx.fillStyle = '#000';
+		ctx.fillRect(px, py, dx, dy);
+	}
+
+	// 映像「画16: ただの白い画面」の描画。
+	// pic16: White screen
+	const SAI_draw_pic_16 = function(ctx, px, py, dx, dy){
+		// 白で長方形領域を塗りつぶす。
+		ctx.fillStyle = '#fff';
+		ctx.fillRect(px, py, dx, dy);
+	}
+
 	// カウントダウン映像の描画。
-	function SAI_draw_pic_count_down(ctx, px, py, dx, dy){
+	const SAI_draw_pic_count_down = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1925,17 +2375,17 @@ document.addEventListener('DOMContentLoaded', function(){
 		// 画面の辺の平均の長さ。
 		let dxy = (dx + dy) / 2;
 
-		// 長方形領域(px, py, dx, dy)をクリッピングする。
-		SAI_clip_rect(ctx, px, py, dx, dy);
-
 		// 黒で長方形領域を塗りつぶす。
 		ctx.fillStyle = '#000';
 		ctx.fillRect(px, py, dx, dy);
 
+		// 長方形領域(px, py, dx, dy)をクリッピングする。
+		SAI_clip_rect(ctx, px, py, dx, dy);
+
 		if(sai_count_down){ // カウントダウン変数が有効なら
 			let new_time = (new Date()).getTime();
 			let diff_time = (new_time - sai_count_down) / 1000.0;
-			if (diff_time >= 3){ // 3秒経過したら
+			if(diff_time >= 3){ // 3秒経過したら
 				// カウントダウンを終了する。
 				sai_count_down = null;
 				// 必要ならスピーチを開始する。
@@ -1945,6 +2395,10 @@ document.addEventListener('DOMContentLoaded', function(){
 				// 必要ならミュートを解除する。
 				if(sai_sound_object && !sai_sound_object.paused)
 					sai_sound_object.volume = sai_id_range_sound_volume.value / 100.0;
+				// 必要なら再開する。
+				if(sai_id_checkbox_auto_play_sound.checked){
+					SAI_sound_start();
+				}
 			}else{
 				// 数字を画面中央に描画する。
 				let value = Math.floor(diff_time);
@@ -1972,56 +2426,75 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 映像の描画を一手に引き受ける。
-	function SAI_draw_pic(ctx, px, py, dx, dy){
+	const SAI_draw_pic = function(ctx, px, py, dx, dy){
 		if(sai_count_down){
 			SAI_draw_pic_count_down(ctx, px, py, dx, dy);
 			return;
 		}
-		switch (sai_pic_type){
-		case -1:
+		if(sai_hypnosis_releasing_time){
 			SAI_draw_pic_minus_1(ctx, px, py, dx, dy);
-			break;
+			return;
+		}
+		switch (sai_pic_type){
 		case 0:
-			SAI_draw_pic_0(ctx, px, py, dx, dy);
+			SAI_draw_pic_00(ctx, px, py, dx, dy);
 			break;
 		case 1:
-			SAI_draw_pic_1(ctx, px, py, dx, dy);
+			SAI_draw_pic_01(ctx, px, py, dx, dy);
 			break;
 		case 2:
-			SAI_draw_pic_2(ctx, px, py, dx, dy, true);
-			SAI_draw_pic_2(ctx, px, py, dx, dy, false);
+			SAI_draw_pic_02(ctx, px, py, dx, dy);
 			break;
 		case 3:
-			SAI_draw_pic_3(ctx, px, py, dx, dy);
+			SAI_draw_pic_03(ctx, px, py, dx, dy);
 			break;
 		case 4:
-			SAI_draw_pic_4(ctx, px, py, dx, dy);
+			SAI_draw_pic_04(ctx, px, py, dx, dy);
 			break;
 		case 5:
-			SAI_draw_pic_5(ctx, px, py, dx, dy);
+			SAI_draw_pic_05(ctx, px, py, dx, dy);
 			break;
 		case 6:
-			SAI_draw_pic_6(ctx, px, py, dx, dy);
+			SAI_draw_pic_06(ctx, px, py, dx, dy);
 			break;
 		case 7:
-			SAI_draw_pic_7(ctx, px, py, dx, dy);
+			SAI_draw_pic_07(ctx, px, py, dx, dy);
 			break;
 		case 8:
-			SAI_draw_pic_8(ctx, px, py, dx, dy);
+			SAI_draw_pic_08(ctx, px, py, dx, dy);
 			break;
 		case 9:
-			SAI_draw_pic_9(ctx, px, py, dx, dy);
+			SAI_draw_pic_09(ctx, px, py, dx, dy);
 			break;
 		case 10:
 			SAI_draw_pic_10(ctx, px, py, dx, dy);
+			break;
+		case 11:
+			SAI_draw_pic_11(ctx, px, py, dx, dy);
+			break;
+		case 12:
+			SAI_draw_pic_12(ctx, px, py, dx, dy);
+			break;
+		case 13:
+			SAI_draw_pic_13(ctx, px, py, dx, dy);
+			break;
+		case 14:
+			SAI_draw_pic_14(ctx, px, py, dx, dy);
+			break;
+		case 15:
+			SAI_draw_pic_15(ctx, px, py, dx, dy);
+			break;
+		case 16:
+			SAI_draw_pic_16(ctx, px, py, dx, dy);
 			break;
 		}
 	}
 
 	// 必要なら映像効果をつけて映像を描画。
-	function SAI_draw_pic_with_effects(ctx, px, py, dx, dy){
+	const SAI_draw_pic_with_effects = function(ctx, px, py, dx, dy){
+		let drawing_config = !sai_id_page_config.classList.contains('sai_class_invisible');
 		// 一定の条件で画面点滅（サブリミナル）を表示。
-		if(!sai_stopping && !sai_count_down && sai_blinking_interval != 0 && sai_pic_type != -1){
+		if((!sai_stopping || drawing_config) && !sai_count_down && sai_blinking_interval != 0 && !sai_hypnosis_releasing_time){
 			if(SAI_mod(sai_old_time / 1000, sai_blinking_interval) < (sai_blinking_interval * 0.3)){
 				SAI_draw_subliminal(ctx, px, py, dx, dy);
 				return;
@@ -2047,98 +2520,203 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// メッセージテキストの位置をゆらゆら動かす。
-	function SAI_message_set_position(id, px, py, dx, dy, counter){
+	const SAI_message_set_position = function(id, px, py, dx, dy, counter){
 		let x = px + dx / 2 - id.clientWidth / 2;
 		let y = py + dy * 0.7 - id.clientHeight / 2 + (1 + 0.4 * Math.sin(counter * 0.1)) * dy * 0.1;
 		id.style.left = x + 'px';
 		id.style.top = y + 'px';
 	}
 
+	// 映像のキャプションを描画する。
+	const draw_caption = function(ctx){
+		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
+
+		// 映像の種類のテキストを取得。
+		let text = trans_getSelectOptionText(sai_id_select_pic_type, sai_id_select_pic_type.value);
+
+		// キャンバスのサイズを取得。
+		const dx = ctx.canvas.width, dy = ctx.canvas.height;
+
+		// 小さければ拡大する。
+		let text_size = 10;
+		let measure;
+		for(;;){
+			ctx.font = text_size.toString() + 'px san-serif';
+			measure = ctx.measureText(text);
+			if(measure.width >= dx * 0.9 ||
+				measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent > 20) break;
+			text_size *= 1.1;
+		}
+		let x = dx / 2, y = dy * 0.15;
+
+		let width = measure.width;
+		let height = (measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent) * 1.5;
+
+		// ひし形を描く。
+		ctx.beginPath();
+		ctx.moveTo(x - width, y);
+		ctx.lineTo(x, y - height);
+		ctx.lineTo(x + width, y);
+		ctx.lineTo(x, y + height);
+		ctx.closePath();
+		ctx.strokeStyle = '#fff';
+		ctx.lineWidth = 2;
+		ctx.stroke();
+
+		// ひし形を描く。
+		ctx.beginPath();
+		ctx.moveTo(x - width, y);
+		ctx.lineTo(x, y - height);
+		ctx.lineTo(x + width, y);
+		ctx.lineTo(x, y + height);
+		ctx.closePath();
+		ctx.fillStyle = "rgba(255, 255, 255, 30%)";
+		ctx.fill();
+
+		// 黒いテキストに白い外枠を付けて描画。
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillStyle = "white";
+		for(let dy = -3; dy <= 3; ++dy){
+			for(let dx = -3; dx <= 3; ++dx){
+				if(Math.abs(dx) > 2 || Math.abs(dy) > 2)
+					ctx.fillText(text, x + dx, y + dy);
+			}
+		}
+		ctx.fillStyle = "black";
+		ctx.fillText(text, x, y);
+
+		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
+	}
+
+	// FPSを描画する。
+	const draw_fps = function(ctx, diff_time){
+		if(ctx.canvas != sai_id_canvas_01)
+			return;
+
+		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
+
+		// FPSを描画する。
+		if(diff_time != 0){
+			sai_FPS = 1 / Math.abs(diff_time);
+			sai_FPS = Math.round(sai_FPS * 10) / 10;
+		}
+		let text = Math.round(sai_FPS).toString() + '.' + (sai_FPS * 10 % 10).toString();
+		ctx.font = '32px san-serif';
+		let measure = ctx.measureText(text);
+		let width = measure.width;
+		let height = measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent;
+		ctx.fillStyle = "white";
+		ctx.fillText(text, (sai_screen_width - width) / 2, height);
+
+		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
+	}
+
 	// 映像をすべて描画する。
-	function SAI_draw_all(){
+	const SAI_draw_all = function(){
+		// 描画対象は何か？
+		let drawing_main = !sai_id_page_main.classList.contains('sai_class_invisible');
+		let drawing_config = !sai_id_page_config.classList.contains('sai_class_invisible');
+
+		// 描画対象のキャンバスは何か？
+		let the_canvas;
+		if (drawing_main)
+			the_canvas = sai_id_canvas_01;
+		else if(drawing_config)
+			the_canvas = sai_id_canvas_preview;
+		else
+			the_canvas = null;
+
 		// 二次元の描画コンテキスト。キャンバスは不透明。
-		let ctx = sai_id_canvas_01.getContext('2d', { alpha: false });
+		let ctx = the_canvas.getContext('2d', { alpha: false });
 
 		// 画面のサイズ。
-		let cx = sai_screen_width, cy = sai_screen_height;
+		const dx = ctx.canvas.width, dy = ctx.canvas.height;
 
 		let splitted = false; // 画面分割したか？
 		if(sai_screen_split == 1){ // 画面分割なし。
-			SAI_draw_pic_with_effects(ctx, 0, 0, cx, cy);
-			SAI_message_set_position(sai_id_text_floating_1, 0, 0, cx, cy, sai_counter);
+			SAI_draw_pic_with_effects(ctx, 0, 0, dx, dy);
+			SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx, dy, sai_counter);
 		}else if(sai_screen_split == -1){ // 画面分割自動。
-			if(cx >= cy * 1.75){ // 充分に横長。
-				SAI_draw_pic_with_effects(ctx, 0, 0, cx / 2, cy);
-				//SAI_draw_pic_with_effects(ctx, cx / 2, 0, cx / 2, cy); // drawImageで描画時間を節約。
-				ctx.drawImage(sai_id_canvas_01, 0, 0, cx / 2, cy, cx / 2, 0, cx / 2, cy);
-				SAI_message_set_position(sai_id_text_floating_1, 0, 0, cx / 2, cy, sai_counter);
-				SAI_message_set_position(sai_id_text_floating_2, cx / 2, 0, cx / 2, cy, sai_counter);
+			if(dx >= dy * 1.75){ // 充分に横長。
+				SAI_draw_pic_with_effects(ctx, 0, 0, dx / 2, dy);
+				//SAI_draw_pic_with_effects(ctx, dx / 2, 0, dx / 2, dy); // drawImageで描画時間を節約。
+				ctx.drawImage(the_canvas, 0, 0, dx / 2, dy, dx / 2, 0, dx / 2, dy);
+				SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx / 2, dy, sai_counter);
+				SAI_message_set_position(sai_id_text_floating_2, dx / 2, 0, dx / 2, dy, sai_counter);
 				splitted = true; // 画面分割した。
-			}else if(cy >= cx * 1.75){ // 充分に縦長。
-				SAI_draw_pic_with_effects(ctx, 0, 0, cx, cy / 2);
-				//SAI_draw_pic_with_effects(ctx, 0, cy / 2, cx, cy / 2); // drawImageで描画時間を節約。
-				ctx.drawImage(sai_id_canvas_01, 0, 0, cx, cy / 2, 0, cy / 2, cx, cy / 2);
-				SAI_message_set_position(sai_id_text_floating_1, 0, 0, cx, cy / 2, sai_counter);
-				SAI_message_set_position(sai_id_text_floating_2, 0, cy / 2, cx, cy / 2, sai_counter);
+			}else if(dy >= dx * 1.75){ // 充分に縦長。
+				SAI_draw_pic_with_effects(ctx, 0, 0, dx, dy / 2);
+				//SAI_draw_pic_with_effects(ctx, 0, dy / 2, dx, dy / 2); // drawImageで描画時間を節約。
+				ctx.drawImage(the_canvas, 0, 0, dx, dy / 2, 0, dy / 2, dx, dy / 2);
+				SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx, dy / 2, sai_counter);
+				SAI_message_set_position(sai_id_text_floating_2, 0, dy / 2, dx, dy / 2, sai_counter);
 				splitted = true; // 画面分割した。
 			}else{ // それ以外は分割しない。
-				SAI_draw_pic_with_effects(ctx, 0, 0, cx, cy);
-				SAI_message_set_position(sai_id_text_floating_1, 0, 0, cx, cy, sai_counter);
+				SAI_draw_pic_with_effects(ctx, 0, 0, dx, dy);
+				SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx, dy, sai_counter);
 			}
 		}else{ // 画面２分割。
-			if(cx >= cy){ // 横長。
-				SAI_draw_pic_with_effects(ctx, 0, 0, cx / 2, cy);
-				//SAI_draw_pic_with_effects(ctx, cx / 2, 0, cx / 2, cy); // drawImageで描画時間を節約。
-				ctx.drawImage(sai_id_canvas_01, 0, 0, cx / 2, cy, cx / 2, 0, cx / 2, cy);
-				SAI_message_set_position(sai_id_text_floating_1, 0, 0, cx / 2, cy, sai_counter);
-				SAI_message_set_position(sai_id_text_floating_2, cx / 2, 0, cx / 2, cy, sai_counter);
+			if(dx >= dy){ // 横長。
+				SAI_draw_pic_with_effects(ctx, 0, 0, dx / 2, dy);
+				//SAI_draw_pic_with_effects(ctx, dx / 2, 0, dx / 2, dy); // drawImageで描画時間を節約。
+				ctx.drawImage(the_canvas, 0, 0, dx / 2, dy, dx / 2, 0, dx / 2, dy);
+				SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx / 2, dy, sai_counter);
+				SAI_message_set_position(sai_id_text_floating_2, dx / 2, 0, dx / 2, dy, sai_counter);
 			}else{ // 縦長。
-				SAI_draw_pic_with_effects(ctx, 0, 0, cx, cy / 2);
-				//SAI_draw_pic_with_effects(ctx, 0, cy / 2, cx, cy / 2); // drawImageで描画時間を節約。
-				ctx.drawImage(sai_id_canvas_01, 0, 0, cx, cy / 2, 0, cy / 2, cx, cy / 2);
-				SAI_message_set_position(sai_id_text_floating_1, 0, 0, cx, cy / 2, sai_counter);
-				SAI_message_set_position(sai_id_text_floating_2, 0, cy / 2, cx, cy / 2, sai_counter);
+				SAI_draw_pic_with_effects(ctx, 0, 0, dx, dy / 2);
+				//SAI_draw_pic_with_effects(ctx, 0, dy / 2, dx, dy / 2); // drawImageで描画時間を節約。
+				ctx.drawImage(the_canvas, 0, 0, dx, dy / 2, 0, dy / 2, dx, dy / 2);
+				SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx, dy / 2, sai_counter);
+				SAI_message_set_position(sai_id_text_floating_2, 0, dy / 2, dx, dy / 2, sai_counter);
 			}
 			splitted = true; // 画面分割した。
 		}
 
 		// 浮遊するテキストを処理する。
-		if(sai_stopping || sai_count_down){
-			sai_id_text_floating_1.classList.add('sai_class_invisible');
-			sai_id_text_floating_2.classList.add('sai_class_invisible');
-		}else if(sai_pic_type == -1){
-			sai_id_text_floating_1.classList.add('sai_class_invisible');
-			sai_id_text_floating_2.classList.add('sai_class_invisible');
-		}else if(sai_message_text != ''){
-			if(splitted){
-				sai_id_text_floating_1.classList.remove('sai_class_invisible');
-				sai_id_text_floating_2.classList.remove('sai_class_invisible');
+		if(drawing_main){
+			if(sai_stopping || sai_count_down || sai_hypnosis_releasing_time){
+				sai_id_text_floating_1.classList.add('sai_class_invisible');
+				sai_id_text_floating_2.classList.add('sai_class_invisible');
+			}else if(sai_message_text != ''){
+				if(splitted){
+					sai_id_text_floating_1.classList.remove('sai_class_invisible');
+					sai_id_text_floating_2.classList.remove('sai_class_invisible');
+				}else{
+					sai_id_text_floating_1.classList.remove('sai_class_invisible');
+					sai_id_text_floating_2.classList.add('sai_class_invisible');
+				}
 			}else{
-				sai_id_text_floating_1.classList.remove('sai_class_invisible');
+				sai_id_text_floating_1.classList.add('sai_class_invisible');
 				sai_id_text_floating_2.classList.add('sai_class_invisible');
 			}
-		}else{
-			sai_id_text_floating_1.classList.add('sai_class_invisible');
-			sai_id_text_floating_2.classList.add('sai_class_invisible');
-		}
-
-		// きらめきを描画する。
-		for(let iStar = 0; iStar < sai_stars.length; ++iStar){
-			let star = sai_stars[iStar];
-			if(star){
-				// 黄色い光を描く。
-				ctx.fillStyle = `rgb(255, 255, 0, 0.8)`;
-				SAI_draw_light(ctx, star[0], star[1], star[2]);
-
-				// きらめきの半径がだんだん小さくなる演出。
-				if(star[2] > 1.0){
-					star[2] *= 0.98;
+			// テキストが大きすぎるなら少し小さくする。
+			let text_surface = sai_id_text_floating_1.clientWidth * sai_id_text_floating_1.clientHeight;
+			if(text_surface >= sai_screen_width * sai_screen_height / (splitted ? 2 : 1) / 3){
+				if(sai_message_size > 1){
+					sai_message_size -= 1;
+					SAI_message_set_size(sai_message_size);
 				}
 			}
+
+			// きらめきを描画する。
+			for(let iStar = 0; iStar < sai_stars.length; ++iStar){
+				let star = sai_stars[iStar];
+				if(star){
+					// 黄色い光を描く。
+					ctx.fillStyle = `rgb(255, 255, 0, 0.8)`;
+					SAI_draw_light(ctx, star[0], star[1], star[2]);
+
+					// きらめきの半径がだんだん小さくなる演出。
+					if(star[2] > 1.0){
+						star[2] *= 0.98;
+					}
+				}
+			}
+			// きらめきがだんだん消えうせる演出。
+			sai_stars.shift();
+			sai_stars.push(null);
 		}
-		// きらめきがだんだん消えうせる演出。
-		sai_stars.shift();
-		sai_stars.push(null);
 
 		// 画面サイズが変わっていればキャンバスをフィットさせる。
 		if(window.innerWidth != sai_screen_width || window.innerHeight != sai_screen_height ||
@@ -2152,7 +2730,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		let diff_time = (new_time - sai_old_time) / 1000.0;
 		if(sai_rotation_type == 'counter')
 			diff_time = -diff_time;
-		if(sai_stopping)
+		if(sai_stopping && !drawing_config)
 			diff_time = 0;
 		sai_counter += diff_time * sai_speed;
 		sai_old_time = new_time;
@@ -2171,65 +2749,21 @@ document.addEventListener('DOMContentLoaded', function(){
 			}
 		}
 
-		if(sai_DEBUGGING){ // デバッグ中なら
-			// FPSを描画する。
-			if(diff_time != 0){
-				sai_FPS = 1 / Math.abs(diff_time);
-				sai_FPS = Math.round(sai_FPS * 10) / 10;
-			}
-			let text = Math.round(sai_FPS).toString() + '.' + (sai_FPS * 10 % 10).toString();
-			ctx.font = '32px san-serif';
-			let measure = ctx.measureText(text);
-			let width = measure.width;
-			let height = measure.actualBoundingBoxAscent + measure.actualBoundingBoxDescent;
-			ctx.fillStyle = "red";
-			ctx.fillText(text, (sai_screen_width - width) / 2, height);
+		// デバッグ中ならFPSを描画する。
+		if(sai_DEBUGGING){
+			draw_fps(ctx, diff_time);
 		}
 
-		if(sai_stopping){ // 停止中なら映像の種類を描画する。
-			// 映像の種類のテキストを取得。
-			let text = trans_getSelectOptionText(sai_id_select_pic_type, sai_id_select_pic_type.value);
+		// 停止中なら映像のキャプションを表示する。
+		if(sai_stopping && drawing_main){
+			draw_caption(ctx);
+		}
 
-			// {{LANGUAGE_SPECIFIC}}: 言語に応じてテキストサイズを設定。
-			let text_size;
-			switch (sai_id_select_language_1.value){
-			case 'en':
-			case 'de':
-			case 'it':
-			default:
-				text_size = 14;
-				break;
-			case 'zh-CN':
-			case 'zh-TW':
-				text_size = 21;
-				break;
-			case 'ja':
-			case 'ko-KR':
-				text_size = 23;
-				break;
-			}
-			ctx.font = text_size.toString() + 'px san-serif';
-
-			// 小さければ拡大する。
-			let measure = ctx.measureText(text);
-			if(measure.width * 2 < sai_screen_width){
-				text_size *= 1.8;
-				ctx.font = text_size.toString() + 'px san-serif';
-			}
-
-			// テキストに枠を付けて描画。
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillStyle = "white";
-			let x = sai_screen_width / 2, y = sai_screen_height * 0.15;
-			ctx.fillText(text, x - 1, y - 1);
-			ctx.fillText(text, x + 1, y + 1);
-			ctx.fillText(text, x - 2, y);
-			ctx.fillText(text, x + 2, y);
-			ctx.fillText(text, x, y - 2);
-			ctx.fillText(text, x, y + 2);
-			ctx.fillStyle = "black";
-			ctx.fillText(text, x, y);
+		// 時が過ぎたら催眠解除を完了する。
+		if(SAI_is_hypno_released()){
+			// 3秒待った。解除されたと仮定。画像のソースを更新。
+			sai_hypno_releasing_img.src = trans_getText('TEXT_HYPNOSIS_RELEASED_IMG');
+			sai_all_released_img.src = trans_getText('TEXT_ALL_RELEASED_IMG');
 		}
 
 		// 必要ならアニメーションを要求する。
@@ -2239,7 +2773,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// ローカルストレージから設定を読み込む。設定がなければ初期化する。
-	function SAI_load_local_storage(){
+	const SAI_load_local_storage = function(){
 		// ローカルストレージに催眠テキストがあれば読み込む。
 		let saiminText = localStorage.getItem('saiminText');
 		if(saiminText){
@@ -2266,12 +2800,20 @@ document.addEventListener('DOMContentLoaded', function(){
 			SAI_sound_set_name('Magic');
 		}
 
-		// ローカルストレージに音量の設定があれば読み込む。
+		// ローカルストレージに効果音の音量の設定があれば読み込む。
 		let saiminSoundVolume = localStorage.getItem('saiminSoundVolume');
 		if(saiminSoundVolume){
 			SAI_sound_set_volume(saiminSoundVolume);
 		}else{
 			SAI_sound_set_volume(100);
+		}
+
+		// ローカルストレージにスピーチの音量の設定があれば読み込む。
+		let saiminMessageVolume = localStorage.getItem('saiminMessageVolume');
+		if(saiminMessageVolume){
+			SAI_message_set_voice_volume(saiminMessageVolume);
+		}else{
+			SAI_message_set_voice_volume(100);
 		}
 
 		// ローカルストレージに映像切り替えの種類があれば読み込む。
@@ -2330,25 +2872,65 @@ document.addEventListener('DOMContentLoaded', function(){
 
 		// ローカルストレージにメッセージリストがあれば読み込む。
 		SAI_load_message_list();
+
+		// 色を読み込む。
+		let saimin1stColor = localStorage.getItem('saimin1stColor');
+		if(saimin1stColor){
+			sai_id_color_1st.value = saimin1stColor;
+		}else{
+			sai_id_color_1st.value = '#ff00ff';
+		}
+		let saimin2ndColor = localStorage.getItem('saimin2ndColor');
+		if(saimin2ndColor){
+			sai_id_color_2nd.value = saimin2ndColor;
+		}else{
+			sai_id_color_2nd.value = '#000000';
+		}
+
+		// ローカルストレージに自動再生の設定があれば読み込む。
+		let saiminAutoPlay = localStorage.getItem('saiminAutoPlay');
+		if(saiminAutoPlay){
+			sai_id_checkbox_auto_play_sound.checked = true;
+		}else{
+			sai_id_checkbox_auto_play_sound.checked = false;
+		}
+
+		// 虹色の設定。
+		let saimin1stColorRainbow = localStorage.getItem('saimin1stColorRainbow');
+		if(saimin1stColorRainbow){
+			sai_id_checkbox_color_1st_rainbow.checked = true;
+		}else{
+			sai_id_checkbox_color_1st_rainbow.checked = false;
+		}
+		let saimin2ndColorRainbow = localStorage.getItem('saimin2ndColorRainbow');
+		if(saimin2ndColorRainbow){
+			sai_id_checkbox_color_2nd_rainbow.checked = true;
+		}else{
+			sai_id_checkbox_color_2nd_rainbow.checked = false;
+		}
 	}
 
 	// 必要ならば切り替え音を再生する。
-	function SAI_sound_play_switch(){
+	const SAI_sound_play_switch = function(){
 		if(sai_switch_sound_type == 1 && sai_switch_sound_object && sai_id_checkbox_switching_sound.checked){
 			sai_switch_sound_object.play();
 		}
 	}
 
 	// キャンバスがクリックされた。
-	function SAI_canvas_click(e){
+	const SAI_canvas_click = function(e){
 		if(sai_stopping) // 停止中なら無視。
 			return;
 
 		// フルスクリーンモード、またはツールボタンが見えるか？
 		if(!sai_id_checkbox_fullscreen.checked || SAI_are_tool_buttons_shown()){
-			// 催眠解除の場合、ダミー画面に戻す。
-			if(sai_pic_type == -1)
+			if(sai_hypnosis_releasing_time){ // 催眠解除の場合
+				// ダミー画面に戻す。
 				SAI_pic_set_type(0);
+				// 催眠解除の音声を止める。
+				if(sai_releasing_sound && !sai_releasing_sound.paused)
+					sai_releasing_sound.pause();
+			}
 			// メインコントロール群を表示する。
 			SAI_show_main_controls(true);
 			// 映像の停止。
@@ -2373,13 +2955,8 @@ document.addEventListener('DOMContentLoaded', function(){
 		}
 	}
 
-	// 音声が再生中か？
-	function SAI_sound_is_playing(){
-		return sai_sound_object && !sai_sound_object.paused;
-	}
-
 	// 音声を再生開始。
-	function SAI_sound_start(){
+	const SAI_sound_start = function(is_mute = false){
 		// 必要ならば音声を作成。
 		if(!sai_sound_object)
 			SAI_sound_create();
@@ -2391,7 +2968,10 @@ document.addEventListener('DOMContentLoaded', function(){
 		}
 
 		// 音量と再生位置の設定。
-		sai_sound_object.volume = sai_id_range_sound_volume.value / 100.0;
+		if(is_mute)
+			sai_sound_object.volume = 0;
+		else
+			sai_sound_object.volume = sai_id_range_sound_volume.value / 100.0;
 		sai_sound_object.currentTime = 0;
 
 		// 必要ならループする。
@@ -2404,45 +2984,42 @@ document.addEventListener('DOMContentLoaded', function(){
 		sai_id_button_sound_play.classList.add('sai_class_checked');
 	}
 
-	// 音声を一時停止。
-	function SAI_sound_pause(){
-		// 再生中なら停止する。
-		if(SAI_sound_is_playing())
-			sai_sound_object.pause();
-		// 音声ボタンをチェックを外す。
-		sai_id_button_sound_play.classList.remove('sai_class_checked');
-	}
-
 	// 音声をミュート。
-	function SAI_sound_mute(){
+	const SAI_sound_mute = function(){
 		if(sai_sound_object){
 			sai_sound_object.volume = 0.0;
 		}
 	}
 
 	// メッセージリストに追加する。
-	function SAI_add_to_message_list(message){
+	const SAI_add_to_message_list = function(message){
+		// 空文字列は追加しない。
 		if(!message)
 			return;
+		// メッセージリストにあれば取り除く。
 		let index = sai_user_message_list.indexOf(message);
 		if(index >= 0)
 			sai_user_message_list.splice(index, 1);
+		// 配列の末尾に追加。
 		sai_user_message_list.push(message);
+		// 64項目までに制限。
+		while(sai_user_message_list.length > 64)
+			sai_user_message_list.shift();
 	}
 
 	// メッセージリストを読み込む。
-	function SAI_load_message_list(){
+	const SAI_load_message_list = function(){
 		let saiminMessageCount = localStorage.getItem('saiminMessageCount');
 		saiminMessageCount = parseInt(saiminMessageCount);
 		sai_user_message_list = [];
-		for (let i = 0; i < saiminMessageCount; ++i){
+		for(let i = 0; i < saiminMessageCount; ++i){
 			let saiminMessage = localStorage.getItem('saiminMessage' + i.toString());
 			sai_user_message_list.push(saiminMessage);
 		}
 	}
 
 	// メッセージリストを保存する。
-	function SAI_save_message_list(){
+	const SAI_save_message_list = function(){
 		localStorage.setItem('saiminMessageCount', sai_user_message_list.length.toString());
 		let i = 0;
 		for(let item of sai_user_message_list){
@@ -2451,12 +3028,21 @@ document.addEventListener('DOMContentLoaded', function(){
 		}
 	}
 
+	// 画面のサイズが変わったときに呼び出される関数。
+	const SAI_screen_resize = function(){
+		console.log(`innerWidth:${window.innerWidth}, innerHeight:${window.innerHeight}`);
+		sai_screen_width = window.innerWidth;
+		sai_screen_height = window.innerHeight;
+		sai_kaleido_radius = Math.min(window.innerWidth, window.innerHeight) * 0.2;
+	}
+
 	// イベントリスナー群を登録する。
-	function SAI_register_event_listeners(){
+	const SAI_register_event_listeners = function(){
 		// 「メッセージ」ボタン。
 		sai_id_button_message.addEventListener('click', function(){
-			if(sai_pic_type == -1)
-				return;
+			if(sai_hypnosis_releasing_time)
+				return; // 催眠解除中。
+			// メッセージ文字列の入力を促す。
 			let text = prompt(trans_getText('TEXT_INPUT_MESSAGE'), sai_message_text);
 			if(text !== null){
 				SAI_message_set_text(text);
@@ -2504,12 +3090,26 @@ document.addEventListener('DOMContentLoaded', function(){
 			// 必要ならカウントダウンを開始する。
 			if(sai_id_checkbox_count_down.checked){
 				sai_count_down = new Date().getTime();
-				// 音声をミュートする。
-				SAI_sound_mute();
+				if(SAI_sound_is_playing()){ // 再生中なら
+					// 音声をミュートする。
+					SAI_sound_mute();
+				}else if(sai_id_checkbox_auto_play_sound.checked){ // 自動再生なら
+					// 必要ならば音声を作成。
+					if(!sai_sound_object)
+						SAI_sound_create();
+					// 必要ならミュートしながら音声を再生する。
+					if(sai_id_checkbox_auto_play_sound.checked)
+						SAI_sound_start(true);
+				}
 			}else{
 				// 必要ならスピーチを開始する。
 				if(sai_id_checkbox_speech_on_off.checked){
 					SAI_speech_start(sai_message_text);
+				}
+				// 再生中ではなく、自動再生なら
+				if(!SAI_sound_is_playing() && sai_id_checkbox_auto_play_sound.checked){
+					// 音声を再生する。
+					SAI_sound_start();
 				}
 			}
 		});
@@ -2527,11 +3127,16 @@ document.addEventListener('DOMContentLoaded', function(){
 
 		// 「音声再生」ボタン。
 		sai_id_button_sound_play.addEventListener('click', function(){
-			if(sai_pic_type == -1){
-				let releasing_sound = null;
+			if(sai_hypnosis_releasing_time){ // 催眠解除中？
 				let lang = localStorage.getItem('saiminLanguage3');
-				releasing_sound = new Audio(trans_getText('TEXT_MP3_RELEASED_HYPNOSIS'));
-				releasing_sound.play();
+				if(!sai_releasing_sound)
+					sai_releasing_sound = new Audio(trans_getText('TEXT_MP3_RELEASED_HYPNOSIS'));
+				if(sai_releasing_sound.paused){
+					sai_releasing_sound.currentTime = 0;
+					sai_releasing_sound.play();
+				}else{
+					sai_releasing_sound.pause();
+				}
 				return;
 			}
 			// 選択されている音声名があれば
@@ -2584,7 +3189,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
 		// メッセージサイズ選択。
 		sai_id_select_message_size.addEventListener('input', function(){
-			SAI_message_set_size(sai_id_select_message_size.value, true);
+			SAI_message_set_size(sai_id_select_message_size.value);
+		}, false);
+
+		sai_id_range_voice_volume.addEventListener('input', function(){
+			SAI_message_set_voice_volume(sai_id_range_voice_volume.value);
 		}, false);
 
 		// 画面の明るさ選択。
@@ -2614,12 +3223,12 @@ document.addEventListener('DOMContentLoaded', function(){
 				sai_sound_object.currentTime = 0;
 				sai_sound_object.play();
 				// 再生ボタンのイメージを更新する。
-				sai_id_image_play_pause.src = 'images/stop.svg';
+				sai_id_image_play_pause.src = 'img/stop.svg';
 			}else{ // 再生中なら
 				// 停止する。
 				sai_sound_object.pause();
 				// 再生ボタンのイメージを更新する。
-				sai_id_image_play_pause.src = 'images/play.svg';
+				sai_id_image_play_pause.src = 'img/play.svg';
 			}
 		}, false);
 
@@ -2730,20 +3339,18 @@ document.addEventListener('DOMContentLoaded', function(){
 
 		// スピーチをクリック。
 		sai_id_button_speech.addEventListener('click', function(e){
-			if(0){
-				// メッセージボタンをクリック。
-				sai_id_button_message.click();
-			}else{
-				SAI_choose_page(sai_id_page_message);
-			}
+			if(sai_hypnosis_releasing_time)
+				return; // 催眠解除中のときは反応しない。
+
+			// メッセージリストダイアログを表示。
+			SAI_choose_page(sai_id_page_message);
 		});
 
 		// ウィンドウのサイズ変更や画面の回転を検出する。
 		window.addEventListener('resize', function(){
-			console.log(`innerWidth:${window.innerWidth}, innerHeight:${window.innerHeight}`);
-			sai_screen_width = window.innerWidth;
-			sai_screen_height = window.innerHeight;
+			SAI_screen_resize();
 		}, false);
+		SAI_screen_resize();
 
 		// マイクボタンの実装。
 		let mic_isInited = false;
@@ -2803,10 +3410,115 @@ document.addEventListener('DOMContentLoaded', function(){
 			localStorage.removeItem('saiminMessageListShowing');
 			SAI_choose_page(sai_id_page_main);
 		});
+
+		// 「戻る」をクリック。
+		sai_id_button_message_back.addEventListener('click', function(e){
+			sai_id_button_mesage_ok.click();
+		});
+		sai_id_button_config_back.addEventListener('click', function(e){
+			localStorage.removeItem('saiminConfigShowing');
+			SAI_choose_page(sai_id_page_main);
+		});
+		sai_id_button_agreement_back.addEventListener('click', function(e){
+			localStorage.removeItem('saiminHelpShowing');
+			SAI_choose_page(sai_id_page_main);
+		});
+
+		// 色を保存。
+		sai_id_color_1st.addEventListener('change', function(e){
+			localStorage.setItem('saimin1stColor', sai_id_color_1st.value);
+		});
+		sai_id_color_2nd.addEventListener('change', function(e){
+			localStorage.setItem('saimin2ndColor', sai_id_color_2nd.value);
+		});
+		sai_id_color_1st_reset.addEventListener('click', function(e){
+			sai_id_color_1st.value = "#ff00ff";
+			sai_id_checkbox_color_1st_rainbow.checked = false;
+			localStorage.setItem('saimin1stColor', sai_id_color_1st.value);
+		});
+		sai_id_color_2nd_reset.addEventListener('click', function(e){
+			sai_id_color_2nd.value = "#000000";
+			sai_id_checkbox_color_2nd_rainbow.checked = false;
+			localStorage.setItem('saimin2ndColor', sai_id_color_2nd.value);
+		});
+
+		// アプリの初期化ボタン。
+		sai_id_button_init_app.addEventListener('click', function(e){
+			if(confirm(trans_getText('TEXT_INIT_APP'))){
+				let text = trans_getText('TEXT_INITTED_APP');
+				localStorage.clear();
+				alert(text);
+				location.reload();
+			}
+		});
+
+		// 自動再生を保存。
+		sai_id_checkbox_auto_play_sound.addEventListener('click', function(e){
+			if(sai_id_checkbox_auto_play_sound.checked){
+				localStorage.setItem('saiminAutoPlay', 'true');
+			}else{
+				localStorage.removeItem('saiminAutoPlay');
+			}
+		});
+
+		// 虹色を保存。
+		sai_id_checkbox_color_1st_rainbow.addEventListener('click', function(e){
+			if(sai_id_checkbox_color_1st_rainbow.checked){
+				localStorage.setItem('saimin1stColorRainbow', 'true');
+			}else{
+				localStorage.removeItem('saimin1stColorRainbow');
+			}
+		});
+		sai_id_checkbox_color_2nd_rainbow.addEventListener('click', function(e){
+			if(sai_id_checkbox_color_2nd_rainbow.checked){
+				localStorage.setItem('saimin2ndColorRainbow', 'true');
+			}else{
+				localStorage.removeItem('saimin2ndColorRainbow');
+			}
+		});
+
+		// スピーチの音量の設定
+		sai_id_button_voice_play.addEventListener('click', function(e){
+			SAI_speech_start(sai_message_text, true);
+		});
+
+		// プレビュー設定。
+		sai_id_checkbox_preview.addEventListener('click', function(e){
+			if (sai_id_checkbox_preview.checked)
+				sai_id_canvas_preview.classList.remove('sai_class_invisible');
+			else
+				sai_id_canvas_preview.classList.add('sai_class_invisible');
+		});
+
+		// 顔認識のページ。
+		sai_id_button_target.addEventListener('click', function(e){
+			localStorage.setItem('saiminFaceGetterShowing', "1");
+			SAI_choose_page(sai_id_page_face_getter);
+		});
+		sai_id_canvas_1.addEventListener('click', function(e){
+			if(sai_face_getter)
+				sai_face_getter.on_click(e);
+		});
+		sai_id_button_lock_on.addEventListener('click', function(e){
+			if(sai_face_getter)
+				sai_face_getter.lock_unlock();
+		});
+		sai_id_button_side.addEventListener('click', function(){
+			if(sai_face_getter)
+				sai_face_getter.set_side();
+		});
+		sai_id_button_face_getter_back.addEventListener('click', function(){
+			localStorage.removeItem('saiminFaceGetterShowing');
+			SAI_choose_page(sai_id_page_main);
+		});
+		sai_id_button_close.addEventListener('click', function(){
+			localStorage.removeItem('saiminFaceGetterShowing');
+			SAI_choose_page(sai_id_page_main);
+		});
 	}
 
 	// キーボード操作を実装。
-	function SAI_register_key_bindings(){
+	const SAI_register_key_bindings = function(){
 		document.body.addEventListener('keydown', function(e){
 			if(e.ctrlKey || sai_id_page_main.classList.contains('sai_class_invisible'))
 				return;
@@ -2907,7 +3619,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// ツールボタンが見えるかどうか？
-	function SAI_are_tool_buttons_shown(){
+	const SAI_are_tool_buttons_shown = function(){
 		// ツールボタン群を取得する。ツールボタンは、sai_class_tool_buttonクラスを持つ要素。
 		let tool_buttons = document.getElementsByClassName('sai_class_tool_button');
 		for(let button of tool_buttons){
@@ -2918,7 +3630,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// メインのボタン群を表示または非表示にする。
-	function SAI_show_main_controls(show){
+	const SAI_show_main_controls = function(show){
 		// メインコントロール群を取得する。
 		// メインコントロールはsai_class_button_main_controlクラスを持つ要素。
 		let main_controls = document.getElementsByClassName('sai_class_button_main_control');
@@ -2938,7 +3650,7 @@ document.addEventListener('DOMContentLoaded', function(){
 			for(let control of main_controls){
 				control.classList.add('sai_class_invisible');
 			}
-			if (sai_id_checkbox_fullscreen.checked){
+			if(sai_id_checkbox_fullscreen.checked){
 				for(let button of tool_buttons){
 					button.classList.add('sai_class_invisible');
 				}
@@ -2947,7 +3659,7 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// メイン関数。
-	function SAI_main(){
+	const SAI_main = function(){
 		const argc = arguments.length, argv = arguments;
 
 		// スピーチをキャンセルする。
@@ -2957,10 +3669,10 @@ document.addEventListener('DOMContentLoaded', function(){
 		SAI_screen_fit_canvas();
 
 		// 五円玉の画像を読み込む。
-		sai_coin_img.src = 'images/coin5yen.png';
+		sai_coin_img.src = 'img/coin5yen.png';
 
 		// スパイラルの画像も更新。
-		sai_spiral_img.src = "images/spiral.svg";
+		sai_spiral_img.src = "img/spiral.svg";
 
 		// 設定をローカルストレージから読み込む。
 		SAI_load_local_storage();
@@ -2969,7 +3681,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		SAI_register_event_listeners();
 
 		// ネイティブアプリでなければネイティブオンリーの要素を隠す。
-		if (!SAI_is_native_app()){
+		if(!SAI_is_native_app()){
 			let items = document.getElementsByClassName('sai_class_native_app_only');
 			for(let item of items){
 				item.classList.add('sai_class_invisible');
@@ -3004,8 +3716,10 @@ document.addEventListener('DOMContentLoaded', function(){
 			SAI_help_and_agreement();
 		}else if(localStorage.getItem('saiminConfigShowing')){
 			SAI_config();
-		}else if (localStorage.getItem('saiminMessageListShowing')){
+		}else if(localStorage.getItem('saiminMessageListShowing')){
 			SAI_message_list_show();
+		}else if(localStorage.getItem('saiminFaceGetterShowing')){
+			SAI_choose_page(sai_id_page_face_getter);
 		}
 
 		// フルスクリーンモードを復元する。
