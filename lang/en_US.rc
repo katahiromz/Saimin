@@ -12,7 +12,6 @@ STRINGTABLE
 {
     100, "Saimin"
     101, "Could not start Microsoft Edge."
-    102, "If you want to exit the app, please use [Alt]+[F4] on your keyboard."
 }
 
 //////////////////////////////////////////////////////////////////////////////

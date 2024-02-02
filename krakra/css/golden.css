@@ -1,41 +1,42 @@
 /* 『催眠くらくら』CSSファイル。*/
-* {
+* { /* すべての要素 */
 	/* いったん、すべての要素をスクロール不能にする。スクロールしたいものは個別に指定する。 */
 	overflow: hidden;
 }
-body {
+body { /* ボディ */
 	margin: 0;
 	padding: 0;
 	background-color: black;
 }
-input[type='checkbox'] {
+input[type='checkbox'] { /* チェックボックス */
 	cursor: pointer;
 	font-size: 0.5cm;
 	padding: 0;
 }
-label {
+label { /* ラベル */
 	cursor: pointer;
 }
-select {
-	background-color: #300;
-	color: #fcf;
+select { /* コンボボックス */
+	background-color: #ff9;
+	color: #000;
 }
-button {
+button { /* 通常のボタン */
 	font-weight: bold;
-	background-color: #f9f;
+	background-color: #ff9;
 	color: #003;
+	border-radius: 10%;
 }
-.sai_class_page {
+.sai_class_page { /* ページ */
 	margin: 0;
 	padding: 0;
 	width: 100vw;
 	width: 100dvw;
 	height: 100vh;
 	height: 100dvh;
-	background-color: #b06;
-	color: #fff;
+	background-color: #bc0;
+	color: #000;
 }
-#sai_id_main_page {
+#sai_id_main_page { /* メインページ */
 	position: absolute;
 	left: 0;
 	top: 0;
@@ -44,30 +45,30 @@ button {
 	height: 100vh;
 	height: 100dvh;
 }
-.sai_class_page h1 {
+.sai_class_page h1 { /* ページの見出し */
 	font-size: 1.25rem; /* ① */
 	line-height: 1.25rem; /* ① */
-	background-color: #c0c;
-	color: white;
+	background-color: #ff0;
+	color: black;
 	margin: 0;
 }
-.sai_class_page select {
+.sai_class_page select { /* ページ内部のコンボボックス*/
 	padding: 0.5rem;
 }
-.sai_class_config_page {
+.sai_class_config_page { /* 設定ページ */
 	user-select: none;
 	font-size: 1.2rem;
 }
-.sai_class_config_page select {
+.sai_class_config_page select { /* 設定ページのコンボボックス */
 	font-size: 1.5rem;
 	max-width: 80vw;
 	max-width: 80dvw;
 }
-.sai_class_nav_button {
+.sai_class_nav_button { /* ナビゲーションボタン */
 	padding: 0.4rem 2rem;
 	font-size: 1.5rem;
 }
-.sai_class_canvas {
+.sai_class_canvas { /* キャンバス */
 	z-index: 1;
 	background-color: #222;
 	top: 0;
@@ -77,153 +78,153 @@ button {
 	height: 100vh;
 	height: 100dvh;
 }
-.sai_class_ui_line {
+.sai_class_ui_line { /* UI行 */
 	padding-top: 1mm;
 	padding-bottom: 1mm;
 }
-.sai_class_nobr {
+.sai_class_nobr { /* 改行なし */
 	white-space:nowrap;
 	-webkit-hyphens: none;
 	-ms-hyphens: none;
 	hyphens: none;
 }
-.sai_class_floating_text {
+.sai_class_floating_text { /* 浮遊するテキスト */
 	pointer-events: none; // click-transparent
-	color: white;
+	color: lightyellow;
 	background-color: black;
 	max-width: 80%;
 	word-break: break-all;
 	padding: 4px;
 	border: 1px solid white;
 }
-#sai_id_text_floating_1 {
+#sai_id_text_floating_1 { /* 浮遊するテキスト */
 	position: absolute;
 	left: 0;
 	top: 0;
 	z-index: 3;
 }
-#sai_id_text_floating_2 {
+#sai_id_text_floating_2 { /* 浮遊するテキスト */
 	position: absolute;
 	left: 0;
 	top: 0;
 	z-index: 3;
 }
-.sai_class_font_size_small {
+.sai_class_font_size_small { /* JavaScriptからテキストサイズを切り替えるために使う */
 	font-size: 0.4cm;
 }
-.sai_class_font_size_normal {
+.sai_class_font_size_normal { /* JavaScriptからテキストサイズを切り替えるために使う */
 	font-size: 0.6cm;
 }
-.sai_class_font_size_large {
+.sai_class_font_size_large { /* JavaScriptからテキストサイズを切り替えるために使う */
 	font-size: 1.0cm;
 }
-.sai_class_font_size_huge {
+.sai_class_font_size_huge { /* JavaScriptからテキストサイズを切り替えるために使う */
 	font-size: 2.0cm;
 }
-#sai_id_button_target {
+#sai_id_button_target { /* 顔認識へ切り替えるボタン */
 	position: absolute;
 	left: calc(100% / 4 * 0 + 5px/2);
 	bottom: 0;
 	width: calc(100% / 4 - 5px);
 }
-#sai_id_button_microphone {
+#sai_id_button_microphone { /* マイクのボタン */
 	position: absolute;
 	left: calc(100% / 4 * 1 + 5px/2);
 	bottom: 0;
 	width: calc(100% / 4 - 5px);
 }
-#sai_id_button_sound_play {
+#sai_id_button_sound_play { /* 音声を再生するボタン */
 	position: absolute;
 	left: calc(100% / 4 * 2 + 5px/2);
 	bottom: 0;
 	width: calc(100% / 4 - 5px);
 }
-#sai_id_button_speech {
+#sai_id_button_speech { /* スピーチのボタン */
 	position: absolute;
 	left: calc(100% / 4 * 3 + 5px/2);
 	bottom: 0;
 	width: calc(100% / 4 - 5px);
 }
-.sai_class_config_button {
+.sai_class_config_button { /* 設定に関するボタン */
 	position: relative;
 	height: 3rem;
 	font-weight: bold;
 	padding: 0.2rem 1.1rem 0.2rem 1.1rem;
 	vertical-align: middle;
 }
-.sai_class_releasing {
+.sai_class_releasing { /* 催眠解除中の強調表示 */
 	background-color: red !important;
 	text-align: center;
 }
-input[type='color'] {
+input[type='color'] { /* 色選択ボタン */
 	width: 2cm;
 	height: 1cm;
 }
-.sai_class_button_color_reset {
+.sai_class_button_color_reset { /* 色選択をリセットするボタン */
 	height: 1cm;
 	padding: 0.5rem;
 	vertical-align: top;
 }
-.sai_class_rounded_button {
-	width: 1.3cm;
-	height: 1.3cm;
-	background-color: rgba(255, 181, 230, 0%);
+.sai_class_rounded_button { /* 丸いボタン */
+	background-color: rgba(255, 230, 181, 75%);
 	border: 0;
 	border-radius: 100%;
 	padding: 0;
 	margin: 0;
 }
-.sai_class_rounded_button img {
-	width: 1.3cm;
-	height: 1.3cm;
+.sai_class_rounded_button img { /* 丸いボタンの画像 */
+	height: max(5vw, 5vh, 1.2cm);
+	height: max(5dvw, 5dvh, 1.2cm);
 }
-#sai_id_button_config {
+#sai_id_button_config { /* メインページの設定ボタン */
 	position: absolute;
 	left: 3px;
 	top: 3px;
 }
-#sai_id_button_config_back {
+#sai_id_button_config_back { /* 設定ページからメインページへ戻るボタン */
 	position: absolute;
 	left: 3px;
 	top: 3px;
 }
-#sai_id_button_message_back {
+#sai_id_button_message_back { /* メッセージページからメインページへ戻るボタン */
 	position: absolute;
 	left: 3px;
 	top: 3px;
 }
-#sai_id_button_agreement_back {
+#sai_id_button_agreement_back { /* 同意ページからメインページに戻るボタン */
 	position: absolute;
 	left: 3px;
 	top: 3px;
 }
-#sai_id_button_about {
+#sai_id_button_about { /* はてなボタン */
 	position: absolute;
 	right: 3px;
 	top: 3px;
 }
-#sai_id_button_previous_image {
+#sai_id_button_previous_image { /* 次の映像に進むボタン */
 	position: absolute;
 	left: 0.5rem;
 }
-#sai_id_button_next_image {
+#sai_id_button_next_image { /* 一つ前の映像に戻るボタン */
 	position: absolute;
 	right: 0.5rem;
 }
-.sai_class_button_arrow {
+.sai_class_button_arrow { /* 映像を切り替えるボタン */
 	vertical-align: middle;
 	outline: 1px solid white;
-	border-radius: 4px;
+	border-radius: 10%;
 	text-align: center;
-	background-color: rgba(50%, 50%, 50%, 80%);
+	background-color: rgba(255, 230, 181, 75%);
 	top: calc(50vh - 2.5rem / 2);
 	top: calc(50dvh - 2.5rem / 2);
 }
-.sai_class_button_arrow img {
-	width: 100%;
-	height: 100%;
+.sai_class_button_arrow img { /* 映像を切り替えるボタンの画像 */
+	width: max(10vw, 1.0cm);
+	width: max(10dvw, 1.0cm);
+	height: max(5vw, 5vh, 1.2cm);
+	height: max(5dvw, 5dvh, 1.2cm);
 }
-#sai_id_button_start_hypnosis {
+#sai_id_button_start_hypnosis { /* 催眠開始ボタン */
 	position: absolute;
 	width: 50vw;
 	width: 50dvw;
@@ -234,8 +235,9 @@ input[type='color'] {
 	top: calc(50vh - 15vh / 2);
 	top: calc(50dvh - 15dvh / 2);
 	font-size: 6vmin;
+	border-radius: 5%;
 }
-#sai_id_button_release_hypnosis {
+#sai_id_button_release_hypnosis { /* 催眠解除ボタン */
 	position: absolute;
 	width: 50vw;
 	width: 50dvw;
@@ -246,8 +248,9 @@ input[type='color'] {
 	top: calc(70vh - 15vh / 2);
 	top: calc(70dvh - 15dvh / 2);
 	font-size: 6vmin;
+	border-radius: 5%;
 }
-@media screen and (max-height: 360px) {
+@media screen and (orientation: landscape) { /* 端末が横向きの場合 */
 	#sai_id_button_start_hypnosis {
 		width: 20vw;
 		width: 20dvw;
@@ -269,60 +272,61 @@ input[type='color'] {
 		top: calc(60dvh - 20dvh / 2);
 	}
 }
-.sai_class_invisible {
+.sai_class_invisible { /* 表示・非表示を切り替えるためのクラス */
 	display: none;
 }
-.sai_class_center {
+.sai_class_center { /* 中央寄せのためのクラス */
 	margin-left: auto;
 	margin-right: auto;
 	text-align: center;
 }
-.sai_class_navi_button {
+.sai_class_navi_button { /* ナビゲーションボタン */
 	outline: 1px solid white;
-	border-radius: 4px;
-	background-color: rgba(255, 181, 230, 75%);
+	border-radius: 10%;
+	background-color: rgba(255, 230, 181, 75%);
 	color: black;
 	padding: 4px;
-	height: 1.2cm;
-	line-height: 1.2cm;
 	z-index: 2;
 	font-size: 0.5cm;
 	font-weight: bold;
 	padding: 0;
 	text-align: center;
-}
-.sai_class_navi_button {
 	vertical-align: top;
 	line-height: 0.5cm;
 }
-.sai_class_navi_button img {
+.sai_class_navi_button img { /* ナビゲーションボタンの画像 */
 	vertical-align: middle;
+	height: max(5vw, 5vh, 1.2cm);
+	height: max(5dvw, 5dvh, 1.2cm);
+	line-height: max(5vw, 5vh, 1.2cm);
+	line-height: max(5dvw, 5dvh, 1.2cm);
 }
-.sai_class_checked {
-	background-color: rgba(204, 101, 198, 90%);
+.sai_class_checked { /* ナビゲーションボタンをチェックした状態 */
+	background-color: rgba(204, 198, 101, 90%);
 }
-.sai_class_config_navi_line {
+.sai_class_config_navi_line { /* ナビゲーション行 */
 	height: 5rem; /* ③ */
 }
-.sai_class_img_config_logo {
+.sai_class_img_config_logo { /* 設定ページの小さなロゴ */
 	height: 31px; /* ④ */
 	border: 0;
 }
-#sai_id_text_message {
+#sai_id_text_message { /* メッセージページのテキストボックス */
 	padding: 0;
 	height: 0.9cm; /* ⑤ */
 	font-size: 0.6cm;
 	width: 95%;
 }
-#sai_id_message_list div {
+#sai_id_message_list div { /* メッセージリスト */
 	border: solid 1px black;
 	padding: 0.2cm;
 	min-height: 0.8cm;
+	background-image: linear-gradient(to bottom, #d799cc, #ff0);
 }
-#sai_id_message_list div:hover {
-	background-color: #c0c;
+#sai_id_message_list div:hover { /* メッセージリスト */
+	background-color: #cc0;
 }
-#sai_id_page_message .sai_class_nav_button {
+#sai_id_page_message .sai_class_nav_button { /* メッセージリストのナビゲーションボタン */
 	font-size: 1rem;
 	padding: 0 0.1cm;
 	min-width: 1.3cm;
@@ -358,21 +362,19 @@ input[type='color'] {
 	margin-left: auto;
 	margin-right: auto;
 }
-#sai_id_config_scrollable {
-}
-#sai_id_text_version {
+#sai_id_text_version { /* バージョン情報のテキスト */
 	font-size: 0.9rem; /* ② */
 	line-height: 0.9rem; /* ② */
 }
-.sai_config_label {
+.sai_config_label { /* 設定項目のラベル */
 	font-weight: bold;
 	font-size: 1.25rem;
 }
-#sai_id_text_notice {
-	font-size: 9pt;
+#sai_id_text_notice { /* 同意契約書 */
+	font-size: 10.5pt;
 	white-space: pre-line;
 	text-align: left;
-	background-color: #fcf;
+	background-color: #ffc;
 	color: black;
 }
 /* https://www.tutorialstonight.com/css-toggle-switch-with-text */
@@ -410,12 +412,12 @@ input[type='color'] {
     width: calc(var(--height));
     height: calc(var(--height));
     border-radius: calc(var(--height) / 2);
-    background-color: #fcf;
+    background-color: #ffc;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
     transition: all 0.4s ease-in-out;
 }
 .sai_class_toggle_button input:checked + .sai_class_slider {
-    background-color: #f0f;
+    background-color: #ff0;
     color: black;
 }
 .sai_class_toggle_button input:checked + .sai_class_slider::before {
@@ -458,17 +460,17 @@ input[type='color'] {
 }
 /* 【トグルスイッチ】ここまで */
 /* 【顔認識のページ】ここから */
-#sai_id_button_side {
+#sai_id_button_side { /* 顔認識の裏表ボタン */
 	position: absolute;
 	right: 3px;
 	top: 3px;
 }
-#sai_id_button_face_getter_back {
+#sai_id_button_face_getter_back { /* 顔認識のページの戻るボタン */
 	position: absolute;
 	left: 3px;
 	top: 3px;
 }
-#sai_id_canvas_1 {
+#sai_id_canvas_face { /* 顔認識のページのキャンバス */
 	z-index: 1;
 	background-color: #222;
 	top: 0;
@@ -478,52 +480,61 @@ input[type='color'] {
 	height: 100vh;
 	height: 100dvh;
 }
-#sai_id_button_lock_on {
+#sai_id_button_lock_on { /* ロックオンボタン */
 	position: absolute;
 	width: 50vw;
 	width: 50dvw;
-	height: 1cm;
+	height: 1.2cm;
 	left: calc(50vw - 50vw / 2);
 	left: calc(50dvw - 50dvw / 2);
-	top: calc(80vh - 1cm / 2);
-	top: calc(80dvh - 1cm / 2);
+	top: calc(70vh - 1cm / 2);
+	top: calc(70dvh - 1cm / 2);
 	font-size: 0.6cm;
 }
-#sai_id_button_close {
+#sai_id_button_close { /* 顔認識を閉じるボタン */
 	position: absolute;
 	width: 50vw;
 	width: 50dvw;
-	height: 1cm;
+	height: 1.2cm;
 	left: calc(50vw - 50vw / 2);
 	left: calc(50dvw - 50dvw / 2);
-	top: calc(90vh - 1cm / 2);
-	top: calc(90dvh - 1cm / 2);
+	top: calc(85vh - 1cm / 2);
+	top: calc(85dvh - 1cm / 2);
 	font-size: 0.6cm;
 }
-@media screen and (max-height: 360px) {
-	#sai_id_button_lock_on {
+@media screen and (orientation: portrait) { /* 端末が縦向きの場合 */
+	#sai_id_button_lock_on { /* ロックオンボタン */
+		height: 1.5cm;
+		top: calc(75vh - 1.5cm / 2);
+		top: calc(75dvh - 1.5cm / 2);
+	}
+	#sai_id_button_close { /* 顔認識を閉じるボタン */
+		height: 1.5cm;
+	}
+}
+@media screen and (orientation: landscape) { /* 端末が横向きの場合 */
+	#sai_id_button_lock_on { /* ロックオンボタン */
 		width: 20vw;
 		width: 20dvw;
-		height: 1cm;
 		left: calc(30vw - 20vw / 2);
 		left: calc(30dvw - 20dvw / 2);
 		top: calc(80vh - 1cm / 2);
 		top: calc(80dvh - 1cm / 2);
 	}
-	#sai_id_button_close {
+	#sai_id_button_close { /* 顔認識を閉じるボタン */
 		width: 20vw;
 		width: 20dvw;
-		height: 1cm;
 		left: calc(70vw - 20vw / 2);
 		left: calc(70dvw - 20dvw / 2);
 		top: calc(80vh - 1cm / 2);
 		top: calc(80dvh - 1cm / 2);
 	}
 }
-.sai_class_face_button {
-	background: rgba(255, 255, 255, 60%);
+.sai_class_face_button { /* 顔認識のアクションボタン */
+	background: rgba(255, 255, 255, 50%);
+	border-radius: 10%;
 }
-.sai_class_face_button:disabled {
+.sai_class_face_button:disabled { /* 顔認識の無効のアクションボタン */
 	color: rgb(191, 191, 191);
 }
 /* 【顔認識のページ】ここまで */
