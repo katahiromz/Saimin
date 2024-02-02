@@ -39,7 +39,7 @@ Saimin はフリーソフトですので、無料で使用できます。
 
 このソフトウェアの使用による影響については作者は責任を一切負いかねます。
 
-Copyright (C) 2022-2023 片山博文MZ. All Rights Reserved.
+Copyright (C) 2022-2024 片山博文MZ. All Rights Reserved.
 ※ 一部、OtoLogicの音声素材を使用。
 
 【Webアプリ「くらくら」の紹介】
@@ -94,7 +94,7 @@ Saimin is a free software distributed under the terms of the Apache License Vers
 
 The author assumes no responsibility for any consequences resulting from the use of this software.
 
-Copyright (C) 2022-2023 katahiromz. All Rights Reserved.
+Copyright (C) 2022-2024 katahiromz. All Rights Reserved.
 
 * Some OtoLogic audio materials are used.
 
