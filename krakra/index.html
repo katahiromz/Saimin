@@ -130,12 +130,14 @@
 			<div class="sai_class_ui_line">
 				<!-- {{LANGUAGE_SPECIFIC}} {{COLOR_SPECIFIC}} -->
 				<select id="sai_id_select_skin" title="sai_id_select_skin">
-					<option value="golden">Golden</option>
-					<option value="purple" selected>Purple</option>
-					<option value="blue">Blue</option>
-					<option value="pink">Pink</option>
+					<option value="black">Black</option>
 					<option value="darkgreen">Darkgreen</option>
+					<option value="blue">Blue</option>
+					<option value="purple" selected>Purple</option>
 					<option value="red">Red</option>
+					<option value="pink">Pink</option>
+					<option value="golden">Golden</option>
+					<option value="white">White</option>
 				</select>
 			</div>
 			<!-- 【設定ページのスキン設定】ここまで -->
@@ -232,6 +234,32 @@
 				</label>
 			</div>
 			<!-- 【設定ページの画面回転の設定】ここまで -->
+			<div class="sai_class_native_app_only"><!-- ネイティブアプリのみ -->
+				<hr />
+				<!-- 【設定ページの明るさの設定】ここから -->
+				<div class="sai_class_ui_line">
+					<span id="sai_id_text_brightness" class="sai_config_label">Brightness:</span>
+				</div>
+				<div class="sai_class_ui_line">
+					<select id="sai_id_select_brightness" title="sai_id_select_brightness">
+						<option value="normal" selected>Normal</option>
+						<option value="brighter">Brighter</option>
+					</select>
+				</div>
+				<!-- 【設定ページの明るさの設定】ここまで -->
+			</div>
+			<hr />
+			<!-- 【モーションブラーの設定】ここから -->
+			<div class="sai_class_ui_line">
+				<span id="sai_id_text_motion_blur" class="sai_config_label">Motion Blur:</span>
+			</div>
+			<div class="sai_class_ui_line">
+				<span class="sai_class_nobr">
+					<input type="range" id="sai_id_range_motion_blur" name="sai_id_range_motion_blur" min="0" max="9" value="6" step="1" title="Motion Blur" /><br />
+					<output id="sai_id_text_motion_blur_output" name="sai_id_text_motion_blur_output" for="sai_id_range_motion_blur">No blinking</output>
+				</span>
+			</div>
+			<!-- 【モーションブラーの設定】ここまで -->
 			<hr />
 			<!-- 【設定ページの1番目の色の設定】ここから -->
 			<div class="sai_class_ui_line">
@@ -359,20 +387,6 @@
 				</label>
 			</div>
 			<!-- 【設定ページの切り替え音の設定】ここまで -->
-			<div class="sai_class_native_app_only">
-				<hr />
-				<!-- 【設定ページの明るさの設定】ここから -->
-				<div class="sai_class_ui_line">
-					<span id="sai_id_text_brightness" class="sai_config_label">Brightness:</span>
-				</div>
-				<div class="sai_class_ui_line">
-					<select id="sai_id_select_brightness" title="sai_id_select_brightness">
-						<option value="normal" selected>Normal</option>
-						<option value="brighter">Brighter</option>
-					</select>
-				</div>
-				<!-- 【設定ページの明るさの設定】ここまで -->
-			</div>
 			<hr />
 			<!-- 【設定ページのメッセージテキストの設定】ここから -->
 			<div class="sai_class_ui_line">

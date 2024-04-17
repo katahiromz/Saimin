@@ -27,6 +27,8 @@ const trans_getDefaultSkin = function(){
 
 // {{LANGUAGE_SPECIFIC}} {{COLOR_SPECIFIC}}
 const trans_getStyleSheet = function(){
+	if(trans_skin == 'blackwhite')
+		trans_skin = 'black';
 	switch (trans_skin){
 	case 'golden':
 		return 'css/golden.css';
@@ -41,6 +43,10 @@ const trans_getStyleSheet = function(){
 		return 'css/red.css';
 	case 'darkgreen':
 		return 'css/darkgreen.css';
+	case 'white':
+		return 'css/white.css';
+	case 'black':
+		return 'css/black.css';
 	}
 };
 
@@ -94,6 +100,22 @@ const trans_getColor = function(colorName){
 		case 'COLOR_DUMMYPAGECOLOR1': return 'rgba(0, 191, 0, 1.0)';
 		case 'COLOR_1ST': return '#003300';
 		case 'COLOR_2ND': return '#009900';
+		}
+		break;
+	case 'black':
+		switch (colorName){
+		case 'COLOR_DUMMYPAGECOLOR0': return 'rgba(190, 190, 190, 0.0)';
+		case 'COLOR_DUMMYPAGECOLOR1': return 'rgba(10, 10, 10, 1.0)';
+		case 'COLOR_1ST': return '#000000';
+		case 'COLOR_2ND': return '#ffffff';
+		}
+		break;
+	case 'white':
+		switch (colorName){
+		case 'COLOR_DUMMYPAGECOLOR0': return 'rgba(255, 255, 255, 0.0)';
+		case 'COLOR_DUMMYPAGECOLOR1': return 'rgba(90, 90, 90, 1.0)';
+		case 'COLOR_1ST': return '#ffffff';
+		case 'COLOR_2ND': return '#000000';
 		}
 		break;
 	}
@@ -1710,11 +1732,11 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_pic_type, '4', '画4: アルキメデスのらせん');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', '画5: 広がるハート');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', '画6: 五円玉');
-		trans_setSelectOptionText(sai_id_select_pic_type, '7', '画7: ぼわんぼわん');
+		trans_setSelectOptionText(sai_id_select_pic_type, '7', '画7: 奇妙な渦巻き');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', '画8: クレージーな色');
 		trans_setSelectOptionText(sai_id_select_pic_type, '9', '画9: 対数らせん2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', '画10: アナログディスク');
-		trans_setSelectOptionText(sai_id_select_pic_type, '11', '画11: ミックス渦巻き');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', '画11: 奇妙な渦巻き 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '12', '画12: 万華鏡');
 		trans_setSelectOptionText(sai_id_select_pic_type, '13', '画13: 1番目の色の画面');
 		trans_setSelectOptionText(sai_id_select_pic_type, '14', '画14: 2番目の色の画面');
@@ -1734,6 +1756,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, 'メッセージの大きさ:');
 		trans_setHtmlText(sai_id_text_note, '音符ボタン:');
+		trans_setHtmlText(sai_id_text_motion_blur, 'モーション ブラー:');
 		trans_setSelectOptionText(sai_id_select_sound, '', '(なし)');
 		trans_setSelectOptionText(sai_id_select_sound, 'Cattish', 'ネコっぽい');
 		trans_setSelectOptionText(sai_id_select_sound, 'Exciting', '興奮');
@@ -1757,7 +1780,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_page_config_header, '設定');
 		trans_setHtmlText(sai_id_text_label_message_text, 'メッセージ テキスト:');
 		trans_setHtmlText(sai_id_button_message, 'メッセージ...');
-		trans_setHtmlText(sai_id_button_start_hypnosis, '催眠開始...');
+		trans_setHtmlText(sai_id_button_start_hypnosis, '催眠スタート');
 		trans_setHtmlText(sai_id_button_release_hypnosis, '催眠解除');
 		trans_setHtmlText(sai_id_text_count_down, 'カウントダウン:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'メッセージをしゃべる:');
@@ -1772,6 +1795,8 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_skin, 'pink', 'ピンク色');
 		trans_setSelectOptionText(sai_id_select_skin, 'darkgreen', '深緑色');
 		trans_setSelectOptionText(sai_id_select_skin, 'red', '赤色');
+		trans_setSelectOptionText(sai_id_select_skin, 'black', '黒色');
+		trans_setSelectOptionText(sai_id_select_skin, 'white', '白色');
 	}else if(lang == 'zh-CN' || lang == 'cn'){ // Chinese (Simplified)
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_ZH_CN);
 		trans_setHtmlText(sai_id_text_language, '语言 (Language):');
@@ -1801,11 +1826,11 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_pic_type, '4', '图4: 阿基米德螺旋线');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', '图5: 扩展的心');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', '图6: 5日元硬币');
-		trans_setSelectOptionText(sai_id_select_pic_type, '7', '图7: 头晕 头晕');
+		trans_setSelectOptionText(sai_id_select_pic_type, '7', '图7: 奇怪的漩涡');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', '图8: 疯狂的颜色');
 		trans_setSelectOptionText(sai_id_select_pic_type, '9', '图9: 对数螺线 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', '图10: 模拟光盘');
-		trans_setSelectOptionText(sai_id_select_pic_type, '11', '图11: ミックス渦巻き');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', '图11: 奇怪的漩涡 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '12', '图12: 万花筒');
 		trans_setSelectOptionText(sai_id_select_pic_type, '13', '图13: 第一个彩色屏幕');
 		trans_setSelectOptionText(sai_id_select_pic_type, '14', '图14: 第二个彩色屏幕');
@@ -1825,6 +1850,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, '消息大小：');
 		trans_setHtmlText(sai_id_text_note, '声音按钮：');
+		trans_setHtmlText(sai_id_text_motion_blur, '运动模糊：');
 		trans_setSelectOptionText(sai_id_select_sound, '', '(无)');
 		trans_setSelectOptionText(sai_id_select_sound, 'Cattish', '像猫一样');
 		trans_setSelectOptionText(sai_id_select_sound, 'Exciting', '激发');
@@ -1848,7 +1874,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_page_config_header, '配置');
 		trans_setHtmlText(sai_id_text_label_message_text, '留言内容：');
 		trans_setHtmlText(sai_id_button_message, '信息...');
-		trans_setHtmlText(sai_id_button_start_hypnosis, '开始催眠...');
+		trans_setHtmlText(sai_id_button_start_hypnosis, '开始催眠');
 		trans_setHtmlText(sai_id_button_release_hypnosis, '释放催眠');
 		trans_setHtmlText(sai_id_text_count_down, '倒数：');
 		trans_setHtmlText(sai_id_text_label_message_speech, '留言演讲：');
@@ -1863,6 +1889,8 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_skin, 'pink', '粉色');
 		trans_setSelectOptionText(sai_id_select_skin, 'darkgreen', '深绿色');
 		trans_setSelectOptionText(sai_id_select_skin, 'red', '红色的');
+		trans_setSelectOptionText(sai_id_select_skin, 'black', '黑色');
+		trans_setSelectOptionText(sai_id_select_skin, 'white', '白色的');
 	}else if(lang == 'zh-TW'){ // Chinese (Traditional)
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_ZH_TW);
 		trans_setHtmlText(sai_id_text_language, '語言 (Language):');
@@ -1892,11 +1920,11 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_pic_type, '4', '圖4: 阿基米德螺旋線');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', '圖5: 擴展的心');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', '圖6: 5日元硬幣');
-		trans_setSelectOptionText(sai_id_select_pic_type, '7', '圖7: 頭暈 頭暈');
+		trans_setSelectOptionText(sai_id_select_pic_type, '7', '画7: 奇怪的漩渦');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', '圖8: 瘋狂的顏色');
 		trans_setSelectOptionText(sai_id_select_pic_type, '9', '圖9: 對數螺線 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', '圖10: 類比光碟');
-		trans_setSelectOptionText(sai_id_select_pic_type, '11', '圖11: 混合漩涡');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', '圖11: 奇怪的漩渦 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '12', '圖12: 萬花筒');
 		trans_setSelectOptionText(sai_id_select_pic_type, '13', '圖13: 第一个彩色屏幕');
 		trans_setSelectOptionText(sai_id_select_pic_type, '14', '圖14: 第二个彩色屏幕');
@@ -1916,6 +1944,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, '消息大小：');
 		trans_setHtmlText(sai_id_text_note, '聲音按鈕：');
+		trans_setHtmlText(sai_id_text_motion_blur, '運動模糊：');
 		trans_setSelectOptionText(sai_id_select_sound, '', '(無)');
 		trans_setSelectOptionText(sai_id_select_sound, 'Cattish', '像貓一樣');
 		trans_setSelectOptionText(sai_id_select_sound, 'Exciting', '激發');
@@ -1939,7 +1968,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_page_config_header, '配置');
 		trans_setHtmlText(sai_id_text_label_message_text, '留言內容：');
 		trans_setHtmlText(sai_id_button_message, '訊息...');
-		trans_setHtmlText(sai_id_button_start_hypnosis, '開始催眠...');
+		trans_setHtmlText(sai_id_button_start_hypnosis, '開始催眠');
 		trans_setHtmlText(sai_id_button_release_hypnosis, '釋放催眠');
 		trans_setHtmlText(sai_id_text_count_down, '倒數：');
 		trans_setHtmlText(sai_id_text_label_message_speech, '留言演講：');
@@ -1954,6 +1983,8 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_skin, 'pink', '粉紅色');
 		trans_setSelectOptionText(sai_id_select_skin, 'darkgreen', '深綠色');
 		trans_setSelectOptionText(sai_id_select_skin, 'red', '紅色的');
+		trans_setSelectOptionText(sai_id_select_skin, 'black', '黑色');
+		trans_setSelectOptionText(sai_id_select_skin, 'white', '白色的');
 	}else if(lang == 'kr' || lang == 'ko' || lang == 'ko-KR'){ // Korean
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_KO_KR);
 		trans_setHtmlText(sai_id_text_language, '언어 (Language):');
@@ -1983,11 +2014,11 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: 아르키메데스의 나선');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'pic5: 퍼지는 하트들');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'pic6: 오엔 구슬');
-		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: 보완 보완');
+		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: 이상한 소용돌이');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'pic8: 미친 색');
 		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: 로그 나선 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'pic10: 아날로그 디스크');
-		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: 믹스 소용돌이');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: 이상한 소용돌이 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'pic12: 만화경');
 		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'pic13: 첫 번째 컬러 화면');
 		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'pic14: 두 번째 색상 화면');
@@ -2007,6 +2038,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, '메시지 크기:');
 		trans_setHtmlText(sai_id_text_note, '사운드 버튼:');
+		trans_setHtmlText(sai_id_text_motion_blur, '모션 블러:');
 		trans_setSelectOptionText(sai_id_select_sound, '', '(없음)');
 		trans_setSelectOptionText(sai_id_select_sound, 'Cattish', '고양이 같은');
 		trans_setSelectOptionText(sai_id_select_sound, 'Exciting', '일으키다');
@@ -2030,7 +2062,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_page_config_header, '구성');
 		trans_setHtmlText(sai_id_text_label_message_text, '메시지 텍스트:');
 		trans_setHtmlText(sai_id_button_message, '메시지...');
-		trans_setHtmlText(sai_id_button_start_hypnosis, '최면 시작...');
+		trans_setHtmlText(sai_id_button_start_hypnosis, '최면 시작');
 		trans_setHtmlText(sai_id_button_release_hypnosis, '최면 해제');
 		trans_setHtmlText(sai_id_text_count_down, '카운트다운:');
 		trans_setHtmlText(sai_id_text_label_message_speech, '메시지 연설:');
@@ -2045,6 +2077,8 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_skin, 'pink', '핑크색');
 		trans_setSelectOptionText(sai_id_select_skin, 'darkgreen', '다크 그린');
 		trans_setSelectOptionText(sai_id_select_skin, 'red', '빨간색');
+		trans_setSelectOptionText(sai_id_select_skin, 'black', '검은색');
+		trans_setSelectOptionText(sai_id_select_skin, 'white', '백색');
 	}else if(lang == 'it' || lang == 'it-IT'){ // Italian
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_IT);
 		trans_setHtmlText(sai_id_text_language, 'Lingua (Language):');
@@ -2074,11 +2108,11 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: Spirale di Archimede');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'pic5: Cuori che si diffondono');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'pic6: Moneta da 5 Yen');
-		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: Clamore Clamore');
+		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: Strano Turbinio');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'pic8: Colori Pazzi');
 		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: Spirale Logaritmica 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'pic10: Disco Analogico');
-		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: Mescolare il turbinio');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: Strano Turbinio 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'pic12: Caleidoscopio');
 		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'pic13: 1° schermo a colori');
 		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'pic14: 2° schermo a colori');
@@ -2098,6 +2132,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, 'Dimensione del messaggio:');
 		trans_setHtmlText(sai_id_text_note, 'Pulsante audio:');
+		trans_setHtmlText(sai_id_text_motion_blur, 'Sfocatura movimento:');
 		trans_setSelectOptionText(sai_id_select_sound, '', '(Nessuno)');
 		trans_setSelectOptionText(sai_id_select_sound, 'Cattish', 'Simile a un gatto');
 		trans_setSelectOptionText(sai_id_select_sound, 'Exciting', 'Eccitare');
@@ -2121,7 +2156,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_page_config_header, 'Configurazione');
 		trans_setHtmlText(sai_id_text_label_message_text, 'Messaggio di testo:');
 		trans_setHtmlText(sai_id_button_message, 'Messaggio...');
-		trans_setHtmlText(sai_id_button_start_hypnosis, 'Inizia l\'ipnosi...');
+		trans_setHtmlText(sai_id_button_start_hypnosis, 'Inizia l\'ipnosi');
 		trans_setHtmlText(sai_id_button_release_hypnosis, 'Rilascia l\'ipnosi');
 		trans_setHtmlText(sai_id_text_count_down, 'Conto alla rovescia:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'Discorso del messaggio:');
@@ -2136,6 +2171,8 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_skin, 'pink', 'Colore Rosa');
 		trans_setSelectOptionText(sai_id_select_skin, 'darkgreen', 'Verde Scuro');
 		trans_setSelectOptionText(sai_id_select_skin, 'red', 'Rosso');
+		trans_setSelectOptionText(sai_id_select_skin, 'black', 'Colore nero');
+		trans_setSelectOptionText(sai_id_select_skin, 'white', 'Bianco');
 	}else if(lang == 'de' || lang == 'de-DE'){ // German
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_DE);
 		trans_setHtmlText(sai_id_text_language, 'Sprache (Language):');
@@ -2165,11 +2202,11 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: Die Spirale des Archimedes');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'pic5: Herzen verbreiten');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'pic6: 5-Yen-Münze');
-		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: Lärm, Lärm');
+		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: Seltsamer Wirbel');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'pic8: Verrückte Farben');
 		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: Logarithmische Spirale 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'pic10: Analoge Scheibe');
-		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: Mischwirbel');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: Seltsamer Wirbel 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'pic12: Kaleidoskop');
 		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'pic13: 1. Farbbildschirm');
 		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'pic14: Zweiter Farbbildschirm');
@@ -2189,6 +2226,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, 'Größe der Nachricht:');
 		trans_setHtmlText(sai_id_text_note, 'Sound-Taste:');
+		trans_setHtmlText(sai_id_text_motion_blur, 'Bewegungsunschärfe:');
 		trans_setSelectOptionText(sai_id_select_sound, '', '(Kein)');
 		trans_setSelectOptionText(sai_id_select_sound, 'Cattish', 'Katzenartig');
 		trans_setSelectOptionText(sai_id_select_sound, 'Exciting', 'Anregen');
@@ -2212,7 +2250,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_page_config_header, 'Aufbau');
 		trans_setHtmlText(sai_id_text_label_message_text, 'Nachrichtentext:');
 		trans_setHtmlText(sai_id_button_message, 'Nachricht...');
-		trans_setHtmlText(sai_id_button_start_hypnosis, 'Hypnose beginnen...');
+		trans_setHtmlText(sai_id_button_start_hypnosis, 'Hypnose beginnen');
 		trans_setHtmlText(sai_id_button_release_hypnosis, 'Hypnose loslassen');
 		trans_setHtmlText(sai_id_text_count_down, 'Countdown:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'Nachrichtenansprache:');
@@ -2227,6 +2265,8 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_skin, 'pink', 'Pinke Farbe');
 		trans_setSelectOptionText(sai_id_select_skin, 'darkgreen', 'Dunkelgrün');
 		trans_setSelectOptionText(sai_id_select_skin, 'red', 'Rot');
+		trans_setSelectOptionText(sai_id_select_skin, 'black', 'Schwarz');
+		trans_setSelectOptionText(sai_id_select_skin, 'white', 'Weiß');
 	}else if(lang == 'es' || lang == 'es-ES'){ // Spanish
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_ES);
 		trans_setHtmlText(sai_id_text_language, '言語 (Language):');
@@ -2256,11 +2296,11 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'Imagen 4: Espiral de Arquímedes');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'Imagen 5: Corazón en expansión');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'Imagen 6: Moneda de cinco yenes');
-		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'Imagen 7: Bowan Bowan');
+		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'Imagen 7: Extraño Remolino');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'Imagen 8: Colores locos');
 		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'Imagen 9: Espiral logarítmica 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'Imagen 10: Disco analógico');
-		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'Imagen 11: Mezcla de remolino');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'Imagen 11: Extraño Remolino 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'Imagen 12: Caleidoscopio');
 		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'Imagen 13: Primera pantalla a color');
 		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'Imagen 14: Segunda pantalla a color');
@@ -2280,6 +2320,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, 'Tamaño del mensaje:');
 		trans_setHtmlText(sai_id_text_note, 'Botón de nota musical:');
+		trans_setHtmlText(sai_id_text_motion_blur, 'Desenfoque de movimiento:');
 		trans_setSelectOptionText(sai_id_select_sound, '', '(Ninguno)');
 		trans_setSelectOptionText(sai_id_select_sound, 'Cattish', 'Felino');
 		trans_setSelectOptionText(sai_id_select_sound, 'Exciting', 'Excitación');
@@ -2303,7 +2344,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_page_config_header, 'Configuración');
 		trans_setHtmlText(sai_id_text_label_message_text, 'Mensaje de texto:');
 		trans_setHtmlText(sai_id_button_message, 'Mensaje...');
-		trans_setHtmlText(sai_id_button_start_hypnosis, 'Iniciar la hipnosis...');
+		trans_setHtmlText(sai_id_button_start_hypnosis, 'Iniciar la hipnosis');
 		trans_setHtmlText(sai_id_button_release_hypnosis, 'Iiberar hipnosis');
 		trans_setHtmlText(sai_id_text_count_down, 'Cuenta regresiva:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'Di el mensaje:');
@@ -2318,6 +2359,8 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_skin, 'pink', 'Color rosa');
 		trans_setSelectOptionText(sai_id_select_skin, 'darkgreen', 'Verde oscuro');
 		trans_setSelectOptionText(sai_id_select_skin, 'red', 'Rojo');
+		trans_setSelectOptionText(sai_id_select_skin, 'black', 'Negro');
+		trans_setSelectOptionText(sai_id_select_skin, 'white', 'Blanco');
 	}else if(lang == 'ru' || lang == 'RU'){ // Russian
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_RU);
 		trans_setHtmlText(sai_id_text_language, '言語 (Language):');
@@ -2347,11 +2390,11 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'Рисунок 4: Спираль Архимеда');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'Рисунок 5: Расширяющееся сердце');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'Рисунок 6: Монета пять иен');
-		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'Рисунок 7: Боуэн Боуэн');
+		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'Рисунок 7: Странный Водоворот');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'Рисунок 8: Сумасшедшие цвета');
 		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'Рисунок 9: Логарифмическая спираль 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'Рисунок 10: Аналоговый диск');
-		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'Рисунок 11: Смешайте вихрь');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'Рисунок 11: Странный Водоворот 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'Рисунок 12: Калейдоскоп');
 		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'Рисунок 13: Первый цветной экран');
 		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'Рисунок 14: Второй цветной экран');
@@ -2371,6 +2414,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_button_mesage_ok, 'Хорошо');
 		trans_setHtmlText(sai_id_text_message_size, 'Размер сообщения:');
 		trans_setHtmlText(sai_id_text_note, 'Кнопка музыкальной ноты:');
+		trans_setHtmlText(sai_id_text_motion_blur, 'Размытость:');
 		trans_setSelectOptionText(sai_id_select_sound, '', '(Никто)');
 		trans_setSelectOptionText(sai_id_select_sound, 'Cattish', 'Кошачий');
 		trans_setSelectOptionText(sai_id_select_sound, 'Exciting', 'Возбуждение');
@@ -2394,7 +2438,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_page_config_header, 'Параметр');
 		trans_setHtmlText(sai_id_text_label_message_text, 'Текст сообщения:');
 		trans_setHtmlText(sai_id_button_message, 'Сообщение...');
-		trans_setHtmlText(sai_id_button_start_hypnosis, 'Начать гипноз...');
+		trans_setHtmlText(sai_id_button_start_hypnosis, 'Начать гипноз');
 		trans_setHtmlText(sai_id_button_release_hypnosis, 'Освободиться от гипноза');
 		trans_setHtmlText(sai_id_text_count_down, 'Обратный отсчет:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'Произнесите сообщение:');
@@ -2409,6 +2453,8 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_skin, 'pink', 'Розовый цвет');
 		trans_setSelectOptionText(sai_id_select_skin, 'darkgreen', 'Темно-зеленый');
 		trans_setSelectOptionText(sai_id_select_skin, 'red', 'Красный');
+		trans_setSelectOptionText(sai_id_select_skin, 'black', 'Черный');
+		trans_setSelectOptionText(sai_id_select_skin, 'white', 'Белый');
 	}else{ // English is default
 		trans_setHtmlText(sai_id_text_notice, trans_NOTICE_EN);
 		trans_setHtmlText(sai_id_text_language, 'Language (言語):');
@@ -2438,11 +2484,11 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_pic_type, '4', 'pic4: Archimedes\' Spiral');
 		trans_setSelectOptionText(sai_id_select_pic_type, '5', 'pic5: Spreading Hearts');
 		trans_setSelectOptionText(sai_id_select_pic_type, '6', 'pic6: 5-Yen Coin');
-		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: Clamor Clamor');
+		trans_setSelectOptionText(sai_id_select_pic_type, '7', 'pic7: Strange Swirl');
 		trans_setSelectOptionText(sai_id_select_pic_type, '8', 'pic8: Crazy Colors');
 		trans_setSelectOptionText(sai_id_select_pic_type, '9', 'pic9: Logarithmic Spiral 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '10', 'pic10: Analog Disc');
-		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: Mixed Spiral');
+		trans_setSelectOptionText(sai_id_select_pic_type, '11', 'pic11: Strange Swirl 2');
 		trans_setSelectOptionText(sai_id_select_pic_type, '12', 'pic12: Kaleidoscope');
 		trans_setSelectOptionText(sai_id_select_pic_type, '13', 'pic13: 1st color screen');
 		trans_setSelectOptionText(sai_id_select_pic_type, '14', 'pic14: 2st color screen');
@@ -2462,6 +2508,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_button_mesage_ok, 'OK');
 		trans_setHtmlText(sai_id_text_message_size, 'Size of message:');
 		trans_setHtmlText(sai_id_text_note, 'Sound button:');
+		trans_setHtmlText(sai_id_text_motion_blur, 'Motion Blur:');
 		trans_setSelectOptionText(sai_id_select_sound, '', '(None)');
 		trans_setSelectOptionText(sai_id_select_sound, 'Cattish', 'Cattish');
 		trans_setSelectOptionText(sai_id_select_sound, 'Exciting', 'Exciting');
@@ -2485,7 +2532,7 @@ const trans_localize = function(lang){
 		trans_setHtmlText(sai_id_page_config_header, 'Configuration');
 		trans_setHtmlText(sai_id_text_label_message_text, 'Message Text:');
 		trans_setHtmlText(sai_id_button_message, 'Message...');
-		trans_setHtmlText(sai_id_button_start_hypnosis, 'Start Hypnosis...');
+		trans_setHtmlText(sai_id_button_start_hypnosis, 'Start Hypnosis');
 		trans_setHtmlText(sai_id_button_release_hypnosis, 'Release Hypnosis');
 		trans_setHtmlText(sai_id_text_count_down, 'Count Down:');
 		trans_setHtmlText(sai_id_text_label_message_speech, 'Message Speech:');
@@ -2500,6 +2547,8 @@ const trans_localize = function(lang){
 		trans_setSelectOptionText(sai_id_select_skin, 'pink', 'Pink');
 		trans_setSelectOptionText(sai_id_select_skin, 'darkgreen', 'Darkgreen');
 		trans_setSelectOptionText(sai_id_select_skin, 'red', 'Red');
+		trans_setSelectOptionText(sai_id_select_skin, 'black', 'Black');
+		trans_setSelectOptionText(sai_id_select_skin, 'white', 'White');
 	}
 
 	trans_setHtmlText(sai_id_page_agreement_header_1, trans_getText('TEXT_ABOUT_APP'));
