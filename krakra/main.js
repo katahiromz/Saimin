@@ -1,7 +1,7 @@
 // 催眠アプリ「催眠くらくら」のJavaScriptのメインコード。
 // 暗号名はKraKra。
 
-const sai_VERSION = '3.6.4'; // KraKraバージョン番号。
+const sai_VERSION = '3.7.2'; // KraKraバージョン番号。
 const sai_DEBUGGING = false; // デバッグ中か？
 let sai_FPS = 0; // 実測フレームレート。
 
@@ -52,6 +52,10 @@ document.addEventListener('DOMContentLoaded', function(){
 	let sai_switch_sound_type = 1; // 切り替えの音声の種類。
 	let sai_stars = new Array(32); // 画面を指でなぞったときのきらめきを保存する。
 	let sai_touchmoving = false; // 画面を指でなぞっているかどうか？
+	let sai_touch_time = null; // 触れた時間。
+	let sai_not_click = false; // クリックではない？
+	let sai_touch_position = null; // 触っている位置。
+	let sai_touching_coin = false; // コインを触っているかどうか？
 	let sai_service_worker_registration = null; // サービスワーカーの登録。
 	let sai_coin_img = new Image(); // 五円玉のイメージ。
 	let sai_rotation_type = 'normal'; // 回転の種類。
@@ -66,6 +70,8 @@ document.addEventListener('DOMContentLoaded', function(){
 	let sai_request_anime = null; // アニメーションの要求。
 	let sai_count_down = null; // カウントダウンの時刻またはnull。
 	let sai_spiral_img = new Image();
+	let sai_eye_left_img = new Image();
+	let sai_eye_right_img = new Image();
 	let sai_user_message_list = []; // メッセージリスト。
 	let sai_releasing_sound = null; // 催眠解除の音声。
 	let sai_message_size = 2; // メッセージの寸法。
@@ -603,6 +609,22 @@ document.addEventListener('DOMContentLoaded', function(){
 		localStorage.setItem('saiminScreenBrightness', value);
 	}
 
+	// 渦の向きをセットする。
+	const SAI_set_vortex_direction = function(value){
+		switch(value){
+		case 'clockwise': case 'counterclockwise': break;
+		default: value = 'clockwise';
+		}
+		sai_id_select_vortex_direction.value = value;
+		// スパイラルの画像も更新。
+		if (value == 'counterclockwise')
+			sai_spiral_img.src = 'img/spiral2.svg';
+		else
+			sai_spiral_img.src = 'img/spiral.svg';
+		// ローカルストレージに記憶する。
+		localStorage.setItem('saiminVortexDirection', value);
+	};
+
 	// メッセージボイスの音量を設定する関数。
 	const SAI_message_set_voice_volume = function(value){
 		value = parseFloat(value); // 値を浮動小数点数に変換。
@@ -811,6 +833,32 @@ document.addEventListener('DOMContentLoaded', function(){
 		localStorage.setItem('saiminCountDown', value.toString());
 	}
 
+	// 矢印の表示設定をセットする。
+	const SAI_set_arrows = function(value){
+		// ローカルストレージから来た値は文字列かもしれない。複数の型に対応。
+		switch(value){
+		case "true":
+		case true:
+		case "1":
+			value = 1;
+			break;
+		case "false":
+		case false:
+		case "0":
+			value = 0;
+			break;
+		}
+
+		// UIを更新。
+		if(value)
+			sai_id_checkbox_arrows.checked = true;
+		else
+			sai_id_checkbox_arrows.checked = false;
+
+		// ローカルストレージに記憶。
+		localStorage.setItem('saiminShowArrows', value.toString());
+	}
+
 	// 映像の進行を支配する関数。
 	const SAI_get_tick_count = function(){
 		return sai_counter;
@@ -988,6 +1036,8 @@ document.addEventListener('DOMContentLoaded', function(){
 		console.log('SAI_screen_fit_canvas');
 		sai_screen_width = sai_id_canvas_01.width = sai_id_canvas_02.width = window.innerWidth;
 		sai_screen_height = sai_id_canvas_01.height = sai_id_canvas_02.height = window.innerHeight;
+		// 万華鏡の半径。
+		sai_kaleido_radius = (sai_screen_width + sai_screen_height) * 0.1;
 	}
 
 	// スクリーンのサイズをセットし、必要なら画面を復帰する。
@@ -1140,6 +1190,21 @@ document.addEventListener('DOMContentLoaded', function(){
 		SAI_draw_circle_2(ctx, x0, y0, lineWidth / 2, true, 15);
 	}
 
+	// 矢印の描画。
+	const SAI_draw_arrow = function(ctx, x0, y0, x1, y1, lineWidth){
+		ctx.strokeStyle = ctx.fillStyle;
+		ctx.lineCap = 'round';
+		SAI_draw_line(ctx, x0, y0, x1, y1, lineWidth);
+		let comp0 = new Complex({re:x1 - x0, im:y1 - y0});
+		let abs = comp0.abs();
+		comp0 = comp0.div(abs);
+		let comp1 = new Complex({abs:1, arg:Math.PI * 30 / 180});
+		let comp2 = comp0.div(comp1).mul(abs / 3);
+		let comp3 = comp0.mul(comp1).mul(abs / 3);
+		SAI_draw_line(ctx, x1, y1, x1 - comp2.re, y1 - comp2.im, lineWidth);
+		SAI_draw_line(ctx, x1, y1, x1 - comp3.re, y1 - comp3.im, lineWidth);
+	}
+
 	// ハート形の描画。
 	const SAI_draw_heart = function(ctx, x0, y0, x1, y1){
 		let x2 = (0.6 * x0 + 0.4 * x1);
@@ -1158,30 +1223,63 @@ document.addEventListener('DOMContentLoaded', function(){
 	}
 
 	// 目の描画。
-	const SAI_draw_eye = function(ctx, x0, y0, r, opened = 1.0, alpha = 1.0){
+	const SAI_draw_eye = function(ctx, x0, y0, r, opened = 1.0, alpha = 1.0, right = true){
+		let r025 = r * 0.25;
+		let r05 = r025 * 2 * opened;
+
+		if (SAI_mod(sai_counter, 200) > 150){
+			if (right){
+				if (sai_eye_right_img.complete){
+					r *= 1.5;
+					r05 *= 1.5;
+					ctx.drawImage(sai_eye_right_img, x0 - r, y0 - r05, 2 * r, 2 * r05);
+					return;
+				}
+			}else{
+				if (sai_eye_left_img.complete){
+					r *= 1.5;
+					r05 *= 1.5;
+					ctx.drawImage(sai_eye_left_img, x0 - r, y0 - r05, 2 * r, 2 * r05);
+					return;
+				}
+			}
+		}
+
+		ctx.strokeStyle = `rgba(0, 0, 0, ${alpha * 100.0}%)`;
+		ctx.lineWidth = r * 0.10;
+
+		ctx.beginPath();
+		ctx.moveTo(x0, y0 - r * 0.75);
+		ctx.lineTo(x0, y0 + r * 0.75);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(x0 - r05, y0 - r05);
+		ctx.lineTo(x0 + r05, y0 + r05);
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.moveTo(x0 + r05, y0 - r05);
+		ctx.lineTo(x0 - r05, y0 + r05);
+		ctx.stroke();
+
 		ctx.beginPath();
 		ctx.moveTo(x0 - r, y0);
-		const r025 = r * 0.25;
-		const r05 = r025 * 2 * opened;
 		ctx.bezierCurveTo(x0 - r025, y0 - r05, x0 + r025, y0 - r05, x0 + r, y0);
 		ctx.bezierCurveTo(x0 + r025, y0 + r05, x0 - r025, y0 + r05, x0 - r, y0);
 		ctx.closePath();
-		if(alpha == 1.0){
-			ctx.strokeStyle = "#000";
-		}else{
-			ctx.strokeStyle = `rgba(0, 0, 0, ${alpha * 100.0}%)`;
-		}
-		ctx.lineWidth = r * 0.15;
+
+		ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 100.0}%)`;
+		ctx.fill();
+
+		ctx.strokeStyle = `rgba(0, 0, 0, ${alpha * 100.0}%)`;
+		ctx.lineWidth = r * 0.10;
 		ctx.stroke();
 
-		if(alpha == 1.0){
-			ctx.fillStyle = "#000";
-		}else{
-			ctx.fillStyle = `rgba(0, 0, 0, ${alpha * 100.0}%)`;
-		}
-		ctx.save();
+		ctx.fillStyle = `rgba(50, 0, 220, ${alpha * 100.0}%)`;
 		SAI_draw_circle(ctx, x0, y0, r / 3 * opened, true);
-		ctx.restore();
+		ctx.fillStyle = `rgba(20, 0, 90, ${alpha * 100.0}%)`;
+		SAI_draw_circle(ctx, x0, y0, r / 5 * opened, true);
 	}
 
 	// 目の描画２。
@@ -1196,13 +1294,13 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.fillStyle = "#faa";
 		ctx.fill();
 		ctx.strokeStyle = "#c00";
-		ctx.lineWidth = r * 0.15;
+		ctx.lineWidth = r * 0.10;
 		ctx.stroke();
 
-		ctx.fillStyle = "#000";
-		ctx.save();
+		ctx.fillStyle = "#404";
 		SAI_draw_circle(ctx, x0, y0, r / 3 * opened, true);
-		ctx.restore();
+		ctx.fillStyle = "#508";
+		SAI_draw_circle(ctx, x0, y0, r / 4 * opened, true);
 	}
 
 	// きらめきの描画。
@@ -1333,6 +1431,26 @@ document.addEventListener('DOMContentLoaded', function(){
 		}
 	}
 
+	// フォーカス矢印（複数）を描画する。
+	const SAI_draw_focus_arrows = function(ctx, qx, qy, dx, dy){
+		if(!sai_id_checkbox_arrows.checked)
+			return;
+		let dxy = (dx + dy) / 2;
+		let cnt = SAI_get_tick_count() * 0.02;
+		let rx = dxy * 0.05 * Math.cos(cnt) * (2.0 + Math.sin(cnt * 4.0));
+		let ry = dxy * 0.05 * Math.sin(cnt) * (2.0 + Math.sin(cnt * 4.0));
+		let rx0 = rx * 2.6;
+		let ry0 = ry * 2.6;
+		let rx1 = rx * 1.5;
+		let ry1 = ry * 1.5;
+		ctx.fillStyle = 'yellow';
+		SAI_draw_arrow(ctx, qx + rx0, qy + ry0, qx + rx1, qy + ry1, 14);
+		SAI_draw_arrow(ctx, qx - rx0, qy - ry0, qx - rx1, qy - ry1, 14);
+		ctx.fillStyle = 'black';
+		SAI_draw_arrow(ctx, qx + rx0, qy + ry0, qx + rx1, qy + ry1, 5);
+		SAI_draw_arrow(ctx, qx - rx0, qy - ry0, qx - rx1, qy - ry1, 5);
+	};
+
 	// 映像「画0: ダミー画面（練習用）」の描画。
 	// pic0: Dummy Screen (for practice)
 	const SAI_draw_pic_00 = function(ctx, px, py, dx, dy){
@@ -1381,12 +1499,15 @@ document.addEventListener('DOMContentLoaded', function(){
 			ctx.drawImage(sai_tap_here_img, x, y);
 		}
 
+		// フォーカス矢印を描画する。
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
+
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
 	// 映像「画1: 対数らせん」の描画。
 	// pic1: Logarithmic Spiral
-	const SAI_draw_pic_01 = function(ctx, px, py, dx, dy){
+	const SAI_draw_pic_1_sub = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 長方形領域(px, py, dx, dy)をクリッピングする。
@@ -1416,6 +1537,8 @@ document.addEventListener('DOMContentLoaded', function(){
 			for(let theta = 0; theta <= 2 * Math.PI * 1.2; theta += 0.1){
 				let r = a * Math.exp(b * theta);
 				let t = theta + delta_theta;
+				if (sai_id_select_vortex_direction.value == 'counterclockwise')
+					t = -t;
 				// 原点を中心として、これから描画する図形を回転する。
 				t += -count2 * 0.12;
 				let comp = new Complex({abs:r, arg:t});
@@ -1445,20 +1568,43 @@ document.addEventListener('DOMContentLoaded', function(){
 			even = !even;
 		}
 		ctx.closePath();
-		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.fillStyle = SAI_color_get_1st(); // 1番目の色で塗りつぶす。
 		ctx.fill('evenodd');
 		ctx.rect(px, py, dx, dy);
 		ctx.fillStyle = SAI_color_get_2nd(); // 2番目の色で塗りつぶす。
 		ctx.fill('evenodd');
-		ctx.globalAlpha = 1; // 元に戻す。
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
+	// 映像「画1: 対数らせん」の描画。
+	// pic1: Logarithmic Spiral
+	const SAI_draw_pic_01 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
+		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
+		ctx2.save();
+		SAI_draw_pic_1_sub(ctx2, 0, 0, dx, dy);
+		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
+		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
+		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
+		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let qx = px + dx / 2;
+		let qy = py + dy / 2;
+		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
+		let mxy = (maxxy + minxy) * 0.04;
+		let count2 = -SAI_get_tick_count();
+		qx += mxy * Math.cos(count2 * 0.07);
+		qy += mxy * Math.sin(count2 * 0.15);
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
+	}
+
 	// 映像「画2: 同心円状」の描画。
 	// pic2: Concentric Circles
-	const SAI_draw_pic_2_sub = function(ctx, px, py, dx, dy, flag=true){
+	const SAI_draw_pic_2_sub = function(ctx, px, py, dx, dy, outside=true){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1471,8 +1617,8 @@ document.addEventListener('DOMContentLoaded', function(){
 		let count2 = SAI_get_tick_count();
 		let factor = (0.99 + Math.abs(Math.sin(count2 * 0.2)) * 0.01);
 
-		// クリッピングする。!flagならば円形に切り抜く。円形の半径は時刻により変動する。
-		if(flag){
+		// クリッピングする。!outsideならば円形に切り抜く。円形の半径は時刻により変動する。
+		if(outside){
 			SAI_clip_rect(ctx, px, py, dx, dy);
 		}else{
 			ctx.beginPath();
@@ -1498,7 +1644,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		}
 		let dr = dr0 / 2 * factor;
 		let radius = SAI_mod(count2 * 4, dr0);
-		if(flag)
+		if(outside)
 			radius = dr0 - radius;
 
 		// 同心円状に描画する。
@@ -1517,14 +1663,21 @@ document.addEventListener('DOMContentLoaded', function(){
 	// 映像「画2: 同心円状」の描画。
 	// pic2: Concentric Circles
 	const SAI_draw_pic_02 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに描画する。必要に応じてクリッピングを掛ける。
 		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
 		ctx2.save();
-		SAI_draw_pic_2_sub(ctx2, 0, 0, dx, dy, true);
-		SAI_draw_pic_2_sub(ctx2, 0, 0, dx, dy, false);
+		SAI_draw_pic_2_sub(ctx2, 0, 0, dx, dy, true); // 外側を描画。
+		SAI_draw_pic_2_sub(ctx2, 0, 0, dx, dy, false); // 内側を描画。
 		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
 		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
 		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let qx = px + dx / 2, qy = py + dy / 2;
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
 	}
 
 	// 映像「画3: 目が回る」の描画。
@@ -1631,13 +1784,18 @@ document.addEventListener('DOMContentLoaded', function(){
 		for(i = 0; i < N; ++i){
 			let x = cxy * Math.cos(radian) * 0.3;
 			let y = cxy * Math.sin(radian) * 0.3;
-			SAI_draw_eye(ctx, x, y, cxy / 10, opened); // 透過しない。
-
-			// 目の中にハート型を描画する。
-			ctx.fillStyle = '#f00';
-			SAI_draw_heart(ctx, x, y - cxy * opened / 50, x, y + cxy * opened / 50);
+			SAI_draw_eye(ctx, x, y, cxy / 10, opened, 1.0, x >= 0); // 透過しない。
 
 			radian += (2 * Math.PI) / N;
+		}
+
+		// その外側に９つの目を描画する。
+		for(i = 0; i < 9; ++i){
+			let x = 2 * cxy * Math.cos(1.5 * radian) * 0.3;
+			let y = 2 * cxy * Math.sin(1.5 * radian) * 0.3;
+			SAI_draw_eye(ctx, x, y, cxy / 10, opened, 1.0, x >= 0); // 透過しない。
+
+			radian += (2 * Math.PI) / 9;
 		}
 
 		// 中央から離れるにつれ黄色を深めるグラデーション。
@@ -1653,18 +1811,25 @@ document.addEventListener('DOMContentLoaded', function(){
 	// 映像「画3: 目が回る」の描画。
 	// pic3: The Eyes
 	const SAI_draw_pic_03 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
 		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
 		ctx2.save();
 		SAI_draw_pic_03_sub(ctx2, 0, 0, dx, dy);
 		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
 		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
 		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let qx = px + dx / 2, qy = py + dy / 2;
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
 	}
 
 	// 映像「画4: アルキメデスのらせん」の描画。
 	// pic4: Archimedes' Spiral
-	const SAI_draw_pic_04 = function(ctx, px, py, dx, dy){
+	const SAI_draw_pic_04_sub = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1695,9 +1860,11 @@ document.addEventListener('DOMContentLoaded', function(){
 			// アルキメデスのらせんの公式に従って描画する。ただし偏角はdelta_thetaだけずらす。
 			let line = [];
 			line.push([qx, qy]);
-			for(let theta = 0; theta <= 2 * Math.PI * 10; theta += 0.1){
+			for(let theta = 0; theta <= 2 * Math.PI * 6; theta += 0.1){
 				let r = a * theta;
 				let t = theta + delta_theta;
+				if (sai_id_select_vortex_direction.value == 'counterclockwise')
+					t = -t;
 				// 回転する。
 				t += count2 * -0.25;
 				let comp = new Complex({abs:r, arg:t});
@@ -1726,15 +1893,38 @@ document.addEventListener('DOMContentLoaded', function(){
 			even = !even;
 		}
 		ctx.closePath();
-		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.fillStyle = SAI_color_get_1st(); // 1番目の色で描画する。
 		ctx.fill('evenodd');
 		ctx.fillStyle = SAI_color_get_2nd(); // 2番目の色で塗りつぶす。
 		ctx.rect(0, 0, dx, dy);
 		ctx.fill('evenodd');
-		ctx.globalAlpha = 1; // 元に戻す。
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
+	}
+
+	// 映像「画4: アルキメデスのらせん」の描画。
+	// pic4: Archimedes' Spiral
+	const SAI_draw_pic_04 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
+		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
+		ctx2.save();
+		let shrink = 0.75;
+		SAI_draw_pic_04_sub(ctx2, 0, 0, dx * shrink, dy * shrink);
+		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
+		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
+		ctx.drawImage(sai_id_canvas_02, 0, 0, dx * shrink, dy * shrink, px, py, dx, dy);
+		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let count2 = SAI_get_tick_count();
+		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
+		let mxy = (maxxy + minxy) * 0.04;
+		let qx = px + dx / 2, qy = py + dy / 2;
+		qx += mxy * Math.cos(count2 * 0.08);
+		qy += mxy * Math.sin(count2 * 0.05);
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
 	}
 
 	// 映像「画5: 広がるハート」の描画。
@@ -1838,13 +2028,29 @@ document.addEventListener('DOMContentLoaded', function(){
 	// 映像「画5: 広がるハート」の描画。
 	// pic5: Spreading Rainbow
 	const SAI_draw_pic_05 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
 		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
 		ctx2.save();
 		SAI_draw_pic_05_sub(ctx2, 0, 0, dx, dy);
 		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
 		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
 		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let count2 = SAI_get_tick_count();
+		let qx = px + dx / 2, qy = py + dy / 2;
+		let factor = count2 * 0.16;
+		if(SAI_screen_is_large(ctx)){
+			qx += 60 * Math.cos(factor * 0.8);
+			qy += 60 * Math.sin(factor * 0.8);
+		}else{
+			qx += 30 * Math.cos(factor * 0.8);
+			qy += 30 * Math.sin(factor * 0.8);
+		}
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
 	}
 
 	// 映像「画6: 五円玉」の描画。
@@ -1930,12 +2136,12 @@ document.addEventListener('DOMContentLoaded', function(){
 
 		// ヒモのついた五円玉を回転させて描画する。
 		if(sai_coin_img.complete){
-			ctx.translate(qx - sai_coin_img.width * 0.5, qy - sai_coin_img.height * 0.75);
+			ctx.translate(qx - sai_coin_img.width * 0.5, qy - sai_coin_img.height * 0.7);
 
 			let angle = Math.PI * Math.sin(count2 * 0.1 - 0.05) * 0.078;
 			ctx.rotate(angle);
 
-			let ratio = SAI_screen_is_large(ctx) ? 1.4 : 1;
+			let ratio = 1;
 			ctx.drawImage(sai_coin_img, 0, 0, sai_coin_img.width * ratio, sai_coin_img.height * ratio);
 		}
 
@@ -1945,18 +2151,83 @@ document.addEventListener('DOMContentLoaded', function(){
 	// 映像「画6: 五円玉」の描画。
 	// pic6: 5-yen coin
 	const SAI_draw_pic_06 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
 		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
 		ctx2.save();
 		SAI_draw_pic_06_sub(ctx2, 0, 0, dx, dy);
 		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
 		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
 		ctx.globalAlpha = 1; // 元に戻す。
+
+		// コインの位置を計算する。
+		let count2 = SAI_get_tick_count();
+		let angle = Math.PI * Math.sin(count2 * 0.1 - 0.05) * 0.078;
+		let qx = px + dx / 2, qy = py + dy / 2;
+		qx -= sai_coin_img.width * 0.1;
+		qy -= sai_coin_img.height * 0.08;
+		let ratio = 1;
+		let wx = -sai_coin_img.width * ratio * Math.sin(angle) * 3.5;
+
+		// 必要ならフォーカス矢印を描画。
+		if(sai_id_checkbox_arrows.checked){
+			let rx = qx + wx;
+			ctx.fillStyle = 'yellow';
+			SAI_draw_arrow(ctx, rx, qy, rx, qy + sai_coin_img.height * 0.08, 14);
+			ctx.fillStyle = 'black';
+			SAI_draw_arrow(ctx, rx, qy, rx, qy + sai_coin_img.height * 0.08, 5);
+		}
+
+		// 当たり判定を行って、sai_touching_coinに結果を格納する。
+		sai_touching_coin = false;
+		if(sai_touch_position){
+			qx += wx;
+			qy += sai_coin_img.height * 0.2;
+			// (x0, y0)～(x1, y1)が当たり判定の対象。
+			let x0 = sai_touch_position[0] - sai_coin_img.width * 0.6;
+			let x1 = sai_touch_position[0] + sai_coin_img.width * 0.6;
+			let y0 = sai_touch_position[1] - sai_coin_img.width * 0.6;
+			let y1 = sai_touch_position[1] + sai_coin_img.width * 0.6;
+			// 画面分割があるので、当たり判定がややこしいことになります。
+			// ループを使って失敗したときのやり直しを行う。
+			for (let i = 0; i < 3; ++i){
+				if(false){ // デバッグ用。
+					ctx.fillStyle = 'black';
+					ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+					ctx.fillStyle = 'green';
+					ctx.fillRect(qx - 5, qy - 5, 10, 10);
+				}
+				if(x0 <= qx && qx <= x1 && y0 <= qy && qy <= y1){
+					sai_touching_coin = true; // 当たり判定あり。
+					break;
+				}
+				if(sai_screen_split == 1){ // 画面分割なし。
+					break;
+				}else{ // 画面２分割。
+					// 座標を補正してやり直し。
+					if(sai_screen_width >= sai_screen_height){ // 画面が横長。
+						if(i == 0){
+							qx += dx;
+						}else{
+							qx -= 2 * dx;
+						}
+					}else{ // 縦長。
+						if(i == 0){
+							qy += dy;
+						}else{
+							qy -= 2 * dy;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	// 映像「画7: 奇妙な渦巻き」の描画。
 	// pic7: Strange Swirl
-	const SAI_draw_pic_07 = function(ctx, px, py, dx, dy){
+	const SAI_draw_pic_07_sub = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -1983,6 +2254,8 @@ document.addEventListener('DOMContentLoaded', function(){
 			for(let theta = 0; theta <= 2 * Math.PI * 1.2; theta += 0.02){
 				let r = a * Math.exp(b * theta);
 				let t = delta_theta + Math.sqrt(Math.sqrt(r)) * Math.sin(theta - factor2) + factor1;
+				if (sai_id_select_vortex_direction.value == 'counterclockwise')
+					t = -t;
 				let comp = new Complex({abs:r, arg:t});
 				let x = comp.re, y = comp.im;
 				// 画面中央を原点とする。
@@ -2010,15 +2283,32 @@ document.addEventListener('DOMContentLoaded', function(){
 			even = !even;
 		}
 		ctx.closePath();
-		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.fillStyle = SAI_color_get_2nd(); // 2番目の色で塗りつぶす。
 		ctx.fill('evenodd');
 		ctx.rect(0, 0, dx, dy);
 		ctx.fillStyle = SAI_color_get_1st(); // 1番目の色で塗りつぶす。
 		ctx.fill('evenodd');
-		ctx.globalAlpha = 1; // 元に戻す。
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
+	}
+
+	// 映像「画7: 奇妙な渦巻き」の描画。
+	// pic7: Strange Swirl
+	const SAI_draw_pic_07 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
+		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
+		ctx2.save();
+		SAI_draw_pic_07_sub(ctx2, 0, 0, dx, dy);
+		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
+		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
+		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
+		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let qx = px + dx / 2, qy = py + dy / 2;
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
 	}
 
 	// 映像「画8: クレージーな色」の描画。
@@ -2043,13 +2333,8 @@ document.addEventListener('DOMContentLoaded', function(){
 		let count2 = SAI_get_tick_count();
 
 		// 画面中央を少しずらす。
-		if(SAI_screen_is_large(ctx)){
-			qx += 40 * Math.cos(count2 * 0.08);
-			qy += 40 * Math.sin(count2 * 0.08);
-		}else{
-			qx += 20 * Math.cos(count2 * 0.08);
-			qy += 20 * Math.sin(count2 * 0.08);
-		}
+		qx += dxy * 0.1 * Math.cos(count2 * 0.08);
+		qy += dxy * 0.1 * Math.sin(count2 * 0.08);
 
 		// 画面中央を原点とする。
 		ctx.translate(qx, qy);
@@ -2057,6 +2342,8 @@ document.addEventListener('DOMContentLoaded', function(){
 		// 座標計算用のヘルパー関数。
 		const rotation = 8, width = dxy * 0.1;
 		let calc_point = function(radius, radian){
+			if (sai_id_select_vortex_direction.value == 'counterclockwise')
+				radian = -radian;
 			return [radius * Math.cos(radian), radius * Math.sin(radian)];
 		}
 
@@ -2097,17 +2384,33 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像「画9: 対数らせん2」の描画。
-	// pic9: Logarithmic Spiral 2
-	const SAI_draw_pic_09 = function(ctx, px, py, dx, dy){
-		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
+	// 映像「画8: クレージーな色」の描画。
+	// pic8: Crazy Colors
+	const SAI_draw_pic_08 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
+		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
+		ctx2.save();
+		SAI_draw_pic_08_sub(ctx2, 0, 0, dx / 2, dy / 2);
+		ctx2.restore();
 
-		// 画面中央の座標を計算する。
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
+		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
+		ctx.drawImage(sai_id_canvas_02, 0, 0, dx / 2, dy / 2, px, py, dx, dy);
+		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
 		let qx = px + dx / 2, qy = py + dy / 2;
+		let count2 = SAI_get_tick_count();
+		let dxy = (dx + dy) / 2;
+		qx += dxy * 0.1 * Math.cos(count2 * 0.08);
+		qy += dxy * 0.1 * Math.sin(count2 * 0.08);
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
+	}
 
-		// 画面の寸法を使って計算する。
-		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
-		let mxy = (maxxy + minxy) * 0.015;
+	// 映像「画9: 対数らせん 2」の描画。
+	// pic9: Logarithmic Spiral 2
+	const SAI_draw_pic_09_sub = function(ctx, px, py, dx, dy){
+		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 長方形領域(px, py, dx, dy)をクリッピングする。
 		SAI_clip_rect(ctx, px, py, dx, dy);
@@ -2115,23 +2418,29 @@ document.addEventListener('DOMContentLoaded', function(){
 		// 映像の進行を表す変数。
 		let count2 = SAI_get_tick_count();
 
+		// 画面の寸法を使って計算する。
+		let qx = px + dx / 2, qy = py + dy / 2;
+		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
+		let mxy = (maxxy + minxy) * 0.015;
+
 		// 視覚的な酩酊感をもたらすために回転運動の中心点をすりこぎ運動させる。
 		qx += mxy * Math.cos(count2 * 0.1);
 		qy += mxy * Math.sin(count2 * 0.2);
 
 		// 発散する渦巻きを描画する。
-		let ci = 8; // これは偶数でなければならない。
+		let num_lines = 8; // これは偶数でなければならない。
 		let lines = [];
-		for(let i = 0; i < ci; ++i){
-			let delta_theta = 2 * Math.PI * i / ci;
+		for(let i = 0; i < num_lines; ++i){
+			let delta_theta = 2 * Math.PI * i / num_lines;
 			// 黄金らせんの公式に従って描画する。ただしtheta_deltaだけ偏角をずらす。
 			let a = 1, b = 0.3063489;
-			let line = [];
-			line.push([qx, qy]);
-			for(let theta = 0; theta <= 2 * Math.PI * 10; theta += 0.1){
+			let line = [[qx, qy]];
+			for(let theta = 0; theta <= 2 * Math.PI * 5; theta += 0.125){
 				let r = a * Math.exp(b * theta);
 				let t = theta + delta_theta;
 				t += -count2 * 0.23;
+				if (sai_id_select_vortex_direction.value == 'counterclockwise')
+					t = -t;
 				let comp = new Complex({abs:r, arg:t});
 				let x = comp.re, y = comp.im;
 				// 画面中央を原点とする。
@@ -2146,7 +2455,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		let even = true;
 		ctx.beginPath();
 		ctx.moveTo(qx, qx);
-		for(let i = 0; i < ci; ++i){
+		for(let i = 0; i < num_lines; ++i){
 			let line = lines[i];
 			if(even){ // 偶数回目はそのままの向き。
 				for(let k = 0; k < line.length; ++k)
@@ -2158,32 +2467,42 @@ document.addEventListener('DOMContentLoaded', function(){
 			even = !even;
 		}
 		ctx.closePath();
-		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.fillStyle = SAI_color_get_1st();
 		ctx.fill('evenodd');
 		ctx.rect(0, 0, dx, dy);
 		ctx.fillStyle = SAI_color_get_2nd();
 		ctx.fill('evenodd');
-		ctx.globalAlpha = 1; // 元に戻す。
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
-	// 映像「画8: クレージーな色」の描画。
-	// pic8: Crazy Colors
-	const SAI_draw_pic_08 = function(ctx, px, py, dx, dy){
+	// 映像「画9: 対数らせん 2」の描画。
+	// pic9: Logarithmic Spiral 2
+	const SAI_draw_pic_09 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
 		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
 		ctx2.save();
-		SAI_draw_pic_08_sub(ctx2, 0, 0, dx / 2, dy / 2);
+		SAI_draw_pic_09_sub(ctx2, 0, 0, dx, dy);
 		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
 		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
-		ctx.drawImage(sai_id_canvas_02, 0, 0, dx / 2, dy / 2, px, py, dx, dy);
+		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
 		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let count2 = SAI_get_tick_count();
+		let qx = px + dx / 2, qy = py + dy / 2;
+		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
+		let mxy = (maxxy + minxy) * 0.015;
+		qx += mxy * Math.cos(count2 * 0.1);
+		qy += mxy * Math.sin(count2 * 0.2);
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
 	}
 
 	// 映像「画10: アナログディスク」の描画。
 	// pic10: Analog Disc
-	const SAI_draw_pic_10 = function(ctx, px, py, dx, dy){
+	const SAI_draw_pic_10_sub = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -2213,14 +2532,33 @@ document.addEventListener('DOMContentLoaded', function(){
 			let ratio = 2.5 * maxxy / (sai_spiral_img.width + sai_spiral_img.height);
 			ctx.scale(ratio, ratio);
 
-			ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
-
 			ctx.drawImage(sai_spiral_img, x, y); // 渦巻きイメージを描画する。
-
-			ctx.globalAlpha = 1.0; // 透過効果を元に戻す。
 		}
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
+	}
+
+	// 映像「画10: アナログディスク」の描画。
+	// pic10: Analog Disc
+	const SAI_draw_pic_10 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
+		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
+		ctx2.save();
+		SAI_draw_pic_10_sub(ctx2, 0, 0, dx, dy);
+		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
+		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
+		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
+		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let qx = px + dx / 2, qy = py + dy / 2;
+		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
+		let count2 = SAI_get_tick_count();
+		let updown = minxy * Math.sin(count2 * 0.2) * 0.16;
+		qy += updown;
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
 	}
 
 	function SAI_flower_graph(x, radius){
@@ -2229,7 +2567,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 	// 映像「画11: 奇妙な渦巻き 2」の描画。
 	// pic11: Strange Swirl 2
-	const SAI_draw_pic_11 = function(ctx, px, py, dx, dy){
+	const SAI_draw_pic_11_sub = function(ctx, px, py, dx, dy){
 		ctx.save(); // 現在の座標系やクリッピングなどを保存する。
 
 		// 画面中央の座標を計算する。
@@ -2259,6 +2597,8 @@ document.addEventListener('DOMContentLoaded', function(){
 			for(let theta = 0; theta <= 2 * Math.PI * 1.2; theta += 0.02){
 				let r = a * Math.exp(b * theta);
 				let t = delta_theta + 2 * Math.sin(theta - factor2) + Math.sin(factor1) * Math.PI;
+				if (sai_id_select_vortex_direction.value == 'counterclockwise')
+					t = -t;
 				let comp = new Complex({abs:r, arg:t});
 				let x = comp.re, y = comp.im;
 				// 画面中央を原点とする。
@@ -2286,32 +2626,46 @@ document.addEventListener('DOMContentLoaded', function(){
 			even = !even;
 		}
 		ctx.closePath();
-		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.fillStyle = SAI_color_get_2nd(); // 2番目の色で塗りつぶす。
 		ctx.fill('evenodd');
 		ctx.rect(0, 0, dx, dy);
 		ctx.fillStyle = SAI_color_get_1st(); // 1番目の色で塗りつぶす。
 		ctx.fill('evenodd');
-		ctx.globalAlpha = 1; // 元に戻す。
 
 		ctx.restore(); // ctx.saveで保存した情報で元に戻す。
 	}
 
+	// 映像「画11: 奇妙な渦巻き 2」の描画。
+	// pic11: Strange Swirl 2
+	const SAI_draw_pic_11 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
+		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
+		ctx2.save();
+		SAI_draw_pic_11_sub(ctx2, 0, 0, dx, dy);
+		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
+		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
+		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
+		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let qx = px + dx / 2, qy = py + dy / 2;
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
+	}
+
 	// 万華鏡のソースの多角形を作成する。
-	const SAI_create_kaleido_polygon = function(radius){
+	const SAI_create_kaleido_polygon = function(counter, x, y, radius){
 		const ROTATE2 = true;
-		let counter = SAI_get_tick_count_2() * 2;
-		return Kaleido_regular_polygon(3, {x:0, y:0}, radius, ROTATE2 ? counter * 0.0005 : -Math.PI / 2);
+		return Kaleido_regular_polygon(3, {x:x, y:y}, radius, counter * 0.003);
 	}
 
 	// 円を描画する。
-	const SAI_draw_circle_3 = function(ctx, radius, center, velocity, fillStyle){
-		let counter = SAI_get_tick_count_2();
-		let px = sai_kaleido_radius * Math.cos(counter * velocity.x * 0.0003) * 0.3;
-		let py = sai_kaleido_radius * Math.sin(counter * velocity.y * 0.0003) * 0.3;
-		let radius2 = radius * (3 + Math.sin(counter * 0.001 + (velocity.x + velocity.y) % Math.PI));
-		radius2 *= sai_kaleido_radius / 1000;
-		radius2 += 20;
+	const SAI_draw_circle_3 = function(ctx, counter, radius, center, velocity, fillStyle){
+		velocity *= 0.1;
+		let px = radius * Math.cos(counter * velocity) * 0.7;
+		let py = radius * Math.sin(counter * velocity) * 0.7;
+		let radius2 = radius * 0.75;
 		if(false){
 			SAI_draw_circle_2(ctx, px, py, radius2);
 		}else{
@@ -2327,27 +2681,40 @@ document.addEventListener('DOMContentLoaded', function(){
 		ctx.save();
 
 		// 映像の進行をつかさどる変数。
-		let counter = SAI_get_tick_count_2();
+		let counter = SAI_get_tick_count_2() * 0.02;
 
 		// 背景を塗りつぶす。
-		ctx.fillStyle = `hsl(${(counter * 0.1 + 0.2) % 360}deg, 40%, 50%)`;
+		ctx.fillStyle = `hsl(${(counter * 10) % 360}deg, 80%, 50%)`;
 		ctx.fillRect(px, py, dx, dy);
 
 		// 中心を原点とする。
 		let cx = px + dx / 2, cy = py + dy / 2;
 		ctx.translate(cx, cy);
 
+		// 画面の寸法を使って計算する。
+		let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
+		let avgxy = (maxxy + minxy) / 2;
+
+		// 画面が大きければ速くする。
+		counter *= minxy * 0.0015;
+
+		// 半径を振動させる。
+		let r = sai_kaleido_radius * (0.8 + 0.4 * Math.sin(counter * 0.01));
+
+		// 回転する。
+		ctx.rotate(counter * 0.1);
+
 		// 格子状の模様を描画する。
 		const GRIDS = true;
 		if(GRIDS){
-			ctx.lineWidth = 3;
-			ctx.strokeStyle = SAI_color_get_1st();
+			ctx.lineWidth = avgxy * 0.02;
+			ctx.strokeStyle = "rgba(255, 0, 0, 75%)";
 			let factor = Math.abs(Math.sin(counter * 0.003) + 3);
 			const ROTATE1 = true;
 			if(ROTATE1){
 				ctx.rotate((counter * 0.0002 % 1) * 2 * Math.PI);
 			}
-			const dxy = Math.min(dx, dy) * 0.2;
+			const dxy = avgxy * 0.2;
 			ctx.fillStyle = "pink";
 			for(let y = factor; y < dxy; y += 10 * factor){
 				SAI_draw_line_2(ctx, -dx / 2, y, +dx / 2, y, 5);
@@ -2360,7 +2727,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		}
 
 		// ポリゴンを構築する。
-		let polygon = SAI_create_kaleido_polygon(sai_kaleido_radius);
+		let polygon = SAI_create_kaleido_polygon(counter, 0, 0, r);
 		if(true){
 			// ポリゴンを描画する。
 			Kaleido_draw_polygon(ctx, polygon);
@@ -2370,15 +2737,20 @@ document.addEventListener('DOMContentLoaded', function(){
 		// 泡を描画する。
 		const BUBBLES = true;
 		if(BUBBLES){
-			const s = Math.min(ctx.canvas.width, ctx.canvas.height);
-			const color1 = `hsla(${(counter * 0.15 + 2) % 360}deg, 100%, 50%, 60%)`;
-			const color2 = `hsla(${(counter * 0.2 + 0.5) % 360}deg, 100%, 50%, 40%)`;
-			const color3 = `hsla(${(counter * 0.1333 + 1) % 360}deg, 100%, 50%, 60%)`;
-			const color4 = `hsla(${(counter * 0.3 + 2.3) % 360}deg, 100%, 50%, 40%)`;
-			SAI_draw_circle_3(ctx, s * 2 / 24, { x: s * 0.125 * 1, y: s * 0.125 * 5 }, { x: 0.01 * s, y: 0.02 * s }, color1);
-			SAI_draw_circle_3(ctx, s * 3 / 24, { x: s * 0.125 * 4, y: s * 0.125 * 2 }, { x: 0.02 * s, y: 0.01 * s }, color2);
-			SAI_draw_circle_3(ctx, s * 1 / 24, { x: s * 0.125 * 5, y: s * 0.125 * 5 }, { x: -0.02 * s, y: 0.02 * s }, color3);
-			SAI_draw_circle_3(ctx, s * 1.5 / 20, { x: s * 0.125 * 3, y: s * 0.125 * 7 }, { x: -0.015 * s, y: 0.03 * s }, color4);
+			const s = r;
+			const color1 = `hsla(${(counter * 15 + 2) % 360}deg, 100%, 50%, 60%)`;
+			const color2 = `hsla(${(counter * 12 + 0.5) % 360}deg, 100%, 50%, 40%)`;
+			const color3 = `hsla(${(counter * 11 + 1) % 360}deg, 100%, 50%, 60%)`;
+			const color4 = `hsla(${(counter * 33 + 2.3) % 360}deg, 100%, 50%, 40%)`;
+			const color5 = `hsla(${(counter * 14) % 360}deg, 0%, 100%, 30%)`;
+			const color6 = `hsla(360deg, 100%, 0%, 60%)`;
+			SAI_draw_circle_3(ctx, counter, s * 0.2, { x: s * 0.125 * 1, y: s * 0.125 * 5 }, 4, color1);
+			SAI_draw_circle_3(ctx, counter, s * 0.3, { x: s * 0.125 * 4, y: s * 0.125 * 2 }, 3, color2);
+			SAI_draw_circle_3(ctx, -counter, s * 0.1, { x: s * 0.125 * 5, y: s * 0.125 * 5 }, 5, color3);
+			SAI_draw_circle_3(ctx, counter, s * 0.2, { x: s * 0.125 * 3, y: s * 0.125 * 7 }, 7, color4);
+			SAI_draw_circle_3(ctx, -counter, s * 0.4, { x: s * 0.125 * 1, y: s * 0.125 * 2 }, 2, color3);
+			SAI_draw_circle_3(ctx, counter, s * 0.1, { x: s * 0.120 * 2, y: s * 0.1 * 1 }, 1, color5);
+			SAI_draw_circle_3(ctx, -counter, s * 0.3, { x: s * 0.120 * 2, y: s * 0.1 * 1 }, 5, color6);
 		}
 
 		ctx.restore();
@@ -2393,7 +2765,7 @@ document.addEventListener('DOMContentLoaded', function(){
 			// 万華鏡のソースを描画する。
 			draw_kaleido_source(ctx, px, py, dx, dy);
 		}else{
-			// 1番目の色で長方形領域を塗りつぶす。
+			// 黒色で長方形領域を塗りつぶす。
 			ctx.fillStyle = 'black';
 			ctx.fillRect(px, py, dx, dy);
 
@@ -2405,8 +2777,17 @@ document.addEventListener('DOMContentLoaded', function(){
 			// 中点を原点とする。
 			ctx1.translate(dx / 2, dy / 2);
 
+			// 画面の寸法を使って計算する。
+			let maxxy = Math.max(dx, dy), minxy = Math.min(dx, dy);
+
+			// 映像の進行をつかさどる変数。
+			let counter = SAI_get_tick_count_2() * 0.35;
+
+			// 半径を振動させる。
+			let r = sai_kaleido_radius * (0.7 + 0.25 * Math.sin(counter * 0.0052));
+
 			// 万華鏡のキャンバスを作成し、万華鏡を描画する。
-			let polygon = SAI_create_kaleido_polygon(sai_kaleido_radius);
+			let polygon = SAI_create_kaleido_polygon(counter, 0, 0, r);
 			sai_kaleido_canvas_2 =
 				Kaleido_create_drawn_canvas(sai_kaleido_canvas_2,
 					sai_kaleido_radius, dx, dy, ctx1, polygon);
@@ -2419,13 +2800,20 @@ document.addEventListener('DOMContentLoaded', function(){
 	// 映像「画12: 万華鏡」の描画。
 	// pic12: Kaleidoscope
 	const SAI_draw_pic_12 = function(ctx, px, py, dx, dy){
+		// 別のキャンバスに普通に描画する。
 		let ctx2 = sai_id_canvas_02.getContext('2d', { alpha: false });
 		ctx2.save();
 		SAI_draw_pic_12_sub(ctx2, 0, 0, dx, dy);
 		ctx2.restore();
+
+		// 透明度を適用したイメージを転送する。これでモーションブラーが適用される。
 		ctx.globalAlpha = 1 - sai_id_range_motion_blur.value * 0.1; // モーションブラーを掛ける。
 		ctx.drawImage(sai_id_canvas_02, 0, 0, dx, dy, px, py, dx, dy);
 		ctx.globalAlpha = 1; // 元に戻す。
+
+		// フォーカス矢印を描画する。
+		let qx = px + dx / 2, qy = py + dy / 2;
+		SAI_draw_focus_arrows(ctx, qx, qy, dx, dy);
 	}
 
 	// 映像「画13: 1番目の色の画面」の描画。
@@ -2711,25 +3099,6 @@ document.addEventListener('DOMContentLoaded', function(){
 		if(sai_screen_split == 1){ // 画面分割なし。
 			SAI_draw_pic_with_effects(ctx, 0, 0, dx, dy);
 			SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx, dy, sai_counter);
-		}else if(sai_screen_split == -1){ // 画面分割自動。
-			if(dx >= dy * 1.75){ // 充分に横長。
-				SAI_draw_pic_with_effects(ctx, 0, 0, dx / 2, dy);
-				//SAI_draw_pic_with_effects(ctx, dx / 2, 0, dx / 2, dy); // drawImageで描画時間を節約。
-				ctx.drawImage(the_canvas, 0, 0, dx / 2, dy, dx / 2, 0, dx / 2, dy);
-				SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx / 2, dy, sai_counter);
-				SAI_message_set_position(sai_id_text_floating_2, dx / 2, 0, dx / 2, dy, sai_counter);
-				splitted = true; // 画面分割した。
-			}else if(dy >= dx * 1.75){ // 充分に縦長。
-				SAI_draw_pic_with_effects(ctx, 0, 0, dx, dy / 2);
-				//SAI_draw_pic_with_effects(ctx, 0, dy / 2, dx, dy / 2); // drawImageで描画時間を節約。
-				ctx.drawImage(the_canvas, 0, 0, dx, dy / 2, 0, dy / 2, dx, dy / 2);
-				SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx, dy / 2, sai_counter);
-				SAI_message_set_position(sai_id_text_floating_2, 0, dy / 2, dx, dy / 2, sai_counter);
-				splitted = true; // 画面分割した。
-			}else{ // それ以外は分割しない。
-				SAI_draw_pic_with_effects(ctx, 0, 0, dx, dy);
-				SAI_message_set_position(sai_id_text_floating_1, 0, 0, dx, dy, sai_counter);
-			}
 		}else{ // 画面２分割。
 			if(dx >= dy){ // 横長。
 				SAI_draw_pic_with_effects(ctx, 0, 0, dx / 2, dy);
@@ -2804,7 +3173,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		let diff_time = (new_time - sai_old_time) / 1000.0;
 		if(sai_rotation_type == 'counter')
 			diff_time = -diff_time;
-		if(sai_stopping && !drawing_config)
+		if((sai_stopping && !drawing_config) || (sai_pic_type == 6 && sai_touching_coin))
 			diff_time = 0;
 		sai_counter += diff_time * sai_speed;
 		sai_old_time = new_time;
@@ -2866,6 +3235,14 @@ document.addEventListener('DOMContentLoaded', function(){
 			SAI_set_count_down(saiminCountDown);
 		}
 
+		// ローカルストレージに矢印表示の設定があれば読み込む。
+		let saiminShowArrows = localStorage.getItem('saiminShowArrows');
+		if(saiminShowArrows){
+			SAI_set_arrows(saiminShowArrows);
+		} else {
+			SAI_set_arrows(true);
+		}
+
 		// ローカルストレージに音声の名前があれば読み込む。
 		let saiminSoundName = localStorage.getItem('saiminSoundName');
 		if(saiminSoundName){
@@ -2890,11 +3267,12 @@ document.addEventListener('DOMContentLoaded', function(){
 			SAI_message_set_voice_volume(100);
 		}
 
+		// ローカルストレージにモーションブラーの設定があれば読み込む。
 		let saiminMotionBlur = localStorage.getItem('saiminMotionBlur');
 		if(saiminMotionBlur){
 			SAI_set_motion_blur(saiminMotionBlur);
 		}else{
-			SAI_set_motion_blur(6);
+			SAI_set_motion_blur(5);
 		}
 
 		// ローカルストレージに映像切り替えの種類があれば読み込む。
@@ -2941,6 +3319,14 @@ document.addEventListener('DOMContentLoaded', function(){
 			SAI_screen_set_brightness(saiminScreenBrightness);
 		}else{
 			SAI_screen_set_brightness('normal');
+		}
+
+		// ローカルストレージに渦の向きがあれば読み込む。
+		let saiminVortexDirection = localStorage.getItem('saiminVortexDirection');
+		if(saiminVortexDirection){
+			SAI_set_vortex_direction(saiminVortexDirection);
+		}else{
+			SAI_set_vortex_direction('clockwise');
 		}
 
 		// ローカルストレージにスピーチがあれば読み込む。
@@ -3114,7 +3500,8 @@ document.addEventListener('DOMContentLoaded', function(){
 		console.log(`innerWidth:${window.innerWidth}, innerHeight:${window.innerHeight}`);
 		sai_screen_width = window.innerWidth;
 		sai_screen_height = window.innerHeight;
-		sai_kaleido_radius = Math.min(window.innerWidth, window.innerHeight) * 0.2;
+		// 万華鏡の半径。
+		sai_kaleido_radius = (sai_screen_width + sai_screen_height) * 0.1;
 	}
 
 	// イベントリスナー群を登録する。
@@ -3287,6 +3674,11 @@ document.addEventListener('DOMContentLoaded', function(){
 			SAI_screen_set_brightness(sai_id_select_brightness.value, true);
 		}, false);
 
+		// 渦の向き選択。
+		sai_id_select_vortex_direction.addEventListener('change', function(){
+			SAI_set_vortex_direction(sai_id_select_vortex_direction.value);
+		}, false);
+
 		// 音声選択。
 		sai_id_select_sound.addEventListener('change', function(){
 			SAI_sound_set_name(sai_id_select_sound.value);
@@ -3342,6 +3734,14 @@ document.addEventListener('DOMContentLoaded', function(){
 			SAI_set_count_down(sai_id_checkbox_count_down.checked);
 		}, false);
 
+		// 矢印表示のチェックボックス。
+		sai_id_checkbox_arrows.addEventListener('change', function(e){
+			SAI_set_arrows(sai_id_checkbox_arrows.checked);
+		}, false);
+		sai_id_checkbox_arrows.addEventListener('click', function(e){
+			SAI_set_arrows(sai_id_checkbox_arrows.checked);
+		}, false);
+
 		// 映像スピードの選択。
 		sai_id_range_speed_type.addEventListener('input', function(){
 			SAI_speed_set_type(sai_id_range_speed_type.value);
@@ -3378,31 +3778,62 @@ document.addEventListener('DOMContentLoaded', function(){
 
 		// キャンバスのクリック。
 		sai_id_canvas_01.addEventListener('click', function(e){
-			SAI_canvas_click(e);
+			if(!sai_not_click && sai_touch_time && ((new Date()).getTime() - sai_touch_time) < 500)
+				SAI_canvas_click(e);
+			sai_not_click = false;
+			sai_touch_position = null;
 		}, false);
 
 		// キャンバスでマウス移動。
 		sai_id_canvas_01.addEventListener('mousemove', function(e){
 			SAI_star_add(e.clientX, e.clientY);
+			if(sai_touchmoving){
+				sai_touch_position = [e.clientX, e.clientY];
+				sai_not_click = true;
+			}
+		}, false);
+
+		// キャンバスでマウスボタンが押された。
+		sai_id_canvas_01.addEventListener('mousedown', function(e){
+			sai_touchmoving = true;
+			sai_not_click = false;
+			sai_touch_position = [e.clientX, e.clientY];
+			sai_touch_time = new Date().getTime();
+		}, false);
+		// キャンバスでマウスボタンが離された。
+		sai_id_canvas_01.addEventListener('mouseup', function(e){
+			sai_touchmoving = false;
+			sai_touch_position = null;
+			sai_not_click = false;
 		}, false);
 
 		// キャンバスでタッチ操作。きらめきを表示。
 		sai_id_canvas_01.addEventListener('touchstart', function(e){
 			sai_touchmoving = true;
+			sai_touch_time = new Date().getTime();
+			let touches = e.touches;
+			if(touches && touches.length == 1){
+				sai_touch_position = [touches[0].clientX, touches[0].clientY];
+			}
 		}, {passive: true});
 		sai_id_canvas_01.addEventListener('touchmove', function(e){
 			if(sai_touchmoving){
 				let touches = e.touches;
 				if(touches && touches.length == 1){
 					SAI_star_add(touches[0].clientX, touches[0].clientY);
+					sai_touch_position = [touches[0].clientX, touches[0].clientY];
+				}else{
+					sai_touch_position = null;
 				}
 			}
 		}, {passive: true});
 		sai_id_canvas_01.addEventListener('touchend', function(e){
 			sai_touchmoving = false;
+			sai_touch_position = null;
 		}, {passive: true});
 		sai_id_canvas_01.addEventListener('touchcancel', function(e){
 			sai_touchmoving = false;
+			sai_touch_position = null;
 		}, {passive: true});
 
 		// キャンバスでマウスホイール回転。
@@ -3591,27 +4022,37 @@ document.addEventListener('DOMContentLoaded', function(){
 				sai_id_canvas_preview.classList.add('sai_class_invisible');
 		});
 
-		// 顔認識のページ。
+		// 顔認識のページに移動するボタン。
 		sai_id_button_target.addEventListener('click', function(e){
 			localStorage.setItem('saiminFaceGetterShowing', "1");
 			SAI_choose_page(sai_id_page_face_getter);
 		});
+
+		// 顔認識のページをクリックしたら発火。
 		sai_id_canvas_face.addEventListener('click', function(e){
 			if(sai_face_getter)
 				sai_face_getter.on_click(e);
 		});
+
+		// 顔認識のページの「ロックオン」ボタン。
 		sai_id_button_lock_on.addEventListener('click', function(e){
 			if(sai_face_getter)
 				sai_face_getter.lock_unlock();
 		});
+
+		// 顔認識のページの「カメラの向き」ボタン。
 		sai_id_button_side.addEventListener('click', function(){
 			if(sai_face_getter)
 				sai_face_getter.set_side();
 		});
+
+		// 顔認識のページの「戻る」ボタン。
 		sai_id_button_face_getter_back.addEventListener('click', function(){
 			localStorage.removeItem('saiminFaceGetterShowing');
 			SAI_choose_page(sai_id_page_main);
 		});
+
+		// 顔認識のページの「閉じる」ボタン。
 		sai_id_button_close.addEventListener('click', function(){
 			localStorage.removeItem('saiminFaceGetterShowing');
 			SAI_choose_page(sai_id_page_main);
@@ -3667,8 +4108,6 @@ document.addEventListener('DOMContentLoaded', function(){
 			if(e.key == 'd' || e.key == 'D'){ // Division (screen split)
 				if(sai_screen_split == 1){
 					SAI_screen_set_split(2);
-				}else if(sai_screen_split == 2){
-					SAI_screen_set_split(1);
 				}else{
 					SAI_screen_set_split(1);
 				}
@@ -3745,6 +4184,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		// ツールボタンは、sai_class_tool_buttonクラスを持つ要素。
 		let tool_buttons = document.getElementsByClassName('sai_class_tool_button');
 
+		// sai_class_invisibleクラスを除去または追加することで、コントロールボタンの表示を切り替える。
 		if(show){
 			for(let control of main_controls){
 				control.classList.remove('sai_class_invisible');
@@ -3778,7 +4218,14 @@ document.addEventListener('DOMContentLoaded', function(){
 		sai_coin_img.src = 'img/coin5yen.png';
 
 		// スパイラルの画像も更新。
-		sai_spiral_img.src = "img/spiral.svg";
+		if (sai_id_select_vortex_direction.value == 'counterclockwise')
+			sai_spiral_img.src = 'img/spiral2.svg';
+		else
+			sai_spiral_img.src = 'img/spiral.svg';
+
+		// 両目の画像を読み込む。
+		sai_eye_left_img.src = 'img/eye-left.svg'
+		sai_eye_right_img.src = 'img/eye-right.svg'
 
 		// 設定をローカルストレージから読み込む。
 		SAI_load_local_storage();
